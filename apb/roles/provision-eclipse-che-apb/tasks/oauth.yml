@@ -1,0 +1,40 @@
+---
+- name: "Generate Identity Provider Secret"
+  set_fact:
+    identity_provider_client_secret: "{{ lookup('password','/tmp/identity_provider_client_secret chars=ascii_letters,digits length=13') }}"
+
+- name: "Generate keycloak auth token"
+  uri:
+    url: "{{ keycloak_uri | default(external_keycloak_uri) }}/auth/realms/master/protocol/openid-connect/token"
+    method: POST
+    body: "client_id=admin-cli&username={{ che_keycloak_admin_username }}&password={{ che_keycloak_admin_password }}&grant_type=password"
+    validate_certs: no
+  register: keycloak_auth_response
+  until: keycloak_auth_response.status == 200
+  retries: 100
+  delay: 2
+
+- name: "Register OpenShift V3 Identity Provider"
+  uri:
+    url: "{{ keycloak_uri | default(external_keycloak_uri) }}/auth/admin/realms/{{ che_keycloak_realm }}/identity-provider/instances"
+    method: POST
+    body: "{{ lookup('template', 'openshift-identity-provider.json.j2') }}"
+    validate_certs: no
+    body_format: json
+    headers:
+      Authorization: "bearer {{ keycloak_auth_response.json.access_token }}"
+    status_code: 201
+
+- name: "Create oAuth client at a cluster scope"
+  openshift_raw:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: OAuthClient
+      metadata:
+        name: "openshift-oauth-client"
+        namespace: "{{ namespace }}"
+      secret: "{{ identity_provider_client_secret }}"
+      redirectURIs:
+        - "{{ keycloak_uri | default(external_keycloak_uri) }}/auth/realms/{{ che_keycloak_realm }}/broker/openshift-v3/endpoint"
+      grantMethod: prompt

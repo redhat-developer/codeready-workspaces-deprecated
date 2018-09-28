@@ -1,0 +1,9 @@
+---
+playbook_debug: no
+
+# Non global constants
+keycloak_image_name: registry.access.redhat.com/redhat-sso-7/sso72-openshift
+keycloak_image_tag: 1.2-8
+postgres_image: registry.access.redhat.com/rhscl/postgresql-96-rhel7
+postgres_image_tag: '1-25'
+database_name: '{{ namespace }}'

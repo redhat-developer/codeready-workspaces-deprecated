@@ -1,0 +1,39 @@
+---
+- name: Provision realm and user
+  set_fact:
+    web_origins: "{{ protocol  | default('http') }}://{{ route_host }}"
+    redirect_uris: "{{ protocol  | default('http') }}://{{ route_host }}/*"
+
+- name: "Generate keycloak auth token"
+  uri:
+    url: "{{ keycloak_uri | default(external_keycloak_uri) }}/auth/realms/master/protocol/openid-connect/token"
+    method: POST
+    body: "client_id=admin-cli&username={{ che_keycloak_admin_username }}&password={{ che_keycloak_admin_password }}&grant_type=password"
+    validate_certs: no
+  register: keycloak_auth_response
+  until: keycloak_auth_response.status == 200
+  retries: 100
+  delay: 2
+
+- name: "Create realm {{ che_keycloak_realm }} and client {{ che_keycloak_client__id }}"
+  uri:
+    url: "{{ keycloak_uri | default(external_keycloak_uri) }}/auth/admin/realms/"
+    method: POST
+    body: "{{ lookup('template', 'che-realm.json.j2') }}"
+    validate_certs: no
+    body_format: json
+    headers:
+      Authorization: "bearer {{ keycloak_auth_response.json.access_token }}"
+    status_code: 201
+
+
+- name: "Create users in realm {{ che_keycloak_realm }}"
+  uri:
+    url: "{{ keycloak_uri | default(external_keycloak_uri) }}/auth/admin/realms/{{ che_keycloak_realm }}/users"
+    method: POST
+    body: "{{ lookup('template', 'che-users-0.json.j2') }}"
+    validate_certs: no
+    body_format: json
+    headers:
+      Authorization: "bearer {{ keycloak_auth_response.json.access_token }}"
+    status_code: 201

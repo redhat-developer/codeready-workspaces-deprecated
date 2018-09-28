@@ -1,0 +1,24 @@
+---
+- name: "Create temporary keycloak directory"
+  file:
+    path: /tmp/keycloak
+    state: directory
+
+- include_role:
+    name: keycloak-apb/provision-keycloak-apb
+    tasks_from: deploy-keycloak.yml
+  vars:
+    application_name: rh-sso
+    admin_username:  "{{ che_keycloak_admin_username }}"
+    admin_password: "{{ che_keycloak_admin_password }}"
+    postgres_name: "postgres"
+
+- include_role:
+    name: keycloak-apb/set-keycloak-uri
+  vars:
+    application_name: rh-sso
+    admin_username:  "{{ che_keycloak_admin_username }}"
+    admin_password: "{{ che_keycloak_admin_password }}"
+    when:
+      - keycloak_uri is not defined
+      - keycloak_uri = ""

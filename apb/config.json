@@ -1,0 +1,22 @@
+{
+   "che_image_name": "${SERVER_IMAGE_NAME}",
+   "che_image_tag": "${SERVER_IMAGE_TAG}",
+   "che_secure_routes": false,
+   "che_external_db": false,
+   "che_jdbc_db_host": "postgres",
+   "che_jdbc_db_port": "5432",
+   "che_jdbc_db_name": "dbcodeready",
+   "che_jdbc_username": "pgcodeready",
+   "che_jdbc_password": "pgcodereadypassword",
+   "external_keycloak": false,
+   "external_keycloak_uri":"",
+   "keycloak_provision_realm_user": true,
+   "che_keycloak_admin_username": "admin",
+   "che_keycloak_admin_password": "admin",
+   "namespace": "${OPENSHIFT_PROJECT}",
+   "che_keycloak_realm": "codeready",
+   "che_keycloak_client__id": "codeready-public",
+   "use_self_signed_cert": false,
+   "enable_openshift_oauth": "${ENABLE_OPENSHIFT_OAUTH}",
+   "openshift_api_uri": "${OPENSHIFT_API_URI}"
+}

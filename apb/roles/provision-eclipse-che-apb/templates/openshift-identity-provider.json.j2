@@ -1,0 +1,22 @@
+{
+  "alias": "openshift-v3",
+  "internalId": "efb6d53e-fbd8-4716-a884-1d9d94152ca3",
+  "providerId": "openshift-v3",
+  "enabled": true,
+  "updateProfileFirstLoginMode": "on",
+  "trustEmail": false,
+  "storeToken": true,
+  "addReadTokenRoleOnCreate": true,
+  "authenticateByDefault": false,
+  "linkOnly": false,
+  "firstBrokerLoginFlowAlias": "first broker login",
+  "config": {
+    "hideOnLoginPage": "",
+    "baseUrl": "{{ openshift_api_uri }}",
+    "clientId": "openshift-oauth-client",
+    "disableUserInfo": "",
+    "clientSecret": "{{ identity_provider_client_secret }}",
+    "defaultScope":"user:full",
+    "useJwksUrl": "true"
+  }
+}

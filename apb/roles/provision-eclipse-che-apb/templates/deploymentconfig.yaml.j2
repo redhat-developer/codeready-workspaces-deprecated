@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: {{ application_name }}
+  name: {{ application_name }}
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    app: {{ application_name }}
+  strategy:
+    type: {{ che_server_deployment_strategy }}
+{% if che_server_deployment_strategy == 'Recreate' %}
+    recreateParams:
+      timeoutSeconds: 10000
+{% endif %}
+  template:
+    metadata:
+      labels:
+        app: {{ application_name }}
+    spec:
+      containers:
+      - name: {{ application_name }}
+        env:
+        - name: OPENSHIFT_IDENTITY_PROVIDER_CERTIFICATE
+          valueFrom:
+            secretKeyRef:
+              key: ca.crt
+              name: self-signed-cert
+              optional: true
+        envFrom:
+        - configMapRef:
+            name: che
+        image: {{ che_image_name }}:{{ che_image_tag }}
+        imagePullPolicy: "{{ che_server_image_pull_policy }}"
+        livenessProbe:
+          httpGet:
+            path: /api/system/state
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 50
+          failureThreshold: 3
+          timeoutSeconds: 2
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        - containerPort: 8000
+          name: http-debug
+        - containerPort: 8888
+          name: jgroups-ping
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /api/system/state
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 25
+          timeoutSeconds: 5
+          failureThreshold: 5
+        resources:
+          limits:
+            memory: 750Mi
+          requests:
+            memory: 256Mi
+      restartPolicy: Always
+      serviceAccountName: "che"
+      terminationGracePeriodSeconds: 50
+  triggers:
+  - type: ConfigChange
