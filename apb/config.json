@@ -17,6 +17,6 @@
    "che_keycloak_realm": "codeready",
    "che_keycloak_client__id": "codeready-public",
    "use_self_signed_cert": false,
-   "enable_openshift_oauth": "${ENABLE_OPENSHIFT_OAUTH}",
+   "enable_openshift_oauth": ${ENABLE_OPENSHIFT_OAUTH},
    "openshift_api_uri": "${OPENSHIFT_API_URI}"
 }
