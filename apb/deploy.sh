@@ -7,8 +7,8 @@ How to use this script:
 -c=,    --cert=           | absolute path to a self signed cert OpenShift Console uses
 -oauth, --enable-oauth    | enable Login in with OpenShift
 -i,     --interactive     | interactive mode
--image, --installer-image | installer image, defaults to "172.30.1.1:5000/openshift/code-ready-apb"
---server-image=   | server image, defaults to eclipse/che-server:nighly. Tag is MANDATORY
+--apb-image=              | installer image, defaults to "172.30.1.1:5000/openshift/code-ready-apb"
+--server-image=           | server image, defaults to eclipse/che-server:nighly. Tag is MANDATORY
 -f,     --fast            | fast deployment with envs from config.json
 "
 
@@ -35,7 +35,7 @@ do
       OPENSHIFT_PROJECT="${key#*=}"
       shift
       ;;
-    -image=*| --installer-image=*)
+    --apb-image=*)
       APB_IMAGE="${key#*=}"
       shift
       ;;
@@ -128,23 +128,32 @@ printError() {
 
 preReqs() {
   printInfo "Welcome to Code Ready Workspaces Installer"
-  command -v oc >/dev/null 2>&1 || { printError "Command line tool oc (https://docs.openshift.org/latest/cli_reference/get_started_cli.html) not found. Download oc and add it to your \$PATH."; exit 1; }
+  if [ -x "$(command -v oc)" ]; then
+    printInfo "Found oc client in PATH"
+    export OC_BINARY="oc"
+  elif [[ -f "/tmp/oc" ]]; then
+    printInfo "Using oc client from a tmp location"
+    export OC_BINARY="/tmp/oc"
+  else
+    printError "Command line tool ${OC_BINARY} (https://docs.openshift.org/latest/cli_reference/get_started_cli.html) not found. Download oc client and add it to your \$PATH."
+    exit 1
+  fi
 }
 
-# check if oc client has an active session
+# check if ${OC_BINARY} client has an active session
 isLoggedIn() {
   printInfo "Checking if you are currently logged in..."
-  oc whoami -t > /dev/null
+  ${OC_BINARY} whoami -t > /dev/null
   OUT=$?
   if [ ${OUT} -ne 0 ]; then
-    printError "Log in to your OpenShift cluster: oc login --server=yourServer. Do not use system:admin login"
+    printError "Log in to your OpenShift cluster: ${OC_BINARY} login --server=yourServer. Do not use system:admin login"
     exit 1
   else
-    OC_TOKEN=$(oc whoami -t)
-    CONTEXT=$(oc whoami -c)
+    OC_TOKEN=$(${OC_BINARY} whoami -t)
+    CONTEXT=$(${OC_BINARY} whoami -c)
     printInfo "Active session found. Your current context is: ${CONTEXT}"
     if [ ${ENABLE_OPENSHIFT_OAUTH} = true ] ; then
-      oc get oauthclients > /dev/null 2>&1
+      ${OC_BINARY} get oauthclients > /dev/null 2>&1
       OUT=$?
       if [ ${OUT} -ne 0 ]; then
         printError "You have enabled OpenShift oAuth for your installation but this feature requires cluster-admin priviliges. Login in as user with cluster-admin role"
@@ -158,7 +167,7 @@ createNewProject() {
   printInfo "Creating namespace \"${OPENSHIFT_PROJECT}\""
   # sometimes even if the project does not exist creating a new one is impossible as it apparently exists
   sleep 1
-  oc new-project "${OPENSHIFT_PROJECT}" > /dev/null
+  ${OC_BINARY} new-project "${OPENSHIFT_PROJECT}" > /dev/null
   OUT=$?
   if [ ${OUT} -eq 1 ]; then
     printError "Failed to create namespace ${OPENSHIFT_PROJECT}. It may exist in someone else's account or namespace deletion has not been fully completed. Try again in a short while or pick a different project name -p=myProject"
@@ -170,10 +179,10 @@ createNewProject() {
 
 createServiceAccount() {
   printInfo "Creating installer service account"
-  oc create sa codeready-apb -n=${OPENSHIFT_PROJECT}
+  ${OC_BINARY} create sa codeready-apb -n=${OPENSHIFT_PROJECT}
   if [ ${ENABLE_OPENSHIFT_OAUTH} = true ] ; then
     printInfo "You have chosen an option to enable Login With OpenShift. Granting cluster-admin priviliges for apb service account"
-    oc adm policy add-cluster-role-to-user cluster-admin -z codeready-apb
+    ${OC_BINARY} adm policy add-cluster-role-to-user cluster-admin -z codeready-apb
     OUT=$?
     if [ ${OUT} -ne 0 ]; then
       printError "Failed to grant cluster-admin role to abp service account"
@@ -185,7 +194,7 @@ createServiceAccount() {
 createCertSecret(){
   if [ ! -z "${PATH_TO_SELF_SIGNED_CERT}" ]; then
     printInfo "You have provided a path to a self-signed certificate. Creating a secret..."
-    oc create secret generic self-signed-cert --from-file=${PATH_TO_SELF_SIGNED_CERT} -n=${OPENSHIFT_PROJECT}
+    ${OC_BINARY} create secret generic self-signed-cert --from-file=${PATH_TO_SELF_SIGNED_CERT} -n=${OPENSHIFT_PROJECT}
     OUT=$?
       if [ ${OUT} -ne 0 ]; then
         printError "Failed to create a secret"
@@ -208,7 +217,7 @@ if [ "${FAST}" = true ] ; then
                                             sed "s@\${ENABLE_OPENSHIFT_OAUTH}@${ENABLE_OPENSHIFT_OAUTH}@g")
 fi
 
-  oc run "${APB_NAME}" -it --restart='Never' --image "${APB_IMAGE}" --env "OPENSHIFT_TOKEN=${OC_TOKEN}" --env "OPENSHIFT_TARGET=https://kubernetes.default.svc" --env "POD_NAME=${APB_NAME}" --env "POD_NAMESPACE=${OPENSHIFT_PROJECT}" --overrides="{\"apiVersion\":\"v1\",\"spec\":{\"serviceAccountName\":\"codeready-apb\"}}" -- test --extra-vars "${EXTRA_VARS}"
+  ${OC_BINARY} run "${APB_NAME}" -it --restart='Never' --image "${APB_IMAGE}" --env "OPENSHIFT_TOKEN=${OC_TOKEN}" --env "OPENSHIFT_TARGET=https://kubernetes.default.svc" --env "POD_NAME=${APB_NAME}" --env "POD_NAMESPACE=${OPENSHIFT_PROJECT}" --overrides="{\"apiVersion\":\"v1\",\"spec\":{\"serviceAccountName\":\"codeready-apb\"}}" -- test --extra-vars "${EXTRA_VARS}"
 
 OUT=$?
   if [ ${OUT} -ne 0 ]; then
