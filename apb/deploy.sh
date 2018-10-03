@@ -217,7 +217,13 @@ if [ "${FAST}" = true ] ; then
                                             sed "s@\${ENABLE_OPENSHIFT_OAUTH}@${ENABLE_OPENSHIFT_OAUTH}@g")
 fi
 
-  ${OC_BINARY} run "${APB_NAME}" -it --restart='Never' --image "${APB_IMAGE}" --env "OPENSHIFT_TOKEN=${OC_TOKEN}" --env "OPENSHIFT_TARGET=https://kubernetes.default.svc" --env "POD_NAME=${APB_NAME}" --env "POD_NAMESPACE=${OPENSHIFT_PROJECT}" --overrides="{\"apiVersion\":\"v1\",\"spec\":{\"serviceAccountName\":\"codeready-apb\"}}" -- test --extra-vars "${EXTRA_VARS}"
+if [ "${JENKINS_BUILD}" = true ] ; then
+  PARAMS="-i"
+else
+  PARAMS="-it"
+fi
+
+  ${OC_BINARY} run "${APB_NAME}" ${PARAMS} --restart='Never' --image "${APB_IMAGE}" --env "OPENSHIFT_TOKEN=${OC_TOKEN}" --env "OPENSHIFT_TARGET=https://kubernetes.default.svc" --env "POD_NAME=${APB_NAME}" --env "POD_NAMESPACE=${OPENSHIFT_PROJECT}" --overrides="{\"apiVersion\":\"v1\",\"spec\":{\"serviceAccountName\":\"codeready-apb\"}}" -- test --extra-vars "${EXTRA_VARS}"
 
 OUT=$?
   if [ ${OUT} -ne 0 ]; then
