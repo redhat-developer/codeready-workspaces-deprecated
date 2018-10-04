@@ -7,10 +7,8 @@ ENV PATH="/opt/rh/rh-maven35/root/usr/bin:${PATH:-/bin:/usr/bin}" \
     XDG_DATA_DIRS="/opt/rh/rh-maven35/root/usr/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}" \
     M2_HOME="/opt/rh/rh-maven35/root/usr/share/maven"
 USER root
-ARG SUBSCRIPTION_USERNAME
-ARG SUBSCRIPTION_PASSWORD
-RUN subscription-manager register --username $SUBSCRIPTION_USERNAME --password $SUBSCRIPTION_PASSWORD --auto-attach && \
-    yum-config-manager --enable rhel-server-rhscl-7-rpms rhel-7-server-optional-rpms && \
+
+RUN yum-config-manager --enable rhel-server-rhscl-7-rpms rhel-7-server-optional-rpms && \
     yum install java-1.8.0-openjdk-src rh-maven35 sudo git wget -y && yum clean all && rm -rf /var/cache/yum && \
     mkdir -p $HOME/che /projects && \
     for f in "/home/jboss" "/etc/passwd" "/etc/group" "/projects"; do\
