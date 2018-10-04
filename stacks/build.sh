@@ -66,7 +66,7 @@ checkUser(){
 
 checkRegistry(){
   printInfo "Logging into an internal OpenShift Registry - '${INTERNAL_REGISTRY}...'"
-  OPENSHIFT_TOKEN=$(oc whoami -t)
+  OPENSHIFT_TOKEN=$(${OC_BINARY} whoami -t)
   docker login ${INTERNAL_REGISTRY} -u ${OPENSHIFT_USER} -p ${OPENSHIFT_TOKEN}
   OUT=$?
   if [ ${OUT} -ne 0 ];then
