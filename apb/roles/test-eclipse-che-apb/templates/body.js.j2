@@ -24,7 +24,7 @@
       },
       "recipe": {
         "type": "openshift",
-        "content": "kind: List\nitems:\n - \n  apiVersion: v1\n  kind: Pod\n  metadata:\n   name: app\n  spec:\n   containers:\n    - \n     image: 'rhche/centos_jdk8:latest'\n     name: main\n     ports:\n      - \n       containerPort: 8080\n       protocol: TCP\n     resources:\n      limits:\n       memory: 2048Mi\n",
+        "content": "kind: List\nitems:\n - \n  apiVersion: v1\n  kind: Pod\n  metadata:\n   name: app\n  spec:\n   containers:\n    - \n     image: '172.30.1.1:5000/openshift/rhel-base-jdk8:latest'\n     name: main\n     ports:\n      - \n       containerPort: 8080\n       protocol: TCP\n     resources:\n      limits:\n       memory: 2048Mi\n",
         "contentType": "application/x-yaml"
       }
     }
