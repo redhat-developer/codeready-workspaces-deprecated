@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/openshift3/apb-base:v3.10.45-2
+FROM registry.access.redhat.com/openshift3/apb-base:v3.10.45-6
 
 LABEL "com.redhat.apb.spec"=\
 "LS0tCnZlcnNpb246IDEuMApuYW1lOiBjb2RlLXJlYWR5LWFwYgpkZXNjcmlwdGlvbjogQ29kZSBS\
@@ -185,4 +185,3 @@ COPY roles /opt/ansible/roles
 RUN chmod -R g=u /opt/{ansible,apb} && \
     find /opt/ansible/roles/keycloak-apb -type f | xargs sed -i "s/'persistent'/'prod'/g" && \
     find /opt/ansible/roles/keycloak-apb -type f | xargs sed -i "s/'ephemeral'/'dev'/g"
-

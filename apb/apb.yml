@@ -72,7 +72,7 @@ plans:
         enum: ["Recreate", "Rolling"]
         required: false
         default: "Recreate"
-        display_group: Che Configuration
+        display_group: Code Ready Configuration
       - name: "che_server_image_pull_policy"
         title: "Code ready Workspace DeploymentConfig Image pull policy"
         type: enum

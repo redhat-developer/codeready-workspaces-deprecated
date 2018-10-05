@@ -26,15 +26,10 @@
     status_code: 201
 
 - name: "Create oAuth client at a cluster scope"
-  openshift_raw:
+  openshift_v1_o_auth_client:
     state: present
-    definition:
-      apiVersion: v1
-      kind: OAuthClient
-      metadata:
-        name: "openshift-oauth-client"
-        namespace: "{{ namespace }}"
-      secret: "{{ identity_provider_client_secret }}"
-      redirectURIs:
-        - "{{ keycloak_uri | default(external_keycloak_uri) }}/auth/realms/{{ che_keycloak_realm }}/broker/openshift-v3/endpoint"
-      grantMethod: prompt
+    name: "openshift-oauth-client"
+    secret: "{{ identity_provider_client_secret }}"
+    redirect_ur_is:
+      - "{{ keycloak_uri | default(external_keycloak_uri) }}/auth/realms/{{ che_keycloak_realm }}/broker/openshift-v3/endpoint"
+    grant_method: prompt

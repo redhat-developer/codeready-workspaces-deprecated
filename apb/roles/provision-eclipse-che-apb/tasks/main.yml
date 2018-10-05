@@ -10,13 +10,12 @@
   when:
     - che_self_signed_cert is defined
     - che_self_signed_cert != ""
-
-
+    
 - name: "Set Identity Provider Name"
   set_fact:
     openshift_identity_provider: "openshift-v3"
   when: enable_openshift_oauth
-  
+
 - include_tasks: postgres.yml
   when: not che_external_db
 - include_tasks: keycloak.yml

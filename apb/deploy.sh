@@ -7,7 +7,7 @@ How to use this script:
 -c=,    --cert=           | absolute path to a self signed cert OpenShift Console uses
 -oauth, --enable-oauth    | enable Login in with OpenShift
 -i,     --interactive     | interactive mode
---apb-image=              | installer image, defaults to "172.30.1.1:5000/openshift/code-ready-apb"
+--apb-image=              | installer image, defaults to "172.30.1.1:5000/openshift/codeready-apb"
 --server-image=           | server image, defaults to eclipse/che-server:nighly. Tag is MANDATORY
 -f,     --fast            | fast deployment with envs from config.json
 "
@@ -206,6 +206,11 @@ createCertSecret(){
 }
 
 deployCodeReady() {
+
+  if [ ! -z "${PATH_TO_SELF_SIGNED_CERT}" ]; then
+  USE_SELF_SIGNED_CERT=true
+  fi
+
   EXTRA_VARS="{\"che_external_db\": ${EXTERNAL_DB},\"che_jdbc_db_host\": \"${DB_HOST}\",\"che_jdbc_db_port\": \"${DB_PORT}\",\"che_jdbc_db_name\": \"${DB_NAME}\",\"che_jdbc_username\": \"${DB_USERNAME}\",\"che_jdbc_password\": \"${DB_PASSWORD}\",\"external_keycloak\": ${EXTERNAL_KEYCLOAK},\"che_secure_routes\": ${SECURE_ROUTES},\"keycloak_provision_realm_user\": ${KEYCLOAK_PROVISION_REALM_USER},\"che_keycloak_admin_username\": \"${KEYCLOAK_ADMIN_USERNAME}\",\"che_keycloak_admin_password\": \"${KEYCLOAK_ADMIN_PASSWORD}\",\"namespace\": \"${OPENSHIFT_PROJECT}\",\"che_keycloak_realm\": \"${KEYCLOAK_REALM}\",\"che_keycloak_client__id\": \"${KEYCLOAK_CLIENT_ID}\",\"external_keycloak_uri\": \"$KEYCLOAK_URI\",\"use_self_signed_cert\": \"${USE_SELF_SIGNED_CERT}\",\"enable_openshift_oauth\": \"${ENABLE_OPENSHIFT_OAUTH}\",\"openshift_api_uri\": \"${OPENSHIFT_API_URI}\"}"
 
 if [ "${FAST}" = true ] ; then
@@ -214,7 +219,8 @@ if [ "${FAST}" = true ] ; then
                                             sed "s@\${OPENSHIFT_API_URI}@${OPENSHIFT_API_URI}@g" | \
                                             sed "s@\${SERVER_IMAGE_NAME}@${SERVER_IMAGE_NAME}@g" | \
                                             sed "s@\${SERVER_IMAGE_TAG}@${SERVER_IMAGE_TAG}@g" | \
-                                            sed "s@\${ENABLE_OPENSHIFT_OAUTH}@${ENABLE_OPENSHIFT_OAUTH}@g")
+                                            sed "s@\${ENABLE_OPENSHIFT_OAUTH}@${ENABLE_OPENSHIFT_OAUTH}@g" | \
+                                            sed "s@\${USE_SELF_SIGNED_CERT}@${USE_SELF_SIGNED_CERT}@g")
 fi
 
 if [ "${JENKINS_BUILD}" = true ] ; then
@@ -223,7 +229,7 @@ else
   PARAMS="-it"
 fi
 
-  ${OC_BINARY} run "${APB_NAME}" ${PARAMS} --restart='Never' --image "${APB_IMAGE}" --env "OPENSHIFT_TOKEN=${OC_TOKEN}" --env "OPENSHIFT_TARGET=https://kubernetes.default.svc" --env "POD_NAME=${APB_NAME}" --env "POD_NAMESPACE=${OPENSHIFT_PROJECT}" --overrides="{\"apiVersion\":\"v1\",\"spec\":{\"serviceAccountName\":\"codeready-apb\"}}" -- test --extra-vars "${EXTRA_VARS}"
+  ${OC_BINARY} run "${APB_NAME}" ${PARAMS} --restart='Never' --image "${APB_IMAGE}" --env "OPENSHIFT_TOKEN=${OC_TOKEN}" --env "OPENSHIFT_TARGET=https://kubernetes.default.svc" --env "POD_NAME=${APB_NAME}" --env "POD_NAMESPACE=${OPENSHIFT_PROJECT}" --overrides="{\"apiVersion\":\"v1\",\"spec\":{\"serviceAccountName\":\"codeready-apb\"}}" -- provision --extra-vars "${EXTRA_VARS}"
 
 OUT=$?
   if [ ${OUT} -ne 0 ]; then
