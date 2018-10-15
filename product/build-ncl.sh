@@ -1,6 +1,15 @@
 #!/bin/bash -xe
 # script to build eclipse-che in #projectncl
 
+# read commandline args
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+    '-MVNFLAGS') MVNFLAGS="$2"; shift 1;; # add more mvn flags
+    *) OTHER="${OTHER} $1"; shift 0;; 
+  esac
+  shift 1
+done
+
 ##########################################################################################
 # set up npm environment
 ##########################################################################################
