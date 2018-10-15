@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<project name="maven-antrun-" default="main"  >
-<target name="main">
-  <echo message="Unzipping Zend archive..."/>
-  <unzip src="/home/eugene/projects/codeready-workspaces-apb/assembly/target/zend-debugger-tmp/ZendDebugger-rpm-x86_64-php-71-php-72.zip" dest="/home/eugene/projects/codeready-workspaces-apb/assembly/target/zend-debugger-tmp"/>
-  <copy file="/home/eugene/projects/codeready-workspaces-apb/assembly/target/zend-debugger-tmp/php-7.1.x/ZendDebugger.so" tofile="/home/eugene/projects/codeready-workspaces-apb/assembly/target/zend-debugger/ZendDebugger.so"/>
-  <delete dir="/home/eugene/projects/codeready-workspaces-apb/assembly/target/zend-debugger-tmp"/>
-</target>
-</project>
