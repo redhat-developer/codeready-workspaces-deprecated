@@ -98,7 +98,7 @@
                         <configuration>
                             <target>
                                 <!-- download composer installer file -->
-                                <get src="https://getcomposer.org/installer"
+                                <get src="http://getcomposer.org/installer"
                                      dest="${basedir}/target"
                                      verbose="false"
                                      usetimestamp="true"/>
