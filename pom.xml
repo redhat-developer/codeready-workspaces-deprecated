@@ -13,7 +13,7 @@
     <groupId>com.redhat</groupId>
     <artifactId>codeready-language-servers-dependencies</artifactId>
     <packaging>pom</packaging>
-    <name>CodeReady Workspaces :: Che Assembly :: Parent</name>
+    <name>CodeReady Workspaces :: Stacks : Lang Servers</name>
   <modules>
       <module>assembly</module>
   </modules>

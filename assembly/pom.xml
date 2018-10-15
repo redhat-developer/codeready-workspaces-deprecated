@@ -90,22 +90,6 @@
                         </configuration>
                     </execution>
                     <execution>
-                      <id>download-composer-installer</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <!-- download composer installer file -->
-                                <get src="http://getcomposer.org/installer"
-                                     dest="${basedir}/target"
-                                     verbose="false"
-                                     usetimestamp="true"/>
-                             </target>
-                         </configuration>
-                     </execution>
-                    <execution>
                       <id>install-composer-binary</id>
                       <phase>compile</phase>
                       <goals>
@@ -115,7 +99,7 @@
                         <target>
                           <!-- download composer binary to be used in further tasks -->
                             <exec executable="php" failonerror="true">
-                                <arg line="${basedir}/target/installer --install-dir=${basedir}/target --filename=composer" />
+                                <arg line="${basedir}/src/assembly/installer --install-dir=${basedir}/target --filename=composer" />
                             </exec>
                         </target>
                       </configuration>
