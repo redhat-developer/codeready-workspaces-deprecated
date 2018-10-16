@@ -8,4 +8,6 @@ This repository contains:
 * product/ :: script to set up proxy config to build in Project Newcastle (NCL) server 
 * stacks/ :: Dockerfiles for stack images, as well as a script that builds them.
 
-Both modules have their README.md files with instructions.
+See individual folders for more README.md files.
+
+To build stacks in OSBS, see http://pkgs.devel.redhat.com/cgit/apbs/codeready-workspaces/tree/README.adoc?h=codeready-1.0-rhel-7
