@@ -19,15 +19,6 @@
     <artifactId>codeready-workspaces-stacks-language-servers-dependencies</artifactId>
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Stacks :: Language Servers :: Dependencies</name>
-    <!--
-    # to do this build via shell instead of maven:
-    CHE_VERSION=6.13.0-SNAPSHOT
-    TYPESCRIPT_LS_VERSION=0.1.12
-    TYPERSCRIPT_VERSION=2.8.4
-    rm -fr /tmp/usr/lib/node_modules && mkdir -p /tmp/usr/lib && cd /tmp/
-    npm install -\-prefix /tmp/usr/lib typescript@${TYPERSCRIPT_VERSION} typescript-language-server@${TYPESCRIPT_LS_VERSION}
-    tar czf codeready-workspaces-node-stack-node-modules-${CHE_VERSION}.tar.gz usr/lib/node_modules
-    -->
     <properties>
         <TYPERSCRIPT_VERSION>2.8.4</TYPERSCRIPT_VERSION>
         <TYPESCRIPT_LS_VERSION>0.1.12</TYPESCRIPT_LS_VERSION>
@@ -60,8 +51,8 @@
                 <artifactId>maven-antrun-plugin</artifactId>
                 <version>1.8</version>
                 <executions>
+                    <!--clean-up build folders-->
                     <execution>
-                        <!--clean-up build folders-->
                         <id>clean-up</id>
                         <phase>clean</phase>
                         <goals>
@@ -69,13 +60,14 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <delete dir="${basedir}/target/usr/lib/node_modules" />
+                                <delete dir="${basedir}/target" />
                             </tasks>
                         </configuration>
                     </execution>
+
+                    <!-- node stack: typescript deps -->
                     <execution>
-                        <!--compilation sources-->
-                        <id>compilation</id>
+                        <id>download-node_modules</id>
                         <phase>compile</phase>
                         <goals>
                             <goal>run</goal>
@@ -89,6 +81,8 @@
                             </target>
                         </configuration>
                     </execution>
+
+                    <!-- php stack -->
                     <execution>
                       <id>install-composer-binary</id>
                       <phase>compile</phase>
@@ -149,7 +143,6 @@
                         </target>
                       </configuration>
                     </execution>
-
                     <execution>
                       <id>download-debugger-so</id>
                         <phase>compile</phase>
@@ -169,7 +162,6 @@
                              </target>
                          </configuration>
                      </execution>
-
                      <execution>
                        <id>unzip-debugger-so</id>
                          <phase>compile</phase>
@@ -185,6 +177,9 @@
                             </tasks>
                          </configuration>
                       </execution>
+
+                      <!-- other stacks deps go here -->
+
                 </executions>
             </plugin>
         </plugins>
