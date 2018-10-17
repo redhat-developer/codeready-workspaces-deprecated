@@ -27,10 +27,6 @@ do
       ENABLE_OPENSHIFT_OAUTH="true"
       shift
       ;;
-    -api=*| --openshift-api=*)
-      OPENSHIFT_API_URI="${key#*=}"
-      shift
-      ;;
     -p=*| --project=*)
       OPENSHIFT_PROJECT="${key#*=}"
       shift
@@ -96,8 +92,6 @@ DEFAULT_USE_SELF_SIGNED_CERT="false"
 export USE_SELF_SIGNED_CERT=${USE_SELF_SIGNED_CERT:-${DEFAULT_USE_SELF_SIGNED_CERT}}
 DEFAULT_ENABLE_OPENSHIFT_OAUTH="false"
 export ENABLE_OPENSHIFT_OAUTH=${ENABLE_OPENSHIFT_OAUTH:-${DEFAULT_ENABLE_OPENSHIFT_OAUTH}}
-DEFAULT_OPENSHIFT_API_URI=""
-export OPENSHIFT_API_URI=${OPENSHIFT_API_URI:-${DEFAULT_OPENSHIFT_API_URI}}
 
 DEFAULT_SERVER_IMAGE_NAME="eclipse/che-server"
 export SERVER_IMAGE_NAME=${SERVER_IMAGE_NAME:-${DEFAULT_SERVER_IMAGE_NAME}}
@@ -151,6 +145,7 @@ isLoggedIn() {
   else
     OC_TOKEN=$(${OC_BINARY} whoami -t)
     CONTEXT=$(${OC_BINARY} whoami -c)
+    OPENSHIFT_API_URI=$(${OC_BINARY} whoami --show-server)
     printInfo "Active session found. Your current context is: ${CONTEXT}"
     if [ ${ENABLE_OPENSHIFT_OAUTH} = true ] ; then
       ${OC_BINARY} get oauthclients > /dev/null 2>&1
@@ -281,12 +276,6 @@ interactiveDeployment() {
   if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
   then
     export ENABLE_OPENSHIFT_OAUTH="true"
-    read -p "Enter your OpenShift API URL, e.g. https://172.23.126.20:8443: " response
-    if [ -z "$response" ]; then
-      printWarning "No valude provided, using default value"
-    else
-      export OPENSHIFT_API_URI=$response
-    fi
   fi
 
   createServiceAccount
