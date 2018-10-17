@@ -10,7 +10,7 @@
   when:
     - che_self_signed_cert is defined
     - che_self_signed_cert != ""
-    
+
 - name: "Set Identity Provider Name"
   set_fact:
     openshift_identity_provider: "openshift-v3"

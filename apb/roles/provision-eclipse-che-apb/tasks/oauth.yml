@@ -30,6 +30,13 @@
     state: present
     name: "openshift-oauth-client"
     secret: "{{ identity_provider_client_secret }}"
+    grant_method: prompt
+
+- name: "Update oAuth client with redirectURIs"
+  openshift_v1_o_auth_client:
+    state: present
+    name: "openshift-oauth-client"
+    secret: "{{ identity_provider_client_secret }}"
     redirect_ur_is:
-      - "{{ keycloak_uri | default(external_keycloak_uri) }}/auth/realms/{{ che_keycloak_realm }}/broker/openshift-v3/endpoint"
+    - "{{ keycloak_uri | default(external_keycloak_uri) }}/auth/realms/{{ che_keycloak_realm }}/broker/openshift-v3/endpoint"
     grant_method: prompt
