@@ -20,8 +20,16 @@
     <includeBaseDirectory>false</includeBaseDirectory>
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}/target</directory>
-            <outputDirectory>/</outputDirectory>
+            <directory>${project.basedir}/target/usr/lib/node_modules</directory>
+            <outputDirectory>/usr/lib/node_modules</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/target/php-ls</directory>
+            <outputDirectory>/php-ls</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/target/zend-debugger</directory>
+            <outputDirectory>/zend-debugger</outputDirectory>
         </fileSet>
     </fileSets>
 </assembly>
