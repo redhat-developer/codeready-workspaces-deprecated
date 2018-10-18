@@ -67,7 +67,7 @@
                     </execution>
 
                     <!-- php stack -->
-                    <execution>
+                    <!-- <execution>
                       <id>install-composer</id>
                       <phase>compile</phase>
                       <goals>
@@ -81,6 +81,21 @@
                             </exec>
                           </tasks>
                         </configuration>
+                      </execution> -->
+                    <execution>
+                      <id>check-composer</id>
+                      <phase>compile</phase>
+                      <goals>
+                          <goal>run</goal>
+                      </goals>
+                        <configuration>
+                          <tasks>
+                            <mkdir dir="${basedir}/target"/>
+                            <exec dir="${basedir}/target" executable="composer" failonerror="true" searchpath="true">
+                                <arg line="diag" />
+                            </exec>
+                          </tasks>
+                        </configuration>
                       </execution>
                       <execution>
                         <id>download-php-ls-deps</id>
@@ -91,13 +106,13 @@
                         <configuration>
                           <tasks>
                             <mkdir dir="${basedir}/target/php-ls"/>
-                            <exec dir="${basedir}/target" executable="./composer" failonerror="true" searchpath="true">
+                            <exec dir="${basedir}/target" executable="composer" failonerror="true" searchpath="true">
                                 <arg line="require jetbrains/phpstorm-stubs:dev-master -d ${basedir}/target/php-ls" />
                             </exec>
-                            <exec dir="${basedir}/target" executable="./composer" failonerror="true" searchpath="true">
+                            <exec dir="${basedir}/target" executable="composer" failonerror="true" searchpath="true">
                                 <arg line="require felixfbecker/language-server:${PHP_LS_VERSION} -d ${basedir}/target/php-ls" />
                             </exec>
-                            <exec dir="${basedir}/target" executable="./composer" failonerror="true" searchpath="true">
+                            <exec dir="${basedir}/target" executable="composer" failonerror="true" searchpath="true">
                                 <arg line="run-script --working-dir=${basedir}/target/php-ls/vendor/felixfbecker/language-server parse-stubs" />
                             </exec>
                           </tasks>
