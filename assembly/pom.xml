@@ -53,47 +53,41 @@
                 <executions>
                     <!--clean-up build folders-->
                     <execution>
-                        <id>clean-up</id>
-                        <phase>clean</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <tasks>
-                                <delete dir="${basedir}/target" />
-                            </tasks>
-                        </configuration>
-                    </execution>
-
-                    <!-- node stack: typescript deps -->
-                    <execution>
-                        <id>download-node_modules</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <mkdir dir="${basedir}/target/usr/lib"/>
-                                <exec dir="${basedir}" executable="npm" failonerror="true" searchpath="true">
-                                    <arg line="install --prefix ${basedir}/target/usr/lib typescript@${TYPERSCRIPT_VERSION} typescript-language-server@${TYPESCRIPT_LS_VERSION}" />
-                                </exec>
-                            </target>
-                        </configuration>
+                      <id>clean-up</id>
+                      <phase>clean</phase>
+                      <goals>
+                          <goal>run</goal>
+                      </goals>
+                      <configuration>
+                          <tasks>
+                              <delete dir="${basedir}/target" />
+                          </tasks>
+                      </configuration>
                     </execution>
 
                     <!-- php stack -->
                     <execution>
-                      <id>download-php-ls-deps-and-ZendDebugger.so</id>
+                      <id>install-composer</id>
                       <phase>compile</phase>
                       <goals>
                           <goal>run</goal>
                       </goals>
                         <configuration>
-                          <target>
-                            <exec executable="/usr/bin/php" failonerror="true" searchpath="true">
+                          <tasks>
+                            <exec dir="${basedir}/target" executable="php" failonerror="true" searchpath="true">
                                 <arg line="${basedir}/src/assembly/installer --install-dir=${basedir}/target --filename=composer" />
                             </exec>
+                          </tasks>
+                        </configuration>
+                      </execution>
+                      <execution>
+                        <id>download-php-ls-deps</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                          <tasks>
                             <mkdir dir="${basedir}/target/php-ls"/>
                             <exec dir="${basedir}/target" executable="./composer" failonerror="true" searchpath="true">
                                 <arg line="require jetbrains/phpstorm-stubs:dev-master -d ${basedir}/target/php-ls" />
@@ -104,9 +98,19 @@
                             <exec dir="${basedir}/target" executable="./composer" failonerror="true" searchpath="true">
                                 <arg line="run-script --working-dir=${basedir}/target/php-ls/vendor/felixfbecker/language-server parse-stubs" />
                             </exec>
+                          </tasks>
+                        </configuration>
+                      </execution>
+                      <execution>
+                        <id>download-ZendDebugger.so</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                          <tasks>
                             <mkdir dir="${basedir}/target/zend-debugger"/>
                             <mkdir dir="${basedir}/target/zend-debugger-tmp"/>
-                            <!-- download Debugger.so from Zend repo -->
                             <echo message="Downloading ZendDebugger.so ..." />
                             <get src="http://downloads.zend.com/studio_debugger/2018_10_02/ZendDebugger-rpm-x86_64-php-71-php-72.zip"
                                  dest="${basedir}/target/zend-debugger-tmp"
@@ -116,7 +120,24 @@
                             <unzip src="${basedir}/target/zend-debugger-tmp/ZendDebugger-rpm-x86_64-php-71-php-72.zip" dest="${basedir}/target/zend-debugger-tmp" />
                             <copy file="${basedir}/target/zend-debugger-tmp/php-7.1.x/ZendDebugger.so" tofile="${basedir}/target/zend-debugger/ZendDebugger.so"/>
                             <delete dir="${basedir}/target/zend-debugger-tmp"/>
-                          </target>
+                          </tasks>
+                        </configuration>
+                      </execution>
+
+                      <!-- node stack: typescript deps -->
+                      <execution>
+                        <id>download-node_modules</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                                <mkdir dir="${basedir}/target/usr/lib"/>
+                                <exec dir="${basedir}" executable="npm" failonerror="true" searchpath="true">
+                                    <arg line="install --prefix ${basedir}/target/usr/lib typescript@${TYPERSCRIPT_VERSION} typescript-language-server@${TYPESCRIPT_LS_VERSION}" />
+                                </exec>
+                            </tasks>
                         </configuration>
                       </execution>
 
