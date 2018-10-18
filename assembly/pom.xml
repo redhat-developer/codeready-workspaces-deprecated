@@ -75,6 +75,7 @@
                       </goals>
                       <configuration>
                         <tasks>
+                          <setproxy proxyhost="${proxy.host}" proxyport="${proxy.port}" proxyuser="${proxy.user}" proxypassword="${proxy.pass}"/>
                           <mkdir dir="${basedir}/target"/>
                           <!-- because requires https, get from https://getcomposer.org/download/ then push to dl.jb.org -->
                           <get src="http://download.jboss.org/jbosstools/requirements/codeready-workspaces/php/composer/composer.${PHP_COMPOSER_VERSION}.phar"
@@ -84,71 +85,72 @@
                             <exec dir="${basedir}/target" executable="php" failonerror="true" searchpath="true">
                                 <arg line="./composer diag" />
                             </exec>
-                          </tasks>
-                        </configuration>
-                      </execution>
-                      <execution>
-                        <id>download-php-ls-deps</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                          <tasks>
-                            <mkdir dir="${basedir}/target/php-ls"/>
-                            <exec dir="${basedir}/target" executable="php" failonerror="true" searchpath="true">
-                                <arg line="./composer require jetbrains/phpstorm-stubs:dev-master -d ${basedir}/target/php-ls" />
-                            </exec>
-                            <exec dir="${basedir}/target" executable="php" failonerror="true" searchpath="true">
-                                <arg line="./composer require felixfbecker/language-server:${PHP_LS_VERSION} -d ${basedir}/target/php-ls" />
-                            </exec>
-                            <exec dir="${basedir}/target" executable="php" failonerror="true" searchpath="true">
-                                <arg line="./composer run-script --working-dir=${basedir}/target/php-ls/vendor/felixfbecker/language-server parse-stubs" />
-                            </exec>
-                          </tasks>
-                        </configuration>
-                      </execution>
-                      <execution>
-                        <id>download-ZendDebugger.so</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                          <tasks>
-                            <mkdir dir="${basedir}/target/zend-debugger"/>
-                            <mkdir dir="${basedir}/target/zend-debugger-tmp"/>
-                            <echo message="Downloading ZendDebugger.so ..." />
-                            <get src="http://downloads.zend.com/studio_debugger/2018_10_02/ZendDebugger-rpm-x86_64-php-71-php-72.zip"
-                                 dest="${basedir}/target/zend-debugger-tmp"
-                                 verbose="false"
-                                 usetimestamp="true"/>
-                            <echo message="Unzipping Zend archive..." />
-                            <unzip src="${basedir}/target/zend-debugger-tmp/ZendDebugger-rpm-x86_64-php-71-php-72.zip" dest="${basedir}/target/zend-debugger-tmp" />
-                            <copy file="${basedir}/target/zend-debugger-tmp/php-7.1.x/ZendDebugger.so" tofile="${basedir}/target/zend-debugger/ZendDebugger.so"/>
-                            <delete dir="${basedir}/target/zend-debugger-tmp"/>
-                          </tasks>
-                        </configuration>
-                      </execution>
+                        </tasks>
+                      </configuration>
+                    </execution>
+                    <execution>
+                      <id>download-php-ls-deps</id>
+                      <phase>compile</phase>
+                      <goals>
+                          <goal>run</goal>
+                      </goals>
+                      <configuration>
+                        <tasks>
+                          <setproxy proxyhost="${proxy.host}" proxyport="${proxy.port}" proxyuser="${proxy.user}" proxypassword="${proxy.pass}"/>
+                          <mkdir dir="${basedir}/target/php-ls"/>
+                          <exec dir="${basedir}/target" executable="php" failonerror="true" searchpath="true">
+                              <arg line="./composer require jetbrains/phpstorm-stubs:dev-master -d ${basedir}/target/php-ls" />
+                          </exec>
+                          <exec dir="${basedir}/target" executable="php" failonerror="true" searchpath="true">
+                              <arg line="./composer require felixfbecker/language-server:${PHP_LS_VERSION} -d ${basedir}/target/php-ls" />
+                          </exec>
+                          <exec dir="${basedir}/target" executable="php" failonerror="true" searchpath="true">
+                              <arg line="./composer run-script --working-dir=${basedir}/target/php-ls/vendor/felixfbecker/language-server parse-stubs" />
+                          </exec>
+                        </tasks>
+                      </configuration>
+                    </execution>
+                    <execution>
+                      <id>download-ZendDebugger.so</id>
+                      <phase>compile</phase>
+                      <goals>
+                          <goal>run</goal>
+                      </goals>
+                      <configuration>
+                        <tasks>
+                          <mkdir dir="${basedir}/target/zend-debugger"/>
+                          <mkdir dir="${basedir}/target/zend-debugger-tmp"/>
+                          <echo message="Downloading ZendDebugger.so ..." />
+                          <get src="http://downloads.zend.com/studio_debugger/2018_10_02/ZendDebugger-rpm-x86_64-php-71-php-72.zip"
+                               dest="${basedir}/target/zend-debugger-tmp"
+                               verbose="false"
+                               usetimestamp="true"/>
+                          <echo message="Unzipping Zend archive..." />
+                          <unzip src="${basedir}/target/zend-debugger-tmp/ZendDebugger-rpm-x86_64-php-71-php-72.zip" dest="${basedir}/target/zend-debugger-tmp" />
+                          <copy file="${basedir}/target/zend-debugger-tmp/php-7.1.x/ZendDebugger.so" tofile="${basedir}/target/zend-debugger/ZendDebugger.so"/>
+                          <delete dir="${basedir}/target/zend-debugger-tmp"/>
+                        </tasks>
+                      </configuration>
+                    </execution>
 
-                      <!-- node stack: typescript deps -->
-                      <execution>
-                        <id>download-node_modules</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <tasks>
-                                <mkdir dir="${basedir}/target/usr/lib"/>
-                                <exec dir="${basedir}" executable="npm" failonerror="true" searchpath="true">
-                                    <arg line="install --prefix ${basedir}/target/usr/lib typescript@${TYPERSCRIPT_VERSION} typescript-language-server@${TYPESCRIPT_LS_VERSION}" />
-                                </exec>
-                            </tasks>
-                        </configuration>
-                      </execution>
+                    <!-- node stack: typescript deps -->
+                    <execution>
+                      <id>download-node_modules</id>
+                      <phase>compile</phase>
+                      <goals>
+                          <goal>run</goal>
+                      </goals>
+                      <configuration>
+                          <tasks>
+                              <mkdir dir="${basedir}/target/usr/lib"/>
+                              <exec dir="${basedir}" executable="npm" failonerror="true" searchpath="true">
+                                  <arg line="install --prefix ${basedir}/target/usr/lib typescript@${TYPERSCRIPT_VERSION} typescript-language-server@${TYPESCRIPT_LS_VERSION}" />
+                              </exec>
+                          </tasks>
+                      </configuration>
+                    </execution>
 
-                      <!-- other stacks deps go here -->
+                    <!-- other stacks deps go here -->
 
                 </executions>
             </plugin>

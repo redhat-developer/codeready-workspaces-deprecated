@@ -58,6 +58,8 @@ MVNFLAGS="${MVNFLAGS} -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss "
 MVNFLAGS="${MVNFLAGS} -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
 MVNFLAGS="${MVNFLAGS} -DnodeDownloadRoot=${nodeDownloadRoot} -DnpmDownloadRoot=${npmDownloadRoot}"
 MVNFLAGS="${MVNFLAGS} -DnpmRegistryURL=${npmRegistryURL}"
+# pass proxy config to ant
+MVNFLAGS="${MVNFLAGS} -Dproxy.host=${proxyServer} -Dproxy.port=${proxyPort} -Dproxy.user=${buildContentId}+tracking -Dproxy.pass=${accessToken}"
 
 ##########################################################################################
 # run maven build 
