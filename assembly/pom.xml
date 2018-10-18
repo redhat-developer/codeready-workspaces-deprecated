@@ -23,6 +23,7 @@
         <TYPERSCRIPT_VERSION>2.8.4</TYPERSCRIPT_VERSION>
         <TYPESCRIPT_LS_VERSION>0.1.12</TYPESCRIPT_LS_VERSION>
         <PHP_LS_VERSION>5.4.2</PHP_LS_VERSION>
+        <PHP_COMPOSER_VERSION>1.7.2</PHP_COMPOSER_VERSION>
     </properties>
     <build>
         <plugins>
@@ -74,8 +75,9 @@
                       </goals>
                         <configuration>
                           <tasks>
+                            <mkdir dir="${basedir}/target"/>
                             <exec dir="${basedir}/target" executable="php" failonerror="true" searchpath="true">
-                                <arg line="${basedir}/src/assembly/installer --install-dir=${basedir}/target --filename=composer" />
+                                <arg line="${basedir}/src/assembly/installer --install-dir=${basedir}/target --filename=composer --version=${PHP_COMPOSER_VERSION}" />
                             </exec>
                           </tasks>
                         </configuration>
