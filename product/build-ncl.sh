@@ -30,8 +30,8 @@ export https_proxy="${NCL_PROXY}"
 # PHP/composer proxies
 export HTTP_PROXY="${NCL_PROXY}"
 export HTTPS_PROXY="${NCL_PROXY}"
-export HTTP_PROXY_REQUEST_FULLURI=0 # or false
-export HTTPS_PROXY_REQUEST_FULLURI=0 #
+#export HTTP_PROXY_REQUEST_FULLURI=0 # or false
+#export HTTPS_PROXY_REQUEST_FULLURI=0 #
 
 export nodeDownloadRoot=http://nodejs.org:80/dist/
 export npmDownloadRoot=http://registry.npmjs.org:80/npm/-/
