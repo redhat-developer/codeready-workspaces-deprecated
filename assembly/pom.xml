@@ -75,7 +75,7 @@
                         <configuration>
                             <target>
                                 <mkdir dir="${basedir}/target/usr/lib"/>
-                                <exec dir="${basedir}" executable="npm" failonerror="true">
+                                <exec dir="${basedir}" executable="npm" failonerror="true" searchpath="true">
                                     <arg line="install --prefix ${basedir}/target/usr/lib typescript@${TYPERSCRIPT_VERSION} typescript-language-server@${TYPESCRIPT_LS_VERSION}" />
                                 </exec>
                             </target>
@@ -91,18 +91,17 @@
                       </goals>
                         <configuration>
                           <target>
-                            <exec executable="php" failonerror="true">
+                            <exec executable="/usr/bin/php" failonerror="true" searchpath="true">
                                 <arg line="${basedir}/src/assembly/installer --install-dir=${basedir}/target --filename=composer" />
                             </exec>
-
                             <mkdir dir="${basedir}/target/php-ls"/>
-                            <exec dir="${basedir}/target" executable="./composer" failonerror="true">
+                            <exec dir="${basedir}/target" executable="./composer" failonerror="true" searchpath="true">
                                 <arg line="require jetbrains/phpstorm-stubs:dev-master -d ${basedir}/target/php-ls" />
                             </exec>
-                            <exec dir="${basedir}/target" executable="./composer" failonerror="true">
+                            <exec dir="${basedir}/target" executable="./composer" failonerror="true" searchpath="true">
                                 <arg line="require felixfbecker/language-server:${PHP_LS_VERSION} -d ${basedir}/target/php-ls" />
                             </exec>
-                            <exec dir="${basedir}/target" executable="./composer" failonerror="true">
+                            <exec dir="${basedir}/target" executable="./composer" failonerror="true" searchpath="true">
                                 <arg line="run-script --working-dir=${basedir}/target/php-ls/vendor/felixfbecker/language-server parse-stubs" />
                             </exec>
                             <mkdir dir="${basedir}/target/zend-debugger"/>
