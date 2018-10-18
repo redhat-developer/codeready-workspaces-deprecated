@@ -82,9 +82,9 @@
                                dest="${basedir}/target/composer"
                                verbose="false"
                                usetimestamp="true"/>
-                            <exec dir="${basedir}/target" executable="php" failonerror="true" searchpath="true">
+                            <!-- <exec dir="${basedir}/target" executable="php" failonerror="true" searchpath="true">
                                 <arg line="./composer diag" />
-                            </exec>
+                            </exec> -->
                         </tasks>
                       </configuration>
                     </execution>
