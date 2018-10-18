@@ -19,6 +19,8 @@ go version
 node -v
 npm version
 mvn -v
+php -v
+source /opt/rh/rh-python36/enable && python -V
 
 export NCL_PROXY="http://${buildContentId}+tracking:${accessToken}@${proxyServer}:${proxyPort}"
 # wget proxies

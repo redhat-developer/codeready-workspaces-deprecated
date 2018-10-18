@@ -67,32 +67,22 @@
                     </execution>
 
                     <!-- php stack -->
-                    <!-- <execution>
-                      <id>install-composer</id>
-                      <phase>compile</phase>
-                      <goals>
-                          <goal>run</goal>
-                      </goals>
-                        <configuration>
-                          <tasks>
-                            <mkdir dir="${basedir}/target"/>
-                            <exec dir="${basedir}/target" executable="php" failonerror="true" searchpath="true">
-                                <arg line="${basedir}/src/assembly/installer --install-dir=${basedir}/target --filename=composer --version=${PHP_COMPOSER_VERSION}" />
-                            </exec>
-                          </tasks>
-                        </configuration>
-                      </execution> -->
                     <execution>
-                      <id>check-composer</id>
+                      <id>install-composer-from-mirror</id>
                       <phase>compile</phase>
                       <goals>
                           <goal>run</goal>
                       </goals>
-                        <configuration>
-                          <tasks>
-                            <mkdir dir="${basedir}/target"/>
-                            <exec dir="${basedir}/target" executable="composer" failonerror="true" searchpath="true">
-                                <arg line="diag" />
+                      <configuration>
+                        <tasks>
+                          <mkdir dir="${basedir}/target"/>
+                          <!-- because requires https, get from https://getcomposer.org/download/ then push to dl.jb.org -->
+                          <get src="http://download.jboss.org/jbosstools/requirements/codeready-workspaces/php/composer/composer.${PHP_COMPOSER_VERSION}.phar"
+                               dest="${basedir}/target/composer"
+                               verbose="false"
+                               usetimestamp="true"/>
+                            <exec dir="${basedir}/target" executable="php" failonerror="true" searchpath="true">
+                                <arg line="./composer diag" />
                             </exec>
                           </tasks>
                         </configuration>
@@ -106,14 +96,14 @@
                         <configuration>
                           <tasks>
                             <mkdir dir="${basedir}/target/php-ls"/>
-                            <exec dir="${basedir}/target" executable="composer" failonerror="true" searchpath="true">
-                                <arg line="require jetbrains/phpstorm-stubs:dev-master -d ${basedir}/target/php-ls" />
+                            <exec dir="${basedir}/target" executable="php" failonerror="true" searchpath="true">
+                                <arg line="./composer require jetbrains/phpstorm-stubs:dev-master -d ${basedir}/target/php-ls" />
                             </exec>
-                            <exec dir="${basedir}/target" executable="composer" failonerror="true" searchpath="true">
-                                <arg line="require felixfbecker/language-server:${PHP_LS_VERSION} -d ${basedir}/target/php-ls" />
+                            <exec dir="${basedir}/target" executable="php" failonerror="true" searchpath="true">
+                                <arg line="./composer require felixfbecker/language-server:${PHP_LS_VERSION} -d ${basedir}/target/php-ls" />
                             </exec>
-                            <exec dir="${basedir}/target" executable="composer" failonerror="true" searchpath="true">
-                                <arg line="run-script --working-dir=${basedir}/target/php-ls/vendor/felixfbecker/language-server parse-stubs" />
+                            <exec dir="${basedir}/target" executable="php" failonerror="true" searchpath="true">
+                                <arg line="./composer run-script --working-dir=${basedir}/target/php-ls/vendor/felixfbecker/language-server parse-stubs" />
                             </exec>
                           </tasks>
                         </configuration>
