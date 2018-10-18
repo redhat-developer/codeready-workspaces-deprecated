@@ -2,14 +2,13 @@
 BASE_DIR=$(cd "$(dirname "$0")"; pwd)
 HELP="
 How to use this script:
--h,     --help            | script help menu
+-d,     --deploy          | deployment with envs from config.json
 -p=,    --project=        | namespace to deploy Code Ready Workspaces
 -c=,    --cert=           | absolute path to a self signed cert OpenShift Console uses
 -oauth, --enable-oauth    | enable Login in with OpenShift
--i,     --interactive     | interactive mode
 --apb-image=              | installer image, defaults to "172.30.1.1:5000/openshift/codeready-apb"
 --server-image=           | server image, defaults to eclipse/che-server:nighly. Tag is MANDATORY
--f,     --fast            | fast deployment with envs from config.json
+-h,     --help            | script help menu
 "
 
 if [[ $# -eq 0 ]] ; then
@@ -36,15 +35,12 @@ do
       shift
       ;;
     --server-image=*)
-      SERVER_IMAGE_NAME=$(echo "${key#*=}" | sed 's/:.*//')
+      SERVER_IMAGE_NAME=$(echo "${key#*=}" | sed 's/\:[^:]*$//')
       SERVER_IMAGE_TAG=$(echo "${key#*=}" | sed 's/.*://')
       shift
       ;;
-    -i | --interactive)
-      INTERACTIVE=true
-      ;;
-    -f | --fast)
-      FAST=true
+    -d | --deploy)
+      DEPLOY=true
       ;;
     -h | --help)
       echo -e "$HELP"
@@ -206,9 +202,6 @@ deployCodeReady() {
   USE_SELF_SIGNED_CERT=true
   fi
 
-  EXTRA_VARS="{\"che_external_db\": ${EXTERNAL_DB},\"che_jdbc_db_host\": \"${DB_HOST}\",\"che_jdbc_db_port\": \"${DB_PORT}\",\"che_jdbc_db_name\": \"${DB_NAME}\",\"che_jdbc_username\": \"${DB_USERNAME}\",\"che_jdbc_password\": \"${DB_PASSWORD}\",\"external_keycloak\": ${EXTERNAL_KEYCLOAK},\"che_secure_routes\": ${SECURE_ROUTES},\"keycloak_provision_realm_user\": ${KEYCLOAK_PROVISION_REALM_USER},\"che_keycloak_admin_username\": \"${KEYCLOAK_ADMIN_USERNAME}\",\"che_keycloak_admin_password\": \"${KEYCLOAK_ADMIN_PASSWORD}\",\"namespace\": \"${OPENSHIFT_PROJECT}\",\"che_keycloak_realm\": \"${KEYCLOAK_REALM}\",\"che_keycloak_client__id\": \"${KEYCLOAK_CLIENT_ID}\",\"external_keycloak_uri\": \"$KEYCLOAK_URI\",\"use_self_signed_cert\": \"${USE_SELF_SIGNED_CERT}\",\"enable_openshift_oauth\": \"${ENABLE_OPENSHIFT_OAUTH}\",\"openshift_api_uri\": \"${OPENSHIFT_API_URI}\"}"
-
-if [ "${FAST}" = true ] ; then
   EXTRA_VARS=$(cat ${BASE_DIR}/config.json | tr -d '\n' | \
                                             sed "s@\${OPENSHIFT_PROJECT}@${OPENSHIFT_PROJECT}@g" | \
                                             sed "s@\${OPENSHIFT_API_URI}@${OPENSHIFT_API_URI}@g" | \
@@ -216,7 +209,6 @@ if [ "${FAST}" = true ] ; then
                                             sed "s@\${SERVER_IMAGE_TAG}@${SERVER_IMAGE_TAG}@g" | \
                                             sed "s@\${ENABLE_OPENSHIFT_OAUTH}@${ENABLE_OPENSHIFT_OAUTH}@g" | \
                                             sed "s@\${USE_SELF_SIGNED_CERT}@${USE_SELF_SIGNED_CERT}@g")
-fi
 
 if [ "${JENKINS_BUILD}" = true ] ; then
   PARAMS="-i"
@@ -236,146 +228,7 @@ OUT=$?
   fi
 }
 
-
-reviewParams() {
-  printInfo "Review deployment parameters:"
-  echo
-  printInfo "HTTPS Support: $SECURE_ROUTES"
-  printInfo "External DB: $EXTERNAL_DB"
-  printInfo "Database host: $DB_HOST"
-  printInfo "Database port: $DB_PORT"
-  printInfo "Database name: $DB_NAME"
-  printInfo "Database user: $DB_USERNAME"
-  printInfo "Database password: $DB_PASSWORD"
-  printInfo "Use external Red Hat SSO: $EXTERNAL_KEYCLOAK"
-  printInfo "External Keycloak URI: $KEYCLOAK_URI"
-  printInfo "Red Hat SSO admin username: $KEYCLOAK_ADMIN_USERNAME"
-  printInfo "Red Hat SSO admin password: $KEYCLOAK_ADMIN_PASSWORD"
-  printInfo "Red Hat SSO realm: $KEYCLOAK_REALM"
-  printInfo "Red Hat SSO client: $KEYCLOAK_CLIENT_ID"
-  printInfo "Enable Login With OpenShift: ${ENABLE_OPENSHIFT_OAUTH}"
-  printInfo "OpenShift API URL: ${OPENSHIFT_API_URI}"
-  read -p "Press any key to continue "
-
-}
-
-interactiveDeployment() {
-  preReqs
-  isLoggedIn
-  createNewProject
-  createCertSecret
-  printInfo "Configure your Code Ready Workspaces Installation"
-  read -r -p "Do you need https support? Defaults to http [y/N] " response
-  if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
-  then
-    export SECURE_ROUTES="true"
-    printWarning "Important! If you have self signed certificates, you need to follow documentation at https://www.eclipse.org/che/docs/openshift-config.html#https-mode---self-signed-certs"
-  fi
-
-  read -r -p "Do you want to setup Login with OpenShift for Code Ready Workspaces (requires cluster-admin privileges)? Press Enter to skip [y/N] " response
-  if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
-  then
-    export ENABLE_OPENSHIFT_OAUTH="true"
-  fi
-
-  createServiceAccount
-
-  db_array_questions=(
-    "Enter DB hostname (defaults to $DEFAULT_DB_HOST): "
-    "Enter DB port (defaults to $DEFAULT_DB_PORT): "
-    "Enter DB Name (defaults to $DB_NAME): "
-    "Enter DB Username (defaults to $DB_USERNAME): "
-  )
-  db_array_envs=(
-    "DB_HOST"
-    "DB_PORT"
-    "DB_NAME"
-    "DB_USERNAME"
-  )
-  read -r -p "Do you want to connect to an external Postgres DB? Press Enter to skip [y/N] " response
-  if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
-  then
-    export EXTERNAL_DB="true"
-    printInfo "Provide connection details. Make sure database exists, and db user is a SUPERUSER"
-  fi
-
-  if [ "${EXTERNAL_DB}" = false ] ; then
-    db_array_questions=( "${db_array_questions[@]:2:3}" )
-    db_array_envs=( "${db_array_envs[@]:2:3}" )
-  fi
-
-  for ((i=0;i<${#db_array_questions[@]};++i)); do
-    read -p "${db_array_questions[i]}" response
-    if [ -z "$response" ]; then
-      printWarning "No valude provided, using default value"
-    else
-      export ${db_array_envs[i]}=$response
-    fi
-  done
-  # get DB password
-  askForPassword() {
-    while true; do
-      read -s -p "$1" password
-      if [ -z "$password" ]; then
-        echo
-        printWarning "No valude provided, using default value"
-      else
-        echo
-        read -s -p "Confirm  password: " password2
-        export $2=$password
-      fi
-      echo
-      [ "$password" = "$password2" ] && break
-      printWarning "Passwords do not match. Please try again"
-      export DB_PASSWORD=$password
-    done
-  }
-
-  askForPassword "Enter DB user password (defaults to $DB_PASSWORD):  " "DB_PASSWORD"
-
-  keycloak_array_questions=(
-    "Enter Red Hat SSo URL (no trailing "/auth"): "
-    "Enter Red Hat SSO realm name (defaults to $KEYCLOAK_REALM): "
-    "Enter Red Hat SSO client name (defaults to $KEYCLOAK_CLIENT_ID): "
-    "Enter Red Hat SSO admin username (defaults to $KEYCLOAK_ADMIN_USERNAME): "
-  )
-  keycloak_array_envs=(
-    "KEYCLOAK_URI"
-    "KEYCLOAK_REALM"
-    "KEYCLOAK_CLIENT_ID"
-    "KEYCLOAK_ADMIN_USERNAME"
-  )
-
-  read -r -p "Do you want to connect to an external Red Hat SSO instance? Press Enter to skip [y/N] " response
-  if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
-  then
-    export EXTERNAL_KEYCLOAK="true"
-    printInfo "Provide Sed Hat SSO URL, eg, http://red-hat-sso.com. No training '/auth'!"
-  fi
-  if [ "${EXTERNAL_KEYCLOAK}" = false ] ; then
-    keycloak_array_questions=( "${keycloak_array_questions[@]:3:3}" )
-    keycloak_array_envs=( "${keycloak_array_envs[@]:3:3}" )
-  fi
-
-  for ((i=0;i<${#keycloak_array_questions[@]};++i)); do
-    read -p "${keycloak_array_questions[i]}" response
-    if [ -z "$response" ]; then
-      printWarning "No valude provided, using default value"
-    else
-      export ${keycloak_array_envs[i]}=$response
-    fi
-  done
-
-  askForPassword "Enter Keycloak admin password (defaults to $KEYCLOAK_ADMIN_PASSWORD):  " "KEYCLOAK_ADMIN_PASSWORD"
-  reviewParams
-  deployCodeReady
-
-}
-if [ "${INTERACTIVE}" = true ] ; then
-  interactiveDeployment
-fi
-
-if [ "${FAST}" = true ] ; then
+if [ "${DEPLOY}" = true ] ; then
   preReqs
   isLoggedIn
   createNewProject

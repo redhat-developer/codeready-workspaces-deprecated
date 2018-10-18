@@ -25,23 +25,13 @@ This way, the resulting image will be available fro Docker in a MiniShift VM.
 * an active session (you should be logged in)
 * **OPTIONAL** Only if you enable Login with OpenShift (`-oauth, --enable-oauth`): current user must have cluster-admin privileges.
 
-### Installation Modes
+### Installation Configuration
 
-#### Internactive
-
-`-i, --interactive`
-
-When activated, you will be asked questions about your Code Ready Workspaces installation
-
-#### Fast
-
-`-f, --fast` Recommended mode
-
-When in a fact mode, the installer script will use command line args and `config.json` file to populate APB extra vars.
+The installer script will use command line args and `config.json` file to populate APB extra vars.
 
 #### Configuration
 
-Overriding default envs are available in fast mode only. Not all configuration parameters are available as flags. Run `./deploy.sh --help` to get a list of all available arguments.
+You can override default envs. Not all configuration parameters are available as flags. Run `./deploy.sh --help` to get a list of all available arguments.
 
 `config.json` contains default values for installation params. Those params that take environment variables as values can be overridden from a command line. Before running the script in a fast mode, review `config.json`.
 
@@ -66,31 +56,30 @@ Overriding default envs are available in fast mode only. Not all configuration p
 "che_keycloak_client__id": "codeready-public",        // Red Hat SSO client
 "use_self_signed_cert": false,                        // Add self signed certs to truststore of server and Red Hat SSO. If enabled, provide path to cert file - -c=/path/to/file
 "enable_openshift_oauth": "${ENABLE_OPENSHIFT_OAUTH}",// Enable Login with OpenShift. Requires cluster-admin privileges. Enable self signed certs if your cluster uses them
-"openshift_api_uri": "${OPENSHIFT_API_URI}"           // Only when OpenShift oAuth is enabled. Provide OpenShift API URI, for example https://api.mycluster.com
 ```
 
 #### Examples
 
-##### Fast mode with all defaults
+##### Deploy with all defaults
 
 The following command will grab config from config.json and start an installer image:
 
 ```
-./deploy.sh -f
+./deploy.sh --deploy
 ```
 Specify a namespace:
 
 ```
-./deploy.sh -f -p=mynamespace
+./deploy.sh --deploy -p=mynamespace
 ```
 
-#### Fast mode with support of self signed certs, OpenShift oAuth and a custom server-image
+#### Deploy with support of self signed certs, OpenShift oAuth and a custom server-image
 
 ```
-./deploy.sh -f -c=/var/lib/origin/openshift.local.config/master/ca.crt -oauth -api=https://172.19.20.126:8443 --server-image=myserver/image
+./deploy.sh --deploy -c=/var/lib/origin/openshift.local.config/master/ca.crt -oauth --server-image=myserver/image:mytag
 ```
 
-##### Fast mode with external Red Hat SSO and enabled realm provisioning:
+##### Deploy with external Red Hat SSO and enabled realm provisioning:
 
 In `config.json`:
 
@@ -100,7 +89,9 @@ In `config.json`:
 "keycloak_provision_realm_user": true,
 ```
 
-##### Fast mode with external Red Hat SSO and Postgres DB:
+##### Deploy with external Red Hat SSO and Postgres DB:
+
+In `config.json`:
 
 ```
 "che_external_db": true,
@@ -117,19 +108,11 @@ In `config.json`:
 "keycloak_provision_realm_user": true,
 ```
 
-##### Interactive mode
+### External DB and RH SSO Support
 
-```
-./deploy.sh -i
-```
-To specify a namespace
+You can connect to external DB and RH SSO instances. The installer supports the following combinations:
 
-```
-./deploy.sh -i
-```
+* DB + RH SSO
+* RH SSO alone
 
-##### Interactive mode with self signed certs and OpenShift oAuth
-
-```
-./deploy.sh -i -oauth -c=/path/to/cert.ca
-```
+External DB + bundled RH SSO isn't currently supported
