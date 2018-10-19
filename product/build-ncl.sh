@@ -19,11 +19,19 @@ go version
 node -v
 npm version
 mvn -v
+php -v
+source /opt/rh/rh-python36/enable && python -V
 
 export NCL_PROXY="http://${buildContentId}+tracking:${accessToken}@${proxyServer}:${proxyPort}"
 # wget proxies
 export http_proxy="${NCL_PROXY}"
 export https_proxy="${NCL_PROXY}"
+
+# PHP/composer proxies
+export HTTP_PROXY="${NCL_PROXY}"
+export HTTPS_PROXY="${NCL_PROXY}"
+#export HTTP_PROXY_REQUEST_FULLURI=0 # or false
+#export HTTPS_PROXY_REQUEST_FULLURI=0 #
 
 export nodeDownloadRoot=http://nodejs.org:80/dist/
 export npmDownloadRoot=http://registry.npmjs.org:80/npm/-/
@@ -50,6 +58,8 @@ MVNFLAGS="${MVNFLAGS} -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss "
 MVNFLAGS="${MVNFLAGS} -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
 MVNFLAGS="${MVNFLAGS} -DnodeDownloadRoot=${nodeDownloadRoot} -DnpmDownloadRoot=${npmDownloadRoot}"
 MVNFLAGS="${MVNFLAGS} -DnpmRegistryURL=${npmRegistryURL}"
+# pass proxy config to ant
+MVNFLAGS="${MVNFLAGS} -Dproxy.host=${proxyServer} -Dproxy.port=${proxyPort} -Dproxy.user=${buildContentId}+tracking -Dproxy.pass=${accessToken}"
 
 ##########################################################################################
 # run maven build 
