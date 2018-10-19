@@ -16,5 +16,6 @@
     <name>CodeReady Workspaces :: Root</name>
   <modules>
       <module>installer-package</module>
+      <module>stacks/assembly</module>
   </modules>
 </project>
