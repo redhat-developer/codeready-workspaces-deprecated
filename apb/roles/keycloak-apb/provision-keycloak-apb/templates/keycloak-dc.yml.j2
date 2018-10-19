@@ -31,10 +31,8 @@ spec:
               echo "Found a custom cert. Adding it to RH SSO trust store..." &&
               echo "${OPENSHIFT_IDENTITY_PROVIDER_CERTIFICATE}" > /home/jboss/openshift.crt &&
               keytool -importcert -alias HOSTDOMAIN -keystore /home/jboss/openshift.jks -file /home/jboss/openshift.crt -storepass openshift -noprompt &&
-              keytool -importkeystore -srckeystore $JAVA_HOME/jre/lib/security/cacerts -destkeystore /home/jboss/openshift.jks -srcstorepass changeit -deststorepass openshift &&
-              sed -i "/<\/theme>/a<spi name=\"truststore\">\n    <provider name=\"file\" enabled=\"true\">\n        <properties>\n            <property name=\"file\" value=\"/home/jboss/openshift.jks\"/>\n            <property name=\"password\" value=\"openshift\"/>\n            <property name=\"hostname-verification-policy\" value=\"ANY\"/>\n            <property name=\"disabled\" value=\"false\"/>\n        </properties>\n    </provider>\n</spi>" /opt/eap/standalone/configuration/standalone-openshift.xml &&
+              keytool -importkeystore -srckeystore $JAVA_HOME/jre/lib/security/cacerts -destkeystore /home/jboss/openshift.jks -srcstorepass changeit -deststorepass openshift && 
 {% endif %}
-              /opt/eap/bin/add-user-keycloak.sh -u {{ admin_username }} -p {{ admin_password }} &&
               /opt/eap/bin/openshift-launch.sh
           command:
             - /bin/sh
@@ -47,6 +45,16 @@ spec:
                   key: ca.crt
                   name: self-signed-cert
                   optional: true
+            - name: "SSO_TRUSTSTORE"
+              value: "openshift.jks"
+            - name: "SSO_TRUSTSTORE_DIR"
+              value: "/home/jboss"
+            - name: "SSO_TRUSTSTORE_PASSWORD"
+              value: "openshift"
+            - name: "SSO_ADMIN_USERNAME"
+              value: {{ admin_username }}
+            - name: "SSO_ADMIN_PASSWORD"
+              value: {{ admin_password }}
             - name: DB_SERVICE_PREFIX_MAPPING
               value: keycloak-postgresql=DB
             - name: KEYCLOAK_POSTGRESQL_SERVICE_HOST
