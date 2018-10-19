@@ -6,8 +6,8 @@ How to use this script:
 -p=,    --project=        | namespace to deploy Code Ready Workspaces
 -c=,    --cert=           | absolute path to a self signed cert OpenShift Console uses
 -oauth, --enable-oauth    | enable Login in with OpenShift
---apb-image=              | installer image, defaults to "172.30.1.1:5000/openshift/codeready-apb"
---server-image=           | server image, defaults to eclipse/che-server:nighly. Tag is MANDATORY
+--apb-image=              | installer image, defaults to "docker-registry.engineering.redhat.com/crw/codeready-apb:latest"
+--server-image=           | server image, defaults to "docker-registry.engineering.redhat.com/crw/codeready-server:latest". Tag is MANDATORY
 -h,     --help            | script help menu
 "
 
@@ -95,7 +95,7 @@ DEFAULT_SERVER_IMAGE_TAG="latest"
 export SERVER_IMAGE_TAG=${SERVER_IMAGE_TAG:-${DEFAULT_SERVER_IMAGE_TAG}}
 DEFAULT_APB_NAME="codeready"
 export APB_NAME=${APB_NAME:-${DEFAULT_APB_NAME}}
-DEFAULT_APB_IMAGE="172.30.1.1:5000/openshift/codeready-apb"
+DEFAULT_APB_IMAGE="docker-registry.engineering.redhat.com/crw/codeready-apb:latest"
 export APB_IMAGE=${APB_IMAGE:-${DEFAULT_APB_IMAGE}}
 
 printInfo() {

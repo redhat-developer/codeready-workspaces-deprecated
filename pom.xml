@@ -11,10 +11,10 @@
     <modelVersion>4.0.0</modelVersion>
     <version>1.0.0.Beta1-SNAPSHOT</version>
     <groupId>com.redhat</groupId>
-    <artifactId>codeready-language-servers-dependencies</artifactId>
+    <artifactId>codeready-workspaces</artifactId>
     <packaging>pom</packaging>
-    <name>CodeReady Workspaces :: Stacks :: Language Servers :: Root</name>
+    <name>CodeReady Workspaces :: ROOT</name>
   <modules>
-      <module>assembly</module>
+      <module>installer-package</module>
   </modules>
 </project>

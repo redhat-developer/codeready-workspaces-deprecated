@@ -13,23 +13,15 @@
 -->
 <assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
-    <id>node-modules-tgz</id>
+    <id>installer-tgz</id>
     <formats>
         <format>tar.gz</format>
     </formats>
     <includeBaseDirectory>false</includeBaseDirectory>
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}/target/usr/lib/node_modules</directory>
-            <outputDirectory>/usr/lib/node_modules</outputDirectory>
-        </fileSet>
-        <fileSet>
-            <directory>${project.basedir}/target/php-ls</directory>
-            <outputDirectory>/php-ls</outputDirectory>
-        </fileSet>
-        <fileSet>
-            <directory>${project.basedir}/target/zend-debugger</directory>
-            <outputDirectory>/zend-debugger</outputDirectory>
+            <directory>${project.basedir}/target/codeready-installer</directory>
+            <outputDirectory>/codeready-installer</outputDirectory>
         </fileSet>
     </fileSets>
 </assembly>
