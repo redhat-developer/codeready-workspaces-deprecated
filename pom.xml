@@ -13,7 +13,7 @@
     <groupId>com.redhat</groupId>
     <artifactId>codeready-workspaces</artifactId>
     <packaging>pom</packaging>
-    <name>CodeReady Workspaces :: ROOT</name>
+    <name>CodeReady Workspaces :: Root</name>
   <modules>
       <module>installer-package</module>
   </modules>

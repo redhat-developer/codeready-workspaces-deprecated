@@ -17,7 +17,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.redhat</groupId>
     <version>1.0.0.Beta1-SNAPSHOT</version>
-    <artifactId>codeready-workspaces-installer</artifactId>
+    <artifactId>codeready-workspaces-apb-installer</artifactId>
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Installer</name>
     <build>
@@ -69,13 +69,11 @@
                         </goals>
                         <configuration>
                             <target>
-                                <mkdir dir="${basedir}/target/codeready-installer"/>
+                                <mkdir dir="${basedir}/target/codeready-workspaces-apb-installer"/>
                                 <echo message="Copying files ..."/>
-                                <copy file="../apb/deploy.sh" tofile="${basedir}/target/codeready-installer/deploy.sh"/>
-                                <exec dir="${basedir}" executable="chmod" failonerror="true">
-                                    <arg line="+x ${basedir}/target/codeready-installer/deploy.sh" />
-                                </exec>
-                                <copy file="../apb/config.json" tofile="${basedir}/target/codeready-installer/config.json"/>
+                                <copy file="../apb/deploy.sh" tofile="${basedir}/target/codeready-workspaces-apb-installer/deploy.sh"/>
+                                <chmod file="${basedir}/target/codeready-workspaces-apb-installer/deploy.sh" perm="775"/>
+                                <copy file="../apb/config.json" tofile="${basedir}/target/codeready-workspaces-apb-installer/config.json"/>
                             </target>
                         </configuration>
                     </execution>
