@@ -16,7 +16,7 @@
     <name>CodeReady Workspaces :: Root</name>
   <modules>
       <module>installer-package</module>
-      <module>stacks/dependencies/node</module>
+      <module>stacks/dependencies</module>
       <!-- TODO add more deps -->
   </modules>
 </project>

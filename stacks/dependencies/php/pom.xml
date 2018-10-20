@@ -21,11 +21,11 @@
     </parent>
     <groupId>com.redhat</groupId>
     <version>1.0.0.Beta1-SNAPSHOT</version>
-    <artifactId>codeready-workspaces-stacks-language-servers-dependencies-node</artifactId>
+    <artifactId>codeready-workspaces-stacks-language-servers-dependencies-php</artifactId>
     <packaging>pom</packaging>
-    <name>CodeReady Workspaces :: Stacks :: Language Servers :: Node Dependencies</name>
+    <name>CodeReady Workspaces :: Stacks :: Language Servers :: PHP Dependencies</name>
     <properties>
-        <NODE_LS_VERSION>1.0.0-SNAPSHOT</NODE_LS_VERSION>
+        <PHP_LS_VERSION>1.0.0-SNAPSHOT</PHP_LS_VERSION>
     </properties>
     <build>
         <plugins>
@@ -63,17 +63,17 @@
                     <artifactItems>
                       <artifactItem>
                         <groupId>org.eclipse.che.ls.dependenies</groupId>
-                        <artifactId>language-servers-dependencies-node</artifactId>
-                        <version>${NODE_LS_VERSION}</version>
+                        <artifactId>language-servers-dependencies-php</artifactId>
+                        <version>${PHP_LS_VERSION}</version>
                         <type>tar.gz</type>
                         <overWrite>true</overWrite>
-                        <outputDirectory>${project.basedir}/target/</outputDirectory>
+                        <outputDirectory>${project.basedir}/target/php</outputDirectory>
                         <includes>**/*</includes>
                       </artifactItem>
                     </artifactItems>
                     <overWriteReleases>true</overWriteReleases>
                     <overWriteSnapshots>true</overWriteSnapshots>
-                    <outputDirectory>${project.basedir}/target/</outputDirectory>
+                    <outputDirectory>${project.basedir}/target/php</outputDirectory>
                     <includes>**/*</includes>
                   </configuration>
                 </execution>

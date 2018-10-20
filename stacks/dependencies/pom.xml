@@ -12,52 +12,32 @@
       Red Hat, Inc. - initial API and implementation
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.redhat</groupId>
     <version>1.0.0.Beta1-SNAPSHOT</version>
     <artifactId>codeready-workspaces-stacks-language-servers-dependencies</artifactId>
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Stacks :: Language Servers :: Dependencies</name>
-    <properties>
-        <NODE_LS_VERSION>1.0.0-SNAPSHOT</NODE_LS_VERSION>
-    </properties>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <appendAssemblyId>false</appendAssemblyId>
-                    <updateOnly>false</updateOnly>
-                    <descriptors>
-                        <descriptor>${project.basedir}/src/assembly/assembly.xml</descriptor>
-                    </descriptors>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
-    <repositories>
-        <repository>
-            <id>ossrh</id>
-            <name>central public snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-        </repository>
-        <repository>
-            <id>codenvy-public-repo</id>
-            <name>codenvy public</name>
-            <url>https://maven.codenvycorp.com/content/groups/public/</url>
-        </repository>
-    </repositories>
-
+    <modules>
+        <module>node</module>
+        <module>php</module>
+    </modules>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.eclipse.che.ls.dependenies</groupId>
+                <artifactId>language-servers-dependencies-node</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+                <type>tar.gz</type>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.che.ls.dependenies</groupId>
+                <artifactId>language-servers-dependencies-php</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+                <type>tar.gz</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>
