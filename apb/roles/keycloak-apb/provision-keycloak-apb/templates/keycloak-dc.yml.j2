@@ -45,12 +45,6 @@ spec:
                   key: ca.crt
                   name: self-signed-cert
                   optional: true
-            - name: "SSO_TRUSTSTORE"
-              value: "openshift.jks"
-            - name: "SSO_TRUSTSTORE_DIR"
-              value: "/home/jboss"
-            - name: "SSO_TRUSTSTORE_PASSWORD"
-              value: "openshift"
             - name: "SSO_ADMIN_USERNAME"
               value: {{ admin_username }}
             - name: "SSO_ADMIN_PASSWORD"
@@ -76,6 +70,14 @@ spec:
                 secret_key_ref:
                   name: {{ postgres_name }}
                   key: database-name
+{% if use_self_signed_cert %}
+            - name: "SSO_TRUSTSTORE"
+              value: "openshift.jks"
+            - name: "SSO_TRUSTSTORE_DIR"
+              value: "/home/jboss"
+            - name: "SSO_TRUSTSTORE_PASSWORD"
+              value: "openshift"
+{% endif %}
           image: '{{ keycloak_image_name }}:{{ keycloak_image_tag }}'
           imagePullPolicy: Always
           readinessProbe:
