@@ -23,6 +23,7 @@
     <modules>
         <module>node</module>
         <module>php</module>
+        <module>python</module>
     </modules>
     <dependencyManagement>
         <dependencies>
@@ -35,6 +36,12 @@
             <dependency>
                 <groupId>org.eclipse.che.ls.dependenies</groupId>
                 <artifactId>language-servers-dependencies-php</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+                <type>tar.gz</type>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.che.ls.dependenies</groupId>
+                <artifactId>language-servers-dependencies-python</artifactId>
                 <version>1.0.0-SNAPSHOT</version>
                 <type>tar.gz</type>
             </dependency>
