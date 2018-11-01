@@ -24,6 +24,7 @@
         <module>node</module>
         <module>php</module>
         <module>python</module>
+        <module>dotnet</module>
     </modules>
     <dependencyManagement>
         <dependencies>
