@@ -62,7 +62,7 @@
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>org.eclipse.che.ls.dependenies</groupId>
+                                    <groupId>org.eclipse.che.ls.dependencies</groupId>
                                     <artifactId>language-servers-dependencies-python</artifactId>
                                     <version>${PYTHON_LS_VERSION}</version>
                                     <type>tar.gz</type>

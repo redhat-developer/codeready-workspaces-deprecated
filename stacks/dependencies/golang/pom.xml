@@ -21,11 +21,11 @@
     </parent>
     <groupId>com.redhat</groupId>
     <version>1.0.0.Beta1-SNAPSHOT</version>
-    <artifactId>codeready-workspaces-stacks-language-servers-dependencies-dotnet</artifactId>
+    <artifactId>codeready-workspaces-stacks-language-servers-dependencies-golang</artifactId>
     <packaging>pom</packaging>
-    <name>CodeReady Workspaces :: Stacks :: Language Servers :: Dotnet Dependencies</name>
+    <name>CodeReady Workspaces :: Stacks :: Language Servers :: Golang Dependencies</name>
     <properties>
-        <DOTNET_LS_VERSION>1.0.0-SNAPSHOT</DOTNET_LS_VERSION>
+        <GOLANG_LS_VERSION>1.0.0-SNAPSHOT</GOLANG_LS_VERSION>
     </properties>
     <build>
         <plugins>
@@ -63,17 +63,17 @@
                             <artifactItems>
                                 <artifactItem>
                                     <groupId>org.eclipse.che.ls.dependencies</groupId>
-                                    <artifactId>language-servers-dependencies-dotnet</artifactId>
-                                    <version>${DOTNET_LS_VERSION}</version>
+                                    <artifactId>language-servers-dependencies-golang</artifactId>
+                                    <version>${GOLANG_LS_VERSION}</version>
                                     <type>tar.gz</type>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${project.basedir}/target/dotnet</outputDirectory>
+                                    <outputDirectory>${project.basedir}/target/golang</outputDirectory>
                                     <includes>**/*</includes>
                                 </artifactItem>
                             </artifactItems>
                             <overWriteReleases>true</overWriteReleases>
                             <overWriteSnapshots>true</overWriteSnapshots>
-                            <outputDirectory>${project.basedir}/target/dotnet</outputDirectory>
+                            <outputDirectory>${project.basedir}/target/golang</outputDirectory>
                             <includes>**/*</includes>
                         </configuration>
                     </execution>
