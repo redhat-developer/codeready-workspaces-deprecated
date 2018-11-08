@@ -45,7 +45,6 @@
                     <appendAssemblyId>false</appendAssemblyId>
                     <descriptors>
                         <descriptor>${project.basedir}/src/assembly/assembly.xml</descriptor>
-                        <assembly.tarLongFileMode>posix</assembly.tarLongFileMode>
                     </descriptors>
                 </configuration>
             </plugin>
