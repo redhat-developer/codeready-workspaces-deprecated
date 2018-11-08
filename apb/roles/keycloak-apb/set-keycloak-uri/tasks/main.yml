@@ -4,7 +4,7 @@
     name: "{{ application_name }}"
     namespace: "{{ namespace}}"
   register: keycloak_dc_raw
-  retries: 20
+  retries: 30
   delay: 20
   until: keycloak_dc_raw.deployment_config.status.available_replicas == 1
 

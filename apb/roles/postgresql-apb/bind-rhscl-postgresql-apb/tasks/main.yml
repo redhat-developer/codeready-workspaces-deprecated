@@ -31,28 +31,31 @@
 # create the database for deletion later only the user and privileges, in that
 # case the database should be created during provision and not in the bind.
 #############################################################################
-- name: create database
+- name: Create Database {{ postgresql_db_name }}
   postgresql_db:
     name: "{{ postgresql_db_name }}"
     port: "{{ _apb_provision_creds.DB_PORT }}"
-    login_host: "{{ _apb_provision_creds.DB_HOST }}.{{ namespace }}"
+    login_host: "{{ _apb_provision_creds.DB_HOST }}"
     login_user: "{{ _apb_provision_creds.DB_ADMIN_USER }}"
     login_password: "{{ _apb_provision_creds.DB_ADMIN_PASSWORD }}"
     state: "{{ state }}"
+  retries: 20
+  delay: 10
+  register: result
+  until: result is success
   when: state == "present"
-
 
 #############################################################################
 # Create a user for the new database
 #############################################################################
-- name: create database user
+- name: Create Database User {{ postgresql_user }}
   postgresql_user:
     db: "{{ postgresql_db_name }}"
     name: "{{ postgresql_user }}"
     password: "{{ postgresql_password }}"
     port: "{{ _apb_provision_creds.DB_PORT }}"
     role_attr_flags: "{% if postgresql_superuser %}SUPERUSER{% endif %}"
-    login_host: "{{ _apb_provision_creds.DB_HOST }}.{{ namespace }}"
+    login_host: "{{ _apb_provision_creds.DB_HOST }}"
     login_user: "{{ _apb_provision_creds.DB_ADMIN_USER }}"
     login_password: "{{ _apb_provision_creds.DB_ADMIN_PASSWORD }}"
     encrypted: yes
@@ -62,12 +65,12 @@
 #############################################################################
 # Give the user privileges to the created database
 #############################################################################
-- name: grant privileges on database
+- name: Grant Privileges for User {{ postgresql_user }} on Database {{ postgresql_db_name }}
   postgresql_privs:
     db: "{{ postgresql_db_name }}"
     port: "{{ _apb_provision_creds.DB_PORT }}"
     role: "{{ postgresql_user }}"
-    login_host: "{{ _apb_provision_creds.DB_HOST }}.{{ namespace }}"
+    login_host: "{{ _apb_provision_creds.DB_HOST }}"
     login_user: "{{ _apb_provision_creds.DB_ADMIN_USER }}"
     login_password: "{{ _apb_provision_creds.DB_ADMIN_PASSWORD }}"
     type: database

@@ -14,8 +14,6 @@ che_log_level: "INFO"
 che_multiuser: "true"
 che_predefined_stacks_reload__on__start: "true"
 che_workspace_auto_start: "true"
-che_workspace_memory_limit: "2400mb"
-che_workspace_memory_request: "2400"
 
 che_server_deployment_strategy: "Recreate"
 che_server_image_pull_policy: "IfNotPresent"

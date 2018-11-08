@@ -88,8 +88,10 @@ DEFAULT_USE_SELF_SIGNED_CERT="false"
 export USE_SELF_SIGNED_CERT=${USE_SELF_SIGNED_CERT:-${DEFAULT_USE_SELF_SIGNED_CERT}}
 DEFAULT_ENABLE_OPENSHIFT_OAUTH="false"
 export ENABLE_OPENSHIFT_OAUTH=${ENABLE_OPENSHIFT_OAUTH:-${DEFAULT_ENABLE_OPENSHIFT_OAUTH}}
+DEFAULT_CHE_INFRA_KUBERNETES_PVC_STRATEGY="unique"
+export CHE_INFRA_KUBERNETES_PVC_STRATEGY=${CHE_INFRA_KUBERNETES_PVC_STRATEGY:-${DEFAULT_CHE_INFRA_KUBERNETES_PVC_STRATEGY}}
 
-  DEFAULT_SERVER_IMAGE_NAME="docker-registry.engineering.redhat.com/crw/codeready-server"
+DEFAULT_SERVER_IMAGE_NAME="docker-registry.engineering.redhat.com/crw/codeready-server"
 export SERVER_IMAGE_NAME=${SERVER_IMAGE_NAME:-${DEFAULT_SERVER_IMAGE_NAME}}
 DEFAULT_SERVER_IMAGE_TAG="latest"
 export SERVER_IMAGE_TAG=${SERVER_IMAGE_TAG:-${DEFAULT_SERVER_IMAGE_TAG}}
@@ -208,6 +210,7 @@ deployCodeReady() {
                                             sed "s@\${SERVER_IMAGE_NAME}@${SERVER_IMAGE_NAME}@g" | \
                                             sed "s@\${SERVER_IMAGE_TAG}@${SERVER_IMAGE_TAG}@g" | \
                                             sed "s@\${ENABLE_OPENSHIFT_OAUTH}@${ENABLE_OPENSHIFT_OAUTH}@g" | \
+                                            sed "s@\${CHE_INFRA_KUBERNETES_PVC_STRATEGY}@${CHE_INFRA_KUBERNETES_PVC_STRATEGY}@g" | \
                                             sed "s@\${USE_SELF_SIGNED_CERT}@${USE_SELF_SIGNED_CERT}@g")
 
 if [ "${JENKINS_BUILD}" = true ] ; then
