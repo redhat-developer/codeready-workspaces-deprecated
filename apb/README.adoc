@@ -1,6 +1,10 @@
 # Code Ready Workspaces APB
 
-## How to Build
+NOTE: Dockerfiles in this repo are NOT the ones used to build RHCC container images in OSBS.
+
+To build stacks in OSBS, see http://pkgs.devel.redhat.com/cgit/apbs/codeready-workspaces/tree/README.adoc?h=codeready-1.0-rhel-7
+
+## How to Build Locally
 
 ```
 docker build -t 172.30.1.1:5000/openshift/codeready-apb .
