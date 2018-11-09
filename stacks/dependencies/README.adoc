@@ -1,0 +1,17 @@
+# Code Ready Workspaces Stack Image Dependencies
+
+## What's Inside?
+
+This module contains maven assemblies for collecting the language server dependencies needed to build the CodeReady Workspaces stacks images in the Red Hat Container Catalogue.
+
+These are built in link:https://ci.codenvycorp.com/job/ls-dependencies-ci-master/[Codenvy Jenkins], then collected in link:http://orch.cloud.pnc.engineering.redhat.com/pnc-web/#/projects/153/build-configs/591[Project Newcastle] (NCL) so they're available to an OSBS Brew build.
+
+If you're looking for the Dockerfiles that controls the OSBS container builds, go here:
+
+* https://pkgs.devel.redhat.com/cgit/containers/?q=codeready-workspaces
+* https://pkgs.devel.redhat.com/cgit/apbs/?q=codeready-workspaces
+
+## How to Build and Push to RHCC?
+
+See https://pkgs.devel.redhat.com/cgit/apbs/codeready-workspaces/tree/README.adoc?h=codeready-1.0-rhel-7
+
