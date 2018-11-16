@@ -199,7 +199,7 @@ plans:
         type: enum
         enum: ['unique', 'common']
         required: false
-        default: "unique"
+        default: "common"
         display_group: Persistent Volume
       - name: "che_infra_kubernetes_pvc_name"
         title: Workspace Volume Name (only if strategy is common)
