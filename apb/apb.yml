@@ -186,7 +186,7 @@ plans:
         title: Precreate Subpaths
         type: boolean
         required: false
-        default: true
+        default: false
         display_group: Persistent Volume
       - name: "che_infra_kubernetes_pvc_quantity"
         title: Disk quantity for che workspace

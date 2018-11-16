@@ -2,15 +2,23 @@
 
 ## What's Inside?
 
-This module contains Dockerfiles for the following stacks:
+This module contains Dockerfiles for the following stacks, which can be used to build these stacks locally:
 
 * java
-* dotnet
-* python
-* golang
 * nodejs
+
+* dotnet
 * php
 * python
+* golang
+* cpp
+
+NOTE: These are NOT the same as the Dockerfiles used to build containers for publication to the Red Hat Container Catalogue.
+
+If you're looking for those, go here:
+
+* https://pkgs.devel.redhat.com/cgit/containers/?q=codeready-workspaces
+* https://pkgs.devel.redhat.com/cgit/apbs/?q=codeready-workspaces
 
 ## How to Build and Push?
 
@@ -55,3 +63,8 @@ When on MiniShift, make sure you run:
 ```
 eval $(minishift docker-env)
 ```
+
+## How to Build and Push to RHCC?
+
+See https://pkgs.devel.redhat.com/cgit/apbs/codeready-workspaces/tree/README.adoc?h=codeready-1.0-rhel-7
+
