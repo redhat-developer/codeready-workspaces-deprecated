@@ -16,7 +16,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.redhat</groupId>
-    <version>1.0.0.Beta1-SNAPSHOT</version>
+    <version>1.0.0.GA-SNAPSHOT</version>
     <artifactId>codeready-workspaces-apb-installer</artifactId>
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Installer</name>

@@ -16,11 +16,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
       <groupId>com.redhat</groupId>
-      <version>1.0.0.Beta1-SNAPSHOT</version>
+      <version>1.0.0.GA-SNAPSHOT</version>
       <artifactId>codeready-workspaces-stacks-language-servers-dependencies</artifactId>
     </parent>
     <groupId>com.redhat</groupId>
-    <version>1.0.0.Beta1-SNAPSHOT</version>
+    <version>1.0.0.GA-SNAPSHOT</version>
     <artifactId>codeready-workspaces-stacks-language-servers-dependencies-node</artifactId>
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Stacks :: Language Servers :: Node Dependencies</name>
