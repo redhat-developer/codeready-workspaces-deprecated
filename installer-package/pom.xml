@@ -71,7 +71,7 @@
                             <target>
                                 <mkdir dir="${basedir}/target/codeready-workspaces-apb-installer"/>
                                 <echo message="Copying files ..."/>
-                                <copy file="../apb/README.adoc" tofile="${basedir}/target/codeready-workspaces-apb-installer/README.adoc"/>
+                                <copy file="README.adoc" tofile="${basedir}/target/codeready-workspaces-apb-installer/README.adoc"/>
                                 <copy file="../apb/deploy.sh" tofile="${basedir}/target/codeready-workspaces-apb-installer/deploy.sh"/>
                                 <chmod file="${basedir}/target/codeready-workspaces-apb-installer/deploy.sh" perm="775"/>
                                 <copy file="../apb/config.json" tofile="${basedir}/target/codeready-workspaces-apb-installer/config.json"/>
