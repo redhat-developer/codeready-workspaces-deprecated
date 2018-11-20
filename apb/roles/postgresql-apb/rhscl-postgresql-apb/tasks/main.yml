@@ -7,6 +7,16 @@
     resources_requests:
       storage: '{{ postgresql_volume_size }}'
     state: "{{ state }}"
+  register: postgres_pvc
+
+- name: Wait for PostgreSQL PVC to be bound to a PV
+  k8s_v1_persistent_volume_claim:
+    name: "postgresql"
+    namespace: '{{ namespace }}'
+  register: postgres_pvc
+  retries: 20
+  delay: 3
+  until: postgres_pvc['persistent_volume_claim']['status']['phase'] == "Bound"
 
 - name: set production deployment config state to {{ state }}
   openshift_v1_deployment_config:

@@ -23,4 +23,107 @@ This way, the resulting image will be available from Docker in a MiniShift VM.
 
 ## How to run
 
+### Pre-reqs
+
+* a running OpenShift instance
+* an active session (you should be logged in)
+* **OPTIONAL** Only if you enable Login with OpenShift (`-oauth, --enable-oauth`): current user must have cluster-admin privileges.
+
+### Installation Configuration
+
+The installer script will use command line args and `config.json` file to populate APB extra vars.
+
+#### Configuration
+
+You can override default envs. Not all configuration parameters are available as flags. Run `./deploy.sh --help` to get a list of all available arguments.
+
+`config.json` contains default values for installation params. Those params that take environment variables as values can be overridden from a command line. Before running the script in a fast mode, review `config.json`.
+
+
+```
+"che_image_name": "${SERVER_IMAGE_NAME}",             // Che server image:repo
+"che_secure_routes": false,                           // https support in Che. Keep it false if you are on a local Origin with self signed certs
+"che_external_db": false,                             // Set to true, if you want to connect to an external db, and skip deploying Postgres instance
+"che_infra_kubernetes_pvc_strategy": "",              // defaults to common, ie all workspaces use one pvc. Can be unique - each ws gets own PVC
+"che_infra_kubernetes_pvc_quantity": "1Gi",           // PVC claim size. If you use common strategy, consider increasing it
+"che_jdbc_db_host": "postgres",                       // Database hostname. Do not change, unless you want to connect to an external DB
+"che_jdbc_db_port": "5432",                           // Postgres port. Do not change unless a remote DB runs on a non default port
+"che_jdbc_db_name": "dbcodeready",                    // Database name
+"che_jdbc_username": "pgcodeready",                   // Database user. MUST be a SUPERUSER
+"che_jdbc_password": "pgcodereadypassword",           // Database password
+"external_keycloak": false,                           // Set to true if you want to connect to an existing Red Hat SSO/Keycloak instance
+"external_keycloak_uri":"",                           // Provide Red hat SSO URL. No trailing /auth. Just protocol and hostname
+"keycloak_provision_realm_user": true,                // Keep unchanged unless you want to use an existing realm and client (must be public)
+"che_keycloak_admin_username": "admin",               // Red Hat SSO admin name
+"che_keycloak_admin_password": "admin",               // Red Hat SSO admin password
+"namespace": "${OPENSHIFT_PROJECT}",                  // Leave as is. Defaults to current namespace
+"che_keycloak_realm": "codeready",                    // Red Hat SSO realm
+"che_keycloak_client__id": "codeready-public",        // Red Hat SSO client
+"use_self_signed_cert": false,                        // Add self signed certs to truststore of server and Red Hat SSO. If enabled, provide path to cert file - -c=/path/to/file
+"enable_openshift_oauth": "${ENABLE_OPENSHIFT_OAUTH}",// Enable Login with OpenShift. Requires cluster-admin privileges. Enable self signed certs if your cluster uses them
+"che_http_proxy_java_options": "",                    // proxy related JAVA_OPTS injected into workspace and master JAVA_OPTS
+"che_workspace_http_proxy": "",                       // http proxy for workspaces
+"che_workspace_https_proxy": "",                      // https proxy for workspaces
+"che_workspace_no_proxy": "",                         // no_proxy proxy for workspaces
+```
+
+#### Examples
+
+##### Deploy with all defaults
+
+The following command will grab config from config.json and start an installer image:
+
+```
+./deploy.sh --d
+```
+Specify a namespace:
+
+```
+./deploy.sh --d -p=mynamespace
+```
+
+#### Deploy with support of self signed certs, OpenShift oAuth and a custom server-image
+
+```
+./deploy.sh --d -c=/var/lib/origin/openshift.local.config/master/ca.crt -oauth --server-image=myserver/image:mytag
+```
+
+##### Deploy with external Red Hat SSO and enabled realm provisioning:
+
+In `config.json`:
+
+```
+"external_keycloak": true,                         
+"external_keycloak_uri":"https://my-rh-sso.com",
+"keycloak_provision_realm_user": true,
+```
+
+##### Deploy with external Red Hat SSO and Postgres DB:
+
+In `config.json`:
+
+```
+"che_external_db": true,
+"che_jdbc_db_host": "114.54.123.40",
+"che_jdbc_db_port": "5432",
+"che_jdbc_db_name": "mydatabase",
+"che_jdbc_username": "mysuperuser",
+"che_jdbc_password": "mypassword",
+
+....
+
+"external_keycloak": true,                         
+"external_keycloak_uri":"https://my-rh-sso.com",
+"keycloak_provision_realm_user": true,
+```
+
+### External DB and RH SSO Support
+
+You can connect to external DB and RH SSO instances. The installer supports the following combinations:
+
+* DB + RH SSO
+* RH SSO alone
+
+External DB + bundled RH SSO isn't currently supported
+=======
 See link:../installer-package/README.adoc[APB installer README].

@@ -34,12 +34,18 @@ data:
   CHE_KEYCLOAK_AUTH__SERVER__URL: "{{ keycloak_uri | default(external_keycloak_uri) }}/auth"
   CHE_INFRA_OPENSHIFT_OAUTH__IDENTITY__PROVIDER: "{{ openshift_identity_provider | default('NULL') }}"
   CHE_PREDEFINED_STACKS_RELOAD__ON__START: "{{ che_predefined_stacks_reload__on__start | bool | lower }}"
-  JAVA_OPTS: "-XX:MaxRAMFraction=2 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -Dsun.zip.disableMemoryMapping=true -Xms20m "
+  JAVA_OPTS: "{{ che_server_java_opts }}"
+  CHE_WORKSPACE_JAVA_OPTIONS: "{{ che_workspace_java_options }}"
+  CHE_WORKSPACE_HTTP__PROXY__JAVA__OPTIONS: "{{ che_http_proxy_java_options }}"
+  CHE_WORKSPACE_MAVEN__OPTIONS: "{{ che_workspace_maven_options }}"
   CHE_WORKSPACE_AUTO_START: "{{ che_workspace_auto_start | bool | lower }}"
   CHE_KEYCLOAK_CLIENT__ID: "{{ che_keycloak_client__id }}"
   CHE_KEYCLOAK_REALM: "{{ che_keycloak_realm }}"
   CHE_WORKSPACE_AGENT_DEV_INACTIVE__STOP__TIMEOUT__MS: "-1"
   CHE_INFRA_KUBERNETES_WORKSPACE__UNRECOVERABLE__EVENTS: "FailedMount,FailedScheduling,MountVolume.SetUp failed,Failed to pull image"
+  CHE_WORKSPACE_HTTP__PROXY: "{{ che_workspace_http_proxy }}"
+  CHE_WORKSPACE_HTTS__PROXY: "{{ che_workspace_https_proxy }}"
+  CHE_WORKSPACE_NO__PROXY: "{{ che_workspace_no_proxy }}"
 kind: ConfigMap
 metadata:
   name: che

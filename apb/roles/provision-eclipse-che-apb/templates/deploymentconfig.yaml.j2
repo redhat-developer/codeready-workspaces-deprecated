@@ -32,7 +32,7 @@ spec:
         envFrom:
         - configMapRef:
             name: che
-        image: {{ che_image_name }}:{{ che_image_tag }}
+        image: {{ che_image_name }}
         imagePullPolicy: "{{ che_server_image_pull_policy }}"
         livenessProbe:
           httpGet:

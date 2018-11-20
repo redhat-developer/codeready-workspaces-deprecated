@@ -71,7 +71,7 @@ plans:
         type: enum
         enum: ["Recreate", "Rolling"]
         required: false
-        default: "Recreate"
+        default: "Rolling"
         display_group: Code Ready Configuration
       - name: "che_server_image_pull_policy"
         title: "Code ready Workspace DeploymentConfig Image pull policy"
@@ -199,7 +199,7 @@ plans:
         type: enum
         enum: ['unique', 'common']
         required: false
-        default: "unique"
+        default: "common"
         display_group: Persistent Volume
       - name: "che_infra_kubernetes_pvc_name"
         title: Workspace Volume Name (only if strategy is common)
