@@ -14,7 +14,7 @@ FROM registry.access.redhat.com/openshift3/apb-base:v3.10.45-6
 ENV SUMMARY="Red Hat CodeReady Workspaces Ansible Playbook Bundle that provides the Red Hat CodeReady Workspaces (Eclipse Che Server)" \
     DESCRIPTION="Red Hat CodeReady Workspaces Ansible Playbook Bundle that provides the Red Hat CodeReady Workspaces (Eclipse Che Server)" \
     PRODNAME="codeready-workspaces" \
-    COMPNAME="apb"
+    COMPNAME="server-apb"
 
 LABEL summary="$SUMMARY" \
       description="$DESCRIPTION" \
@@ -23,14 +23,13 @@ LABEL summary="$SUMMARY" \
       io.openshift.tags="$PRODNAME,$COMPNAME" \
       com.redhat.component="$PRODNAME-$COMPNAME" \
       name="$PRODNAME/$COMPNAME" \
-      version="1.0.0.GA" \
+      version="1.0.0.Beta1" \
       license="EPLv2" \
       maintainer="Nick Boldt <nboldt@redhat.com>" \
       io.openshift.expose-services="" \
       usage=""
 
+USER root
 COPY playbooks /opt/apb/actions
 COPY roles /opt/ansible/roles
-RUN chmod -R g=u /opt/{ansible,apb} && \
-    find /opt/ansible/roles/keycloak-apb -type f | xargs sed -i "s/'persistent'/'prod'/g" && \
-    find /opt/ansible/roles/keycloak-apb -type f | xargs sed -i "s/'ephemeral'/'dev'/g"
+RUN chmod -R g=u /opt/{ansible,apb}

@@ -75,7 +75,7 @@
 
 - name: Create Workspace PersistentVolumeClaim
   k8s_v1_persistent_volume_claim:
-    name: "{{ application_name }}-workspace-claim"
+    name: "{{ che_infra_kubernetes_pvc_name }}"
     namespace: "{{ namespace }}"
     labels:
       app: "{{ application_name }}"

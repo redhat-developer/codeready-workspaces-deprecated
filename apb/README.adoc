@@ -41,10 +41,11 @@ You can override default envs. Not all configuration parameters are available as
 
 
 ```
-"che_image_name": "${SERVER_IMAGE_NAME}",             // defaults to eclipse/che-server
-"che_image_tag": "${SERVER_IMAGE_TAG}",               // defaults to nightly
+"che_image_name": "${SERVER_IMAGE_NAME}",             // Che server image:repo
 "che_secure_routes": false,                           // https support in Che. Keep it false if you are on a local Origin with self signed certs
 "che_external_db": false,                             // Set to true, if you want to connect to an external db, and skip deploying Postgres instance
+"che_infra_kubernetes_pvc_strategy": "",              // defaults to common, ie all workspaces use one pvc. Can be unique - each ws gets own PVC
+"che_infra_kubernetes_pvc_quantity": "1Gi",           // PVC claim size. If you use common strategy, consider increasing it
 "che_jdbc_db_host": "postgres",                       // Database hostname. Do not change, unless you want to connect to an external DB
 "che_jdbc_db_port": "5432",                           // Postgres port. Do not change unless a remote DB runs on a non default port
 "che_jdbc_db_name": "dbcodeready",                    // Database name
@@ -60,6 +61,10 @@ You can override default envs. Not all configuration parameters are available as
 "che_keycloak_client__id": "codeready-public",        // Red Hat SSO client
 "use_self_signed_cert": false,                        // Add self signed certs to truststore of server and Red Hat SSO. If enabled, provide path to cert file - -c=/path/to/file
 "enable_openshift_oauth": "${ENABLE_OPENSHIFT_OAUTH}",// Enable Login with OpenShift. Requires cluster-admin privileges. Enable self signed certs if your cluster uses them
+"che_http_proxy_java_options": "",                    // proxy related JAVA_OPTS injected into workspace and master JAVA_OPTS
+"che_workspace_http_proxy": "",                       // http proxy for workspaces
+"che_workspace_https_proxy": "",                      // https proxy for workspaces
+"che_workspace_no_proxy": "",                         // no_proxy proxy for workspaces
 ```
 
 #### Examples
@@ -69,18 +74,18 @@ You can override default envs. Not all configuration parameters are available as
 The following command will grab config from config.json and start an installer image:
 
 ```
-./deploy.sh --deploy
+./deploy.sh --d
 ```
 Specify a namespace:
 
 ```
-./deploy.sh --deploy -p=mynamespace
+./deploy.sh --d -p=mynamespace
 ```
 
 #### Deploy with support of self signed certs, OpenShift oAuth and a custom server-image
 
 ```
-./deploy.sh --deploy -c=/var/lib/origin/openshift.local.config/master/ca.crt -oauth --server-image=myserver/image:mytag
+./deploy.sh --d -c=/var/lib/origin/openshift.local.config/master/ca.crt -oauth --server-image=myserver/image:mytag
 ```
 
 ##### Deploy with external Red Hat SSO and enabled realm provisioning:

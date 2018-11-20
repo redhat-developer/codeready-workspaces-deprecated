@@ -6,8 +6,8 @@ How to use this script:
 -p=,    --project=        | namespace to deploy Code Ready Workspaces
 -c=,    --cert=           | absolute path to a self signed cert OpenShift Console uses
 -oauth, --enable-oauth    | enable Login in with OpenShift
---apb-image=              | installer image, defaults to "registry.access.redhat.com/codeready-workspaces/apb:1.0.0". Tag is required
---server-image=           | server image, defaults to "registry.access.redhat.com/codeready-workspaces/server:1.0.0". Tag is required
+--apb-image=              | installer image, defaults to "registry.access.redhat.com/codeready-workspaces/apb:1.0.0"
+--server-image=           | server image, defaults to "registry.access.redhat.com/codeready-workspaces/server:1.0.0".
 -h,     --help            | script help menu
 "
 
@@ -31,13 +31,11 @@ do
       shift
       ;;
     --apb-image=*)
-      APB_IMAGE_NAME=$(echo "${key#*=}" | sed 's/\:[^:]*$//')
-      APB_IMAGE_TAG=$(echo "${key#*=}" | sed 's/.*://')
+      APB_IMAGE_NAME=$(echo "${key#*=}")
       shift
       ;;
     --server-image=*)
-      SERVER_IMAGE_NAME=$(echo "${key#*=}" | sed 's/\:[^:]*$//')
-      SERVER_IMAGE_TAG=$(echo "${key#*=}" | sed 's/.*://')
+      SERVER_IMAGE_NAME=$(echo "${key#*=}")
       shift
       ;;
     -d | --deploy)
@@ -92,17 +90,13 @@ export ENABLE_OPENSHIFT_OAUTH=${ENABLE_OPENSHIFT_OAUTH:-${DEFAULT_ENABLE_OPENSHI
 DEFAULT_CHE_INFRA_KUBERNETES_PVC_STRATEGY="common"
 export CHE_INFRA_KUBERNETES_PVC_STRATEGY=${CHE_INFRA_KUBERNETES_PVC_STRATEGY:-${DEFAULT_CHE_INFRA_KUBERNETES_PVC_STRATEGY}}
 
-DEFAULT_SERVER_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/server"
+DEFAULT_SERVER_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/server:1.0.0"
 export SERVER_IMAGE_NAME=${SERVER_IMAGE_NAME:-${DEFAULT_SERVER_IMAGE_NAME}}
-DEFAULT_SERVER_IMAGE_TAG="1.0.0"
-export SERVER_IMAGE_TAG=${SERVER_IMAGE_TAG:-${DEFAULT_SERVER_IMAGE_TAG}}
-
 DEFAULT_APB_NAME="codeready-workspaces"
 export APB_NAME=${APB_NAME:-${DEFAULT_APB_NAME}}
-DEFAULT_APB_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/apb" # TODO: switch to server-apb?
+DEFAULT_APB_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/apb:1.0.0" # TODO: switch to server-apb?
 export APB_IMAGE_NAME=${APB_IMAGE_NAME:-${DEFAULT_APB_IMAGE_NAME}}
-DEFAULT_APB_IMAGE_TAG="1.0.0"
-export APB_IMAGE_TAG=${APB_IMAGE_TAG:-${DEFAULT_APB_IMAGE_TAG}}
+
 
 printInfo() {
   green=`tput setaf 2`
@@ -212,7 +206,6 @@ deployCodeReady() {
                                             sed "s@\${OPENSHIFT_PROJECT}@${OPENSHIFT_PROJECT}@g" | \
                                             sed "s@\${OPENSHIFT_API_URI}@${OPENSHIFT_API_URI}@g" | \
                                             sed "s@\${SERVER_IMAGE_NAME}@${SERVER_IMAGE_NAME}@g" | \
-                                            sed "s@\${SERVER_IMAGE_TAG}@${SERVER_IMAGE_TAG}@g" | \
                                             sed "s@\${ENABLE_OPENSHIFT_OAUTH}@${ENABLE_OPENSHIFT_OAUTH}@g" | \
                                             sed "s@\${CHE_INFRA_KUBERNETES_PVC_STRATEGY}@${CHE_INFRA_KUBERNETES_PVC_STRATEGY}@g" | \
                                             sed "s@\${USE_SELF_SIGNED_CERT}@${USE_SELF_SIGNED_CERT}@g")
@@ -223,7 +216,7 @@ else
   PARAMS="-it"
 fi
 
-  ${OC_BINARY} run "${APB_NAME}" ${PARAMS} --restart='Never' --image "${APB_IMAGE_NAME}:${APB_IMAGE_TAG}" --env "OPENSHIFT_TOKEN=${OC_TOKEN}" --env "OPENSHIFT_TARGET=https://kubernetes.default.svc" --env "POD_NAME=${APB_NAME}" --env "POD_NAMESPACE=${OPENSHIFT_PROJECT}" --overrides="{\"apiVersion\":\"v1\",\"spec\":{\"serviceAccountName\":\"codeready-apb\"}}" -- provision --extra-vars "${EXTRA_VARS}"
+  ${OC_BINARY} run "${APB_NAME}-apb" ${PARAMS} --restart='Never' --image "${APB_IMAGE_NAME}" --env "OPENSHIFT_TOKEN=${OC_TOKEN}" --env "OPENSHIFT_TARGET=https://kubernetes.default.svc" --env "POD_NAME=${APB_NAME}-apb" --env "POD_NAMESPACE=${OPENSHIFT_PROJECT}" --overrides="{\"apiVersion\":\"v1\",\"spec\":{\"serviceAccountName\":\"codeready-apb\"}}" -- provision --extra-vars "${EXTRA_VARS}"
 
 OUT=$?
   if [ ${OUT} -ne 0 ]; then
