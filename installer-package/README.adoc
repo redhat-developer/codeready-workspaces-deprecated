@@ -1,33 +1,27 @@
-# Code Ready Workspaces APB
+## APB installer README
 
-NOTE: Dockerfiles in this repo are NOT the ones used to build RHCC container images in OSBS.
-
-To build stacks in OSBS, see http://pkgs.devel.redhat.com/cgit/apbs/codeready-workspaces/tree/README.adoc?h=codeready-1.0-rhel-7
-
-## How to Build Locally
-
-```
-docker build -t 172.30.1.1:5000/openshift/codeready-apb .
-```
-
-You can use any image name and tag. It depends on your OpenShift setup. For MiniShift and a local Origin,
-you may use this image name (which is a default one for the installer script). For OCP, OSD, you need to build the image with whatever name, tag it and push it to your OpenShift local registry, openshift namespace (requires cluster admin privileges).
-
-When on MiniShift, before building the image, make sure you local Docker is connected to MiniShift's docker daemon:
-
-```
-eval $(minishift docker-env)
-```
-
-This way, the resulting image will be available from Docker in a MiniShift VM.
-
-## How to run
+This document explains how to use the APB installer (deployment script).
 
 ### Pre-reqs
 
-* a running OpenShift instance
+* a running OpenShift or link:https://docs.okd.io/latest/minishift/index.html[Minishift] instance
 * an active session (you should be logged in)
+```
+oc login --server=https://your.ip.address.here:8443 -u developer -p developer
+```
+
 * **OPTIONAL** Only if you enable Login with OpenShift (`-oauth, --enable-oauth`): current user must have cluster-admin privileges.
+
+### Quickstart
+
+The simplest way to run the script is to use all the defaults.
+
+The following command will grab config from config.json and start an installer image:
+
+```
+./deploy.sh --deploy
+```
+
 
 ### Installation Configuration
 
@@ -41,11 +35,10 @@ You can override default envs. Not all configuration parameters are available as
 
 
 ```
-"che_image_name": "${SERVER_IMAGE_NAME}",             // Che server image:repo
+"che_image_name": "${SERVER_IMAGE_NAME}",             // defaults to eclipse/che-server
+"che_image_tag": "${SERVER_IMAGE_TAG}",               // defaults to nightly
 "che_secure_routes": false,                           // https support in Che. Keep it false if you are on a local Origin with self signed certs
 "che_external_db": false,                             // Set to true, if you want to connect to an external db, and skip deploying Postgres instance
-"che_infra_kubernetes_pvc_strategy": "",              // defaults to common, ie all workspaces use one pvc. Can be unique - each ws gets own PVC
-"che_infra_kubernetes_pvc_quantity": "1Gi",           // PVC claim size. If you use common strategy, consider increasing it
 "che_jdbc_db_host": "postgres",                       // Database hostname. Do not change, unless you want to connect to an external DB
 "che_jdbc_db_port": "5432",                           // Postgres port. Do not change unless a remote DB runs on a non default port
 "che_jdbc_db_name": "dbcodeready",                    // Database name
@@ -61,10 +54,6 @@ You can override default envs. Not all configuration parameters are available as
 "che_keycloak_client__id": "codeready-public",        // Red Hat SSO client
 "use_self_signed_cert": false,                        // Add self signed certs to truststore of server and Red Hat SSO. If enabled, provide path to cert file - -c=/path/to/file
 "enable_openshift_oauth": "${ENABLE_OPENSHIFT_OAUTH}",// Enable Login with OpenShift. Requires cluster-admin privileges. Enable self signed certs if your cluster uses them
-"che_http_proxy_java_options": "",                    // proxy related JAVA_OPTS injected into workspace and master JAVA_OPTS
-"che_workspace_http_proxy": "",                       // http proxy for workspaces
-"che_workspace_https_proxy": "",                      // https proxy for workspaces
-"che_workspace_no_proxy": "",                         // no_proxy proxy for workspaces
 ```
 
 #### Examples
@@ -74,18 +63,18 @@ You can override default envs. Not all configuration parameters are available as
 The following command will grab config from config.json and start an installer image:
 
 ```
-./deploy.sh --d
+./deploy.sh --deploy
 ```
-Specify a namespace:
+Specify a project/namespace:
 
 ```
-./deploy.sh --d -p=mynamespace
+./deploy.sh --deploy -p=mynamespace
 ```
 
 #### Deploy with support of self signed certs, OpenShift oAuth and a custom server-image
 
 ```
-./deploy.sh --d -c=/var/lib/origin/openshift.local.config/master/ca.crt -oauth --server-image=myserver/image:mytag
+./deploy.sh --deploy -c=/var/lib/origin/openshift.local.config/master/ca.crt -oauth --server-image=myserver/image:mytag
 ```
 
 ##### Deploy with external Red Hat SSO and enabled realm provisioning:
@@ -93,7 +82,7 @@ Specify a namespace:
 In `config.json`:
 
 ```
-"external_keycloak": true,                         
+"external_keycloak": true,
 "external_keycloak_uri":"https://my-rh-sso.com",
 "keycloak_provision_realm_user": true,
 ```
@@ -112,7 +101,7 @@ In `config.json`:
 
 ....
 
-"external_keycloak": true,                         
+"external_keycloak": true,
 "external_keycloak_uri":"https://my-rh-sso.com",
 "keycloak_provision_realm_user": true,
 ```
@@ -125,5 +114,3 @@ You can connect to external DB and RH SSO instances. The installer supports the 
 * RH SSO alone
 
 External DB + bundled RH SSO isn't currently supported
-=======
-See link:../installer-package/README.adoc[APB installer README].
