@@ -90,11 +90,11 @@ export ENABLE_OPENSHIFT_OAUTH=${ENABLE_OPENSHIFT_OAUTH:-${DEFAULT_ENABLE_OPENSHI
 DEFAULT_CHE_INFRA_KUBERNETES_PVC_STRATEGY="common"
 export CHE_INFRA_KUBERNETES_PVC_STRATEGY=${CHE_INFRA_KUBERNETES_PVC_STRATEGY:-${DEFAULT_CHE_INFRA_KUBERNETES_PVC_STRATEGY}}
 
-DEFAULT_SERVER_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/server:1.0.0"
+DEFAULT_SERVER_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces-beta/server:1.0.0.Beta1"
 export SERVER_IMAGE_NAME=${SERVER_IMAGE_NAME:-${DEFAULT_SERVER_IMAGE_NAME}}
 DEFAULT_APB_NAME="codeready-workspaces"
 export APB_NAME=${APB_NAME:-${DEFAULT_APB_NAME}}
-DEFAULT_APB_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/apb:1.0.0" # TODO: switch to server-apb?
+DEFAULT_APB_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces-beta/server-apb:1.0.0.Beta1"
 export APB_IMAGE_NAME=${APB_IMAGE_NAME:-${DEFAULT_APB_IMAGE_NAME}}
 
 
