@@ -61,8 +61,8 @@
     validate_certs: no
   register: webpage
   ignore_errors: true
-  retries: 5
-  delay: 5
+  retries: 2
+  delay: 2
   until:
     - webpage.status == 200
     - '"Welcome to" in webpage.content'

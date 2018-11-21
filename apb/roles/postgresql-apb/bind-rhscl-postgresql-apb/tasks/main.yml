@@ -5,27 +5,6 @@
 - name: Gather Facts
   setup:
 
-# Download, install pip, and use pip to install the
-# psycopg2-binary package so that we can use the
-# postgresql_* ansible modules.
-
-- name: Download Package
-  get_url:
-    url: "{{ pip_url }}"
-    dest: /tmp/pip.sh
-    mode: 0755
-  register: download
-
-- name: Install Python pip for apb user
-  command: "{{ download['dest'] }} --user"
-
-- name: Install psycopg2-binary
-  pip:
-    name: "psycopg2-binary"
-    extra_args: "--user"
-  environment:
-    PATH: "{{ ansible_env['PATH'] }}:{{ local_path }}"
-
 #############################################################################
 # Create a new database for each binding. In many cases we may not want to
 # create the database for deletion later only the user and privileges, in that
@@ -44,6 +23,8 @@
   register: result
   until: result is success
   when: state == "present"
+  environment:
+    PATH: "{{ ansible_env['PATH'] }}:{{ local_path }}"
 
 #############################################################################
 # Create a user for the new database
