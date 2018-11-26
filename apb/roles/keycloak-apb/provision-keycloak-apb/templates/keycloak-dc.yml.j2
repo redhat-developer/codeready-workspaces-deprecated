@@ -31,7 +31,8 @@ spec:
               echo "Found a custom cert. Adding it to RH SSO trust store..." &&
               echo "${OPENSHIFT_IDENTITY_PROVIDER_CERTIFICATE}" > /home/jboss/openshift.crt &&
               keytool -importcert -alias HOSTDOMAIN -keystore /home/jboss/openshift.jks -file /home/jboss/openshift.crt -storepass openshift -noprompt &&
-              keytool -importkeystore -srckeystore $JAVA_HOME/jre/lib/security/cacerts -destkeystore /home/jboss/openshift.jks -srcstorepass changeit -deststorepass openshift && 
+              keytool -importkeystore -srckeystore $JAVA_HOME/jre/lib/security/cacerts -destkeystore /home/jboss/openshift.jks -srcstorepass changeit -deststorepass openshift &&
+              sed -i 's/WILDCARD/ANY/g' /opt/eap/bin/launch/keycloak-spi.sh && 
 {% endif %}
               /opt/eap/bin/openshift-launch.sh
           command:
