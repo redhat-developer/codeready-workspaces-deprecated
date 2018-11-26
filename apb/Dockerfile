@@ -37,7 +37,8 @@ USER root
 #      --enable rhel-server-rhscl-7-rpms
 RUN yum install -y python27-python-psycopg2.x86_64 && \
     yum clean all -y && \
-    cp -R /opt/rh/python27/root/usr/lib64/python2.7/site-packages/* /usr/lib/python2.7/site-packages
+    cp -R /opt/rh/python27/root/usr/lib64/python2.7/site-packages/* /usr/lib/python2.7/site-packages && \
+    echo "gather_timeout=20" >> /opt/apb/ansible.cfg
 COPY playbooks /opt/apb/actions
 COPY roles /opt/ansible/roles
 RUN chmod -R g=u /opt/{ansible,apb}
