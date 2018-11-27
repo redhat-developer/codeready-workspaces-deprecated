@@ -4,8 +4,8 @@ HELP="
 How to use this script:
 -d,     --deploy          | deployment with envs from config.json
 -p=,    --project=        | namespace to deploy Code Ready Workspaces
--c=,    --cert=           | absolute path to a self signed cert OpenShift Console uses
--oauth, --enable-oauth    | enable Login in with OpenShift
+-c=,    --cert=           | absolute path to a self signed certificate which OpenShift Console uses
+-oauth, --enable-oauth    | enable Log into CodeReady Workspaces with OpenShift credentials
 --apb-image=              | installer image, defaults to "registry.access.redhat.com/codeready-workspaces/apb:1.0.0"
 --server-image=           | server image, defaults to "registry.access.redhat.com/codeready-workspaces/server:1.0.0".
 -h,     --help            | script help menu
@@ -117,7 +117,7 @@ printError() {
 }
 
 preReqs() {
-  printInfo "Welcome to Code Ready Workspaces Installer"
+  printInfo "Welcome to CodeReady Workspaces Installer"
   if [ -x "$(command -v oc)" ]; then
     printInfo "Found oc client in PATH"
     export OC_BINARY="oc"
@@ -147,7 +147,7 @@ isLoggedIn() {
       ${OC_BINARY} get oauthclients > /dev/null 2>&1
       OUT=$?
       if [ ${OUT} -ne 0 ]; then
-        printError "You have enabled OpenShift oAuth for your installation but this feature requires cluster-admin priviliges. Login in as user with cluster-admin role"
+        printError "You have enabled OpenShift oAuth for your installation but this feature requires cluster-admin privileges. Login in as user with cluster-admin role"
         exit $OUT
       fi
     fi
@@ -172,7 +172,7 @@ createServiceAccount() {
   printInfo "Creating installer service account"
   ${OC_BINARY} create sa codeready-apb -n=${OPENSHIFT_PROJECT}
   if [ ${ENABLE_OPENSHIFT_OAUTH} = true ] ; then
-    printInfo "You have chosen an option to enable Login With OpenShift. Granting cluster-admin priviliges for apb service account"
+    printInfo "You have chosen an option to enable Login With OpenShift. Granting cluster-admin privileges for apb service account"
     ${OC_BINARY} adm policy add-cluster-role-to-user cluster-admin -z codeready-apb
     OUT=$?
     if [ ${OUT} -ne 0 ]; then
@@ -220,11 +220,11 @@ fi
 
 OUT=$?
   if [ ${OUT} -ne 0 ]; then
-    printError "Failed to deploy Code Ready Workspaces. Inspect error log"
+    printError "Failed to deploy CodeReady Workspaces. Inspect error log."
     exit 1
   else
 
-    printInfo "Code Ready Workspaces succesfully deployed"
+    printInfo "CodeReady Workspaces successfully deployed."
   fi
 }
 
