@@ -74,18 +74,18 @@ You can override default envs. Not all configuration parameters are available as
 The following command will grab config from config.json and start an installer image:
 
 ```
-./deploy.sh --d
+./deploy.sh -d
 ```
 Specify a namespace:
 
 ```
-./deploy.sh --d -p=mynamespace
+./deploy.sh -d -p=mynamespace
 ```
 
 #### Deploy with support of self signed certs, OpenShift oAuth and a custom server-image
 
 ```
-./deploy.sh --d -c=/var/lib/origin/openshift.local.config/master/ca.crt -oauth --server-image=myserver/image:mytag
+./deploy.sh -d -c=/var/lib/origin/openshift.local.config/master/ca.crt -oauth --server-image=myserver/image:mytag
 ```
 
 ##### Deploy with external Red Hat SSO and enabled realm provisioning:
