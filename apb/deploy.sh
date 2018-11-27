@@ -223,8 +223,13 @@ OUT=$?
     printError "Failed to deploy CodeReady Workspaces. Inspect error log."
     exit 1
   else
-
-    printInfo "CodeReady Workspaces successfully deployed."
+    PROTOCOL="http"
+    TLS=$(oc get route codeready -n=${OPENSHIFT_PROJECT} -o=jsonpath='{.spec.tls.termination}')
+    if [ "${TLS}" ]; then
+      PROTOCOL="https"
+    fi
+    CODEREADY_HOST=${PROTOCOL}://$(${OC_BINARY} get route codeready -n=${OPENSHIFT_PROJECT} -o=jsonpath='{.spec.host}')
+    printInfo "CodeReady Workspaces successfully deployed and available at ${CODEREADY_HOST}"
   fi
 }
 
