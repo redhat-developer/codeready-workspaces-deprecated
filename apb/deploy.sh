@@ -2,13 +2,13 @@
 BASE_DIR=$(cd "$(dirname "$0")"; pwd)
 HELP="
 How to use this script:
--d,     --deploy          | deployment with envs from config.json
--p=,    --project=        | namespace to deploy Code Ready Workspaces
--c=,    --cert=           | absolute path to a self signed certificate which OpenShift Console uses
--oauth, --enable-oauth    | enable Log into CodeReady Workspaces with OpenShift credentials
---apb-image=              | installer image, defaults to "registry.access.redhat.com/codeready-workspaces/apb:1.0.0"
---server-image=           | server image, defaults to "registry.access.redhat.com/codeready-workspaces/server:1.0.0".
--h,     --help            | script help menu
+-d,     --deploy          | deployment with environment variables from config.json
+-p=,    --project=        | namespace to deploy CodeReady Workspaces in
+-c=,    --cert=           | absolute path to a self-signed certificate that OpenShift Console uses
+-oauth, --enable-oauth    | enable logging into CodeReady Workspaces with OpenShift credentials
+        --apb-image=      | installer image, defaults to \"registry.access.redhat.com/codeready-workspaces/apb:1.0.0\"
+        --server-image=   | server image, defaults to \"registry.access.redhat.com/codeready-workspaces/server:1.0.0\".
+-h,     --help            | display this help message
 "
 
 if [[ $# -eq 0 ]] ; then
@@ -119,13 +119,13 @@ printError() {
 preReqs() {
   printInfo "Welcome to CodeReady Workspaces Installer"
   if [ -x "$(command -v oc)" ]; then
-    printInfo "Found oc client in PATH"
+    printInfo "Found oc client in \$PATH."
     export OC_BINARY="oc"
   elif [[ -f "/tmp/oc" ]]; then
-    printInfo "Using oc client from a tmp location"
+    printInfo "Using oc client from a /tmp/"
     export OC_BINARY="/tmp/oc"
   else
-    printError "Command line tool ${OC_BINARY} (https://docs.openshift.org/latest/cli_reference/get_started_cli.html) not found. Download oc client and add it to your \$PATH."
+    printError "Command-line tool, ${OC_BINARY} (https://docs.openshift.org/latest/cli_reference/get_started_cli.html), not found. Download the oc client and add it to your \$PATH."
     exit 1
   fi
 }
@@ -136,7 +136,7 @@ isLoggedIn() {
   ${OC_BINARY} whoami -t > /dev/null
   OUT=$?
   if [ ${OUT} -ne 0 ]; then
-    printError "Log in to your OpenShift cluster: ${OC_BINARY} login --server=yourServer. Do not use system:admin login"
+    printError "Log in to your OpenShift cluster: ${OC_BINARY} login --server=yourServer. Do not use system:admin login."
     exit 1
   else
     OC_TOKEN=$(${OC_BINARY} whoami -t)
@@ -147,7 +147,7 @@ isLoggedIn() {
       ${OC_BINARY} get oauthclients > /dev/null 2>&1
       OUT=$?
       if [ ${OUT} -ne 0 ]; then
-        printError "You have enabled OpenShift oAuth for your installation but this feature requires cluster-admin privileges. Login in as user with cluster-admin role"
+        printError "You have enabled OpenShift oAuth for your installation, but this feature requires cluster-admin privileges. Log in as a user with the cluster-admin role."
         exit $OUT
       fi
     fi
@@ -161,22 +161,22 @@ createNewProject() {
   ${OC_BINARY} new-project "${OPENSHIFT_PROJECT}" > /dev/null
   OUT=$?
   if [ ${OUT} -eq 1 ]; then
-    printError "Failed to create namespace ${OPENSHIFT_PROJECT}. It may exist in someone else's account or namespace deletion has not been fully completed. Try again in a short while or pick a different project name -p=myProject"
+    printError "Failed to create namespace ${OPENSHIFT_PROJECT}. It may exist in someone else's account, or namespace deletion has not been fully completed. Try again in a short while or pick a different project name using -p=myProject"
     exit ${OUT}
   else
-    printInfo "Namespace \"${OPENSHIFT_PROJECT}\" successfully created"
+    printInfo "Namespace \"${OPENSHIFT_PROJECT}\" successfully created."
   fi
 }
 
 createServiceAccount() {
-  printInfo "Creating installer service account"
+  printInfo "Creating installer service account."
   ${OC_BINARY} create sa codeready-apb -n=${OPENSHIFT_PROJECT}
   if [ ${ENABLE_OPENSHIFT_OAUTH} = true ] ; then
-    printInfo "You have chosen an option to enable Login With OpenShift. Granting cluster-admin privileges for apb service account"
+    printInfo "You have chosen an option to enable Login with OpenShift. Granting cluster-admin privileges for the apb service account."
     ${OC_BINARY} adm policy add-cluster-role-to-user cluster-admin -z codeready-apb
     OUT=$?
     if [ ${OUT} -ne 0 ]; then
-      printError "Failed to grant cluster-admin role to abp service account"
+      printError "Failed to grant cluster-admin role to the abp service account."
       exit $OUT
     fi
   fi
@@ -188,7 +188,7 @@ createCertSecret(){
     ${OC_BINARY} create secret generic self-signed-cert --from-file=${PATH_TO_SELF_SIGNED_CERT} -n=${OPENSHIFT_PROJECT}
     OUT=$?
       if [ ${OUT} -ne 0 ]; then
-        printError "Failed to create a secret"
+        printError "Failed to create a secret."
         exit ${OUT}
       else
         printInfo "Secret openshift-identity-provider successfully created from ${PATH_TO_SELF_SIGNED_CERT}"
@@ -220,7 +220,7 @@ fi
 
 OUT=$?
   if [ ${OUT} -ne 0 ]; then
-    printError "Failed to deploy CodeReady Workspaces. Inspect error log."
+    printError "Failed to deploy CodeReady Workspaces. Inspect the error log."
     exit 1
   else
     PROTOCOL="http"
