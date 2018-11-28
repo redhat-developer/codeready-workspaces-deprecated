@@ -13,7 +13,7 @@
   "config": {
     "hideOnLoginPage": "",
     "baseUrl": "{{ openshift_api_uri }}",
-    "clientId": "openshift-oauth-client",
+    "clientId": "{{ oauth_client_name }}",
     "disableUserInfo": "",
     "clientSecret": "{{ identity_provider_client_secret }}",
     "defaultScope":"user:full",

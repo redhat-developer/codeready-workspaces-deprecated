@@ -224,7 +224,7 @@ OUT=$?
     exit 1
   else
     PROTOCOL="http"
-    TLS=$(oc get route codeready -n=${OPENSHIFT_PROJECT} -o=jsonpath='{.spec.tls.termination}')
+    TLS=$(${OC_BINARY} get route codeready -n=${OPENSHIFT_PROJECT} -o=jsonpath='{.spec.tls.termination}')
     if [ "${TLS}" ]; then
       PROTOCOL="https"
     fi

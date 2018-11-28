@@ -1,7 +1,8 @@
 ---
-- name: "Generate Identity Provider Secret"
+- name: "Generate Identity Provider Secret and oAuth Client Name"
   set_fact:
     identity_provider_client_secret: "{{ lookup('password','/tmp/identity_provider_client_secret chars=ascii_letters,digits length=13') }}"
+    oauth_client_name: "openshift-oauth-client-{{ lookup('password','/tmp/oauth_client_name chars=digits length=6') }}"
 
 - name: "Generate keycloak auth token"
   uri:
@@ -28,14 +29,14 @@
 - name: "Create oAuth client at a cluster scope"
   openshift_v1_o_auth_client:
     state: present
-    name: "openshift-oauth-client"
+    name: "{{ oauth_client_name }}"
     secret: "{{ identity_provider_client_secret }}"
     grant_method: prompt
 
 - name: "Update oAuth client with redirectURIs"
   openshift_v1_o_auth_client:
     state: present
-    name: "openshift-oauth-client"
+    name: "{{ oauth_client_name }}"
     secret: "{{ identity_provider_client_secret }}"
     redirect_ur_is:
     - "{{ keycloak_uri | default(external_keycloak_uri) }}/auth/realms/{{ che_keycloak_realm }}/broker/openshift-v3/endpoint"
