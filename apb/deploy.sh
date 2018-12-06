@@ -6,7 +6,8 @@ How to use this script:
 -p=,    --project=        | namespace to deploy Code Ready Workspaces
 -c=,    --cert=           | absolute path to a self signed certificate which OpenShift Console uses
 -oauth, --enable-oauth    | enable Log into CodeReady Workspaces with OpenShift credentials
---apb-image=              | installer image, defaults to "registry.access.redhat.com/codeready-workspaces/apb:1.0.0"
+--force-cleanup           | clean up existing namespace to remove CodeReady objects from previous installations
+--operator-image=         | installer image, defaults to "registry.access.redhat.com/codeready-workspaces/apb:1.0.0"
 --server-image=           | server image, defaults to "registry.access.redhat.com/codeready-workspaces/server:1.0.0".
 -h,     --help            | script help menu
 "
@@ -30,8 +31,8 @@ do
       OPENSHIFT_PROJECT="${key#*=}"
       shift
       ;;
-    --apb-image=*)
-      APB_IMAGE_NAME=$(echo "${key#*=}")
+    --operator-image=*)
+      OPERATOR_IMAGE_NAME=$(echo "${key#*=}")
       shift
       ;;
     --server-image=*)
@@ -40,6 +41,9 @@ do
       ;;
     -d | --deploy)
       DEPLOY=true
+      ;;
+    --force-cleanup)
+      NAMESPACE_CLEANUP=true
       ;;
     -h | --help)
       echo -e "$HELP"
@@ -57,46 +61,24 @@ export TERM=xterm
 
 DEFAULT_OPENSHIFT_PROJECT="codeready"
 export OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT:-${DEFAULT_OPENSHIFT_PROJECT}}
-DEFAULT_EXTERNAL_DB="false"
-export EXTERNAL_DB=${EXTERNAL_DB:-${DEFAULT_EXTERNAL_DB}}
-DEFAULT_DB_HOST="postgres"
-export DB_HOST=${DB_HOST:-${DEFAULT_DB_HOST}}
-DEFAULT_DB_PORT="5432"
-export DB_PORT=${DB_PORT:-${DEFAULT_DB_PORT}}
-DEFAULT_DB_NAME="dbcodeready"
-export DB_NAME=${DB_NAME:-${DEFAULT_DB_NAME}}
-DEFAULT_DB_USERNAME="pgcodeready"
-export DB_USERNAME=${DB_USERNAME:-${DEFAULT_DB_USERNAME}}
-DEFAULT_DB_PASSWORD="pgcodereadypassword"
-export DB_PASSWORD=${DB_PASSWORD:-${DEFAULT_DB_PASSWORD}}
-DEFAULT_EXTERNAL_KEYCLOAK="false"
-export EXTERNAL_KEYCLOAK=${EXTERNAL_KEYCLOAK:-${DEFAULT_EXTERNAL_KEYCLOAK}}
-DEFAULT_KEYCLOAK_PROVISION_REALM_USER="true"
-export KEYCLOAK_PROVISION_REALM_USER=${KEYCLOAK_PROVISION_REALM_USER:-${DEFAULT_KEYCLOAK_PROVISION_REALM_USER}}
-DEFAULT_KEYCLOAK_ADMIN_USERNAME="admin"
-export KEYCLOAK_ADMIN_USERNAME=${KEYCLOAK_ADMIN_USERNAME:-${DEFAULT_KEYCLOAK_ADMIN_USERNAME}}
-DEFAULT_KEYCLOAK_ADMIN_PASSWORD="admin"
-export KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD:-${DEFAULT_KEYCLOAK_ADMIN_PASSWORD}}
-DEFAULT_KEYCLOAK_REALM="codeready"
-export KEYCLOAK_REALM=${KEYCLOAK_REALM:-${DEFAULT_KEYCLOAK_REALM}}
-DEFAULT_KEYCLOAK_CLIENT_ID="codeready-public"
-export KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID:-${DEFAULT_KEYCLOAK_CLIENT_ID}}
-DEFAULT_SECURE_ROUTES="false"
-export SECURE_ROUTES=${SECURE_ROUTES:-${DEFAULT_SECURE_ROUTES}}
-DEFAULT_USE_SELF_SIGNED_CERT="false"
-export USE_SELF_SIGNED_CERT=${USE_SELF_SIGNED_CERT:-${DEFAULT_USE_SELF_SIGNED_CERT}}
+
 DEFAULT_ENABLE_OPENSHIFT_OAUTH="false"
 export ENABLE_OPENSHIFT_OAUTH=${ENABLE_OPENSHIFT_OAUTH:-${DEFAULT_ENABLE_OPENSHIFT_OAUTH}}
-DEFAULT_CHE_INFRA_KUBERNETES_PVC_STRATEGY="common"
-export CHE_INFRA_KUBERNETES_PVC_STRATEGY=${CHE_INFRA_KUBERNETES_PVC_STRATEGY:-${DEFAULT_CHE_INFRA_KUBERNETES_PVC_STRATEGY}}
 
-DEFAULT_SERVER_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/server:1.0.0"
+DEFAULT_SERVER_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces-beta/server:latest"
 export SERVER_IMAGE_NAME=${SERVER_IMAGE_NAME:-${DEFAULT_SERVER_IMAGE_NAME}}
+
 DEFAULT_APB_NAME="codeready-workspaces"
 export APB_NAME=${APB_NAME:-${DEFAULT_APB_NAME}}
-DEFAULT_APB_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/apb:1.0.0" # TODO: switch to server-apb?
-export APB_IMAGE_NAME=${APB_IMAGE_NAME:-${DEFAULT_APB_IMAGE_NAME}}
 
+DEFAULT_OPERTOR_IMAGE_NAME="eivantsov/che-operator" # TODO: switch to an image from brew or rhcc
+export OPERTOR_IMAGE_NAME=${OPERTOR_IMAGE_NAME:-${DEFAULT_OPERTOR_IMAGE_NAME}}
+
+DEFAULT_NO_NEW_NAMESPACE="false"
+export NO_NEW_NAMESPACE=${NO_NEW_NAMESPACE:-${DEFAULT_NO_NEW_NAMESPACE}}
+
+DEFAULT_NAMESPACE_CLEANUP="false"
+export NAMESPACE_CLEANUP=${NAMESPACE_CLEANUP:-${DEFAULT_NAMESPACE_CLEANUP}}
 
 printInfo() {
   green=`tput setaf 2`
@@ -155,25 +137,45 @@ isLoggedIn() {
 }
 
 createNewProject() {
-  printInfo "Creating namespace \"${OPENSHIFT_PROJECT}\""
-  # sometimes even if the project does not exist creating a new one is impossible as it apparently exists
-  sleep 1
-  ${OC_BINARY} new-project "${OPENSHIFT_PROJECT}" > /dev/null
+  ${OC_BINARY} get namespace "${OPENSHIFT_PROJECT}" > /dev/null 2>&1
   OUT=$?
-  if [ ${OUT} -eq 1 ]; then
-    printError "Failed to create namespace ${OPENSHIFT_PROJECT}. It may exist in someone else's account or namespace deletion has not been fully completed. Try again in a short while or pick a different project name -p=myProject"
-    exit ${OUT}
-  else
-    printInfo "Namespace \"${OPENSHIFT_PROJECT}\" successfully created"
-  fi
+      if [ ${OUT} -ne 0 ]; then
+           printWarning "Namespace '${OPENSHIFT_PROJECT}' not found, or current user does not have access to it. Installer will try to create namespace '${OPENSHIFT_PROJECT}'"
+          printInfo "Creating namespace \"${OPENSHIFT_PROJECT}\""
+          # sometimes even if the project does not exist creating a new one is impossible as it apparently exists
+          sleep 1
+          ${OC_BINARY} new-project "${OPENSHIFT_PROJECT}" > /dev/null
+          OUT=$?
+          if [ ${OUT} -eq 1 ]; then
+            printError "Failed to create namespace ${OPENSHIFT_PROJECT}. It may exist in someone else's account or namespace deletion has not been fully completed. Try again in a short while or pick a different project name -p=myProject"
+            exit ${OUT}
+          else
+            printInfo "Namespace \"${OPENSHIFT_PROJECT}\" successfully created"
+          fi
+      else
+          if [ "${NAMESPACE_CLEANUP}" = true ] ; then
+          printInfo "Deleting CodeReady related objects from namespace ${OPENSHIFT_PROJECT}"
+           ${OC_BINARY} delete all --all -n="${OPENSHIFT_PROJECT}"
+           ${OC_BINARY} delete pvc -l=app=postgres -n="${OPENSHIFT_PROJECT}"
+           ${OC_BINARY} delete sa -l=app=che -n="${OPENSHIFT_PROJECT}"
+           ${OC_BINARY} delete sa che-operator -n="${OPENSHIFT_PROJECT}"
+           ${OC_BINARY} delete cm che-operator che -n="${OPENSHIFT_PROJECT}"
+           ${OC_BINARY} delete role -l=app=che -n="${OPENSHIFT_PROJECT}"
+           ${OC_BINARY} delete rolebinding -l=app=che -n="${OPENSHIFT_PROJECT}"
+           ${OC_BINARY} delete rolebinding che-operator -n="${OPENSHIFT_PROJECT}"
+           ${OC_BINARY} delete secret self-signed-cert -n="${OPENSHIFT_PROJECT}"
+          fi
+      fi
 }
 
 createServiceAccount() {
   printInfo "Creating installer service account"
-  ${OC_BINARY} create sa codeready-apb -n=${OPENSHIFT_PROJECT}
+  ${OC_BINARY} create sa che-operator -n=${OPENSHIFT_PROJECT}
+  ${OC_BINARY} create rolebinding che-operator --clusterrole=admin --serviceaccount=${OPENSHIFT_PROJECT}:che-operator -n=${OPENSHIFT_PROJECT}
+
   if [ ${ENABLE_OPENSHIFT_OAUTH} = true ] ; then
     printInfo "You have chosen an option to enable Login With OpenShift. Granting cluster-admin privileges for apb service account"
-    ${OC_BINARY} adm policy add-cluster-role-to-user cluster-admin -z codeready-apb
+    ${OC_BINARY} adm policy add-cluster-role-to-user cluster-admin -z che-operator
     OUT=$?
     if [ ${OUT} -ne 0 ]; then
       printError "Failed to grant cluster-admin role to abp service account"
@@ -184,15 +186,14 @@ createServiceAccount() {
 
 createCertSecret(){
   if [ ! -z "${PATH_TO_SELF_SIGNED_CERT}" ]; then
-    printInfo "You have provided a path to a self-signed certificate. Creating a secret..."
-    ${OC_BINARY} create secret generic self-signed-cert --from-file=${PATH_TO_SELF_SIGNED_CERT} -n=${OPENSHIFT_PROJECT}
+    printInfo "You have provided a path to a self-signed certificate. Passing cert to Operator.."
+    ls ${PATH_TO_SELF_SIGNED_CERT} > /dev/null
     OUT=$?
-      if [ ${OUT} -ne 0 ]; then
-        printError "Failed to create a secret"
-        exit ${OUT}
-      else
-        printInfo "Secret openshift-identity-provider successfully created from ${PATH_TO_SELF_SIGNED_CERT}"
-      fi
+    if [ ${OUT} -ne 0 ]; then
+      printError "Failed convert cert to base64 string"
+      exit $OUT
+    fi
+    SELF_SIGNED_CERT=$(cat ${PATH_TO_SELF_SIGNED_CERT} | base64 -w 0)
   fi
 }
 
@@ -202,21 +203,22 @@ deployCodeReady() {
   USE_SELF_SIGNED_CERT=true
   fi
 
-  EXTRA_VARS=$(cat ${BASE_DIR}/config.json | tr -d '\n' | \
-                                            sed "s@\${OPENSHIFT_PROJECT}@${OPENSHIFT_PROJECT}@g" | \
-                                            sed "s@\${OPENSHIFT_API_URI}@${OPENSHIFT_API_URI}@g" | \
-                                            sed "s@\${SERVER_IMAGE_NAME}@${SERVER_IMAGE_NAME}@g" | \
-                                            sed "s@\${ENABLE_OPENSHIFT_OAUTH}@${ENABLE_OPENSHIFT_OAUTH}@g" | \
-                                            sed "s@\${CHE_INFRA_KUBERNETES_PVC_STRATEGY}@${CHE_INFRA_KUBERNETES_PVC_STRATEGY}@g" | \
-                                            sed "s@\${USE_SELF_SIGNED_CERT}@${USE_SELF_SIGNED_CERT}@g")
-
 if [ "${JENKINS_BUILD}" = true ] ; then
   PARAMS="-i"
 else
   PARAMS="-it"
 fi
 
-  ${OC_BINARY} run "${APB_NAME}-apb" ${PARAMS} --restart='Never' --image "${APB_IMAGE_NAME}" --env "OPENSHIFT_TOKEN=${OC_TOKEN}" --env "OPENSHIFT_TARGET=https://kubernetes.default.svc" --env "POD_NAME=${APB_NAME}-apb" --env "POD_NAMESPACE=${OPENSHIFT_PROJECT}" --overrides="{\"apiVersion\":\"v1\",\"spec\":{\"serviceAccountName\":\"codeready-apb\"}}" -- provision --extra-vars "${EXTRA_VARS}"
+
+${OC_BINARY} create -f ${BASE_DIR}/config.yaml -n=${OPENSHIFT_PROJECT}
+${OC_BINARY} patch cm/che-operator -p "{\"data\": {\"CHE_IMAGE\":\"${SERVER_IMAGE_NAME}\", \"OPENSHIFT_OAUTH\": \"${ENABLE_OPENSHIFT_OAUTH}\", \"SELF_SIGNED_CERT\": \"${SELF_SIGNED_CERT}\", \"OPENSHIFT_API_URL\": \"${OPENSHIFT_API_URI}\"}}" -n ${OPENSHIFT_PROJECT}
+${OC_BINARY} delete pod che-operator -n=${OPENSHIFT_PROJECT}  2> /dev/null || true
+${OC_BINARY} run -ti "che-operator" \
+        --restart='Never' \
+        --serviceaccount='che-operator' \
+        --image="${OPERTOR_IMAGE_NAME}" \
+        --overrides='{"spec":{"containers":[{"image": "eivantsov/che-operator", "name": "che-operator", "imagePullPolicy":"IfNotPresent","envFrom":[{"configMapRef":{"name":"che-operator"}}]}]}}' \
+        -n=${OPENSHIFT_PROJECT}
 
 OUT=$?
   if [ ${OUT} -ne 0 ]; then
@@ -224,11 +226,11 @@ OUT=$?
     exit 1
   else
     PROTOCOL="http"
-    TLS=$(${OC_BINARY} get route codeready -n=${OPENSHIFT_PROJECT} -o=jsonpath='{.spec.tls.termination}')
+    TLS=$(${OC_BINARY} get route che -n=${OPENSHIFT_PROJECT} -o=jsonpath='{.spec.tls.termination}')
     if [ "${TLS}" ]; then
       PROTOCOL="https"
     fi
-    CODEREADY_HOST=${PROTOCOL}://$(${OC_BINARY} get route codeready -n=${OPENSHIFT_PROJECT} -o=jsonpath='{.spec.host}')
+    CODEREADY_HOST=${PROTOCOL}://$(${OC_BINARY} get route che -n=${OPENSHIFT_PROJECT} -o=jsonpath='{.spec.host}')
     printInfo "CodeReady Workspaces successfully deployed and available at ${CODEREADY_HOST}"
   fi
 }
