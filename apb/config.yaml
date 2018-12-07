@@ -36,6 +36,8 @@ data:
   OPENSHIFT_API_URL: ""
   # Plugin registry URL. Defaults to https://che-plugin-registry.openshift.io
   PLUGIN_REGISTRY_URL: ""
+  # Ask for password update at first login as Che admin user. Defaults to true, i.e. you will be asked to update password
+  UPDATE_CHE_ADMIN_PASSWORD: ""
 
   ############################
   ##   Che Proxy settings   ##
@@ -108,4 +110,6 @@ data:
   # fake DNS if you need it in deployments. Keep blank if you don't
   HOST_ALIAS_IP: "192.168.42.53"
   HOST_ALIAS_HOSTNAME: "example.com"
-
+  # wait timeout for an Operator to watch deployments
+  # defaults to 420 seconds
+  WAIT_DEPLOYMENT_TIMEOUT: ""
