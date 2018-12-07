@@ -8,8 +8,7 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-# repo for a local build
-#FROM registry.access.redhat.com/openshift3/apb-base:v3.10.45-6
+# https://access.redhat.com/containers/?tab=tags#/registry.access.redhat.com/openshift3/apb-base
 FROM openshift3/apb-base:v3.10.45-6
 
 ENV SUMMARY="Red Hat CodeReady Workspaces Ansible Playbook Bundle that provides the Red Hat CodeReady Workspaces (Eclipse Che Server)" \
@@ -24,22 +23,23 @@ LABEL summary="$SUMMARY" \
       io.openshift.tags="$PRODNAME,$COMPNAME" \
       com.redhat.component="$PRODNAME-$COMPNAME" \
       name="$PRODNAME/$COMPNAME" \
-      version="1.0.0.Beta1" \
+      version="1.0" \
       license="EPLv2" \
       maintainer="Nick Boldt <nboldt@redhat.com>" \
       io.openshift.expose-services="" \
       usage=""
 
-USER root
 # uncomment to run a local build
 #RUN subscription-manager register --username username --password password --auto-attach
-#RUN subscription-manager repos --enable rhel-7-server-optional-rpms \
-#      --enable rhel-server-rhscl-7-rpms
-RUN yum install -y python27-python-psycopg2.x86_64 && \
+#RUN subscription-manager repos --enable rhel-7-server-optional-rpms -enable rhel-server-rhscl-7-rpms
+
+USER root
+RUN yum install python27-python-psycopg2.x86_64 -y && \
     yum clean all -y && \
     cp -R /opt/rh/python27/root/usr/lib64/python2.7/site-packages/* /usr/lib/python2.7/site-packages && \
     echo "gather_timeout=20" >> /opt/apb/ansible.cfg
 COPY playbooks /opt/apb/actions
 COPY roles /opt/ansible/roles
 RUN chmod -R g=u /opt/{ansible,apb}
+
 USER apb
