@@ -71,8 +71,8 @@ export SERVER_IMAGE_NAME=${SERVER_IMAGE_NAME:-${DEFAULT_SERVER_IMAGE_NAME}}
 DEFAULT_APB_NAME="codeready-workspaces"
 export APB_NAME=${APB_NAME:-${DEFAULT_APB_NAME}}
 
-DEFAULT_OPERTOR_IMAGE_NAME="eivantsov/che-operator" # TODO: switch to an image from brew or rhcc
-export OPERTOR_IMAGE_NAME=${OPERTOR_IMAGE_NAME:-${DEFAULT_OPERTOR_IMAGE_NAME}}
+DEFAULT_OPERATOR_IMAGE_NAME="eivantsov/che-operator" # TODO: switch to an image from brew or rhcc
+export OPERATOR_IMAGE_NAME=${OPERATOR_IMAGE_NAME:-${DEFAULT_OPERATOR_IMAGE_NAME}}
 
 DEFAULT_NO_NEW_NAMESPACE="false"
 export NO_NEW_NAMESPACE=${NO_NEW_NAMESPACE:-${DEFAULT_NO_NEW_NAMESPACE}}
@@ -216,7 +216,7 @@ ${OC_BINARY} delete pod che-operator -n=${OPENSHIFT_PROJECT}  2> /dev/null || tr
 ${OC_BINARY} run -ti "che-operator" \
         --restart='Never' \
         --serviceaccount='che-operator' \
-        --image="${OPERTOR_IMAGE_NAME}" \
+        --image="${OPERATOR_IMAGE_NAME}" \
         --overrides='{"spec":{"containers":[{"image": "eivantsov/che-operator", "name": "che-operator", "imagePullPolicy":"IfNotPresent","envFrom":[{"configMapRef":{"name":"che-operator"}}]}]}}' \
         -n=${OPENSHIFT_PROJECT}
 
