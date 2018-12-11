@@ -2,7 +2,7 @@
 
 // PARAMETERS for this pipeline:
 // node == slave label, eg., rhel7-devstudio-releng-16gb-ram||rhel7-16gb-ram or rhel7-32gb
-// branchToBuild = */master or some branch
+// branchToBuild = */master or some branch like 6.16.x
 
 def installNPM(){
 	def nodeHome = tool 'nodejs-10.9.0'
@@ -17,7 +17,8 @@ def installGo(){
 	sh "go version"
 }
 
-def MVN_FLAGS="-Pfast,native -Dmaven.repo.local=.repository/ -V -ff -B -e -Dskip-enforce -DskipTests -Dskip-validate-sources -Dfindbugs.skip -DskipIntegrationTests=true -Dmdep.analyze.skip=true -Dmaven.javadoc.skip -Dgpg.skip -Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
+def MVN_FLAGS="-Pfast,native -Dmaven.repo.local=.repository/ -V -ff -B -e -Dskip-enforce -DskipTests -Dskip-validate-sources -Dfindbugs.skip -DskipIntegrationTests=true -Dmdep.analyze.skip=true \
+-Dmaven.javadoc.skip -Dgpg.skip -Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
 
 def buildMaven(){
 	def mvnHome = tool 'maven-3.5.4'
