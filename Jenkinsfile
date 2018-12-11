@@ -29,6 +29,8 @@ node("${node}"){ stage 'Build Che LS Deps'
 		submoduleCfg: [], 
 		userRemoteConfigs: [[url: 'https://github.com/che-samples/ls-dependencies.git']]])
 	dir ('ls-dependencies') { sh 'ls -1art' }
+	installNPM()
+	installGo()
 	buildMaven()
 	sh "mvn clean install ${MVN_FLAGS} -f ls-dependencies/pom.xml"
 	def filesLSDeps = findFiles(glob: '.repository/**')
