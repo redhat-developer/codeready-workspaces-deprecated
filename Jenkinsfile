@@ -22,7 +22,7 @@ def buildMaven(){
 
 node("${node}"){ stage 'Build Che LS Deps'
 	checkout([$class: 'GitSCM', 
-		branches: [[name: "${branchToBuildDev}"]], 
+		branches: [[name: "${branchToBuild}"]], 
 		doGenerateSubmoduleConfigurations: false, 
 		extensions: [[$class: 'RelativeTargetDirectory', 
 			relativeTargetDir: 'ls-dependencies']], 
