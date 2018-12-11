@@ -28,13 +28,12 @@ node("${node}"){ stage 'Build Che LS Deps'
 			relativeTargetDir: 'ls-dependencies']], 
 		submoduleCfg: [], 
 		userRemoteConfigs: [[url: 'https://github.com/che-samples/ls-dependencies.git']]])
-	dir ('ls-dependencies') { sh 'ls -1art' }
+	// dir ('ls-dependencies') { sh 'ls -1art' }
 	installNPM()
 	installGo()
 	buildMaven()
 	sh "mvn clean install ${MVN_FLAGS} -f ls-dependencies/pom.xml"
-	def filesLSDeps = findFiles(glob: '.repository/**')
-	stash name: 'stashLSDeps', includes: filesParent.join(", ")
+	stash name: 'stashLSDeps', includes: findFiles(glob: '.repository/**').join(", ")
 }
 
 node("${node}"){ stage 'Build CRW APB'
@@ -46,7 +45,7 @@ node("${node}"){ stage 'Build CRW APB'
 		submoduleCfg: [], 
 		credentialsId: 'devstudio-release',
 		userRemoteConfigs: [[url: 'https://github.com/redhat-developer/codeready-workspaces-apb.git']]])
-	dir ('codeready-workspaces-apb') { sh "ls -lart" }
+	// dir ('codeready-workspaces-apb') { sh "ls -lart" }
 	unstash 'stashLSDeps'
 	buildMaven()
 	sh "mvn clean install ${MVN_FLAGS} -f codeready-workspaces-apb/pom.xml"
