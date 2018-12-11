@@ -44,7 +44,7 @@ node("${node}"){ stage 'Build CRW APB'
 			relativeTargetDir: 'codeready-workspaces-apb']], 
 		submoduleCfg: [], 
 		credentialsId: 'devstudio-release',
-		userRemoteConfigs: [[url: 'https://github.com/redhat-developer/codeready-workspaces-apb.git']]])
+		userRemoteConfigs: [[url: 'git@github.com:redhat-developer/codeready-workspaces-apb.git']]])
 	// dir ('codeready-workspaces-apb') { sh "ls -lart" }
 	unstash 'stashLSDeps'
 	buildMaven()
