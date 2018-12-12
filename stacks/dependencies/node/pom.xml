@@ -46,6 +46,8 @@
                     <descriptors>
                         <descriptor>${project.basedir}/src/assembly/assembly.xml</descriptor>
                     </descriptors>
+                    <tarLongFileMode>posix</tarLongFileMode>
+                    <finalName>${artifactId}</finalName>
                 </configuration>
             </plugin>
             <plugin>
