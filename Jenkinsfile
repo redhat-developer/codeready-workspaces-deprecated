@@ -63,7 +63,7 @@ timeout(20) {
         // sh 'printenv | sort'
         sh 'BUILD_DESC=$(egrep "<version>" codeready-workspaces-apb/pom.xml|head -1|sed -e "s#.*<version>\\(.\\+\\)</version>#\\1#")'
         sh 'BUILD_DESC=${BUILD_DESC} :: $(cd codeready-workspaces-apb/ && git rev-parse HEAD) :: $(date -u +%Y-%m-%d_%H-%M-%S)'
-        currentBuild.description = "Build #${BUILD_NUMBER} :: ${BUILD_DESC}"
+        script { currentBuild.description="Build #${BUILD_NUMBER} :: ${BUILD_DESC}" }
     }
 }
 
