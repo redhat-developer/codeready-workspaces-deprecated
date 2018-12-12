@@ -61,9 +61,12 @@ timeout(20) {
     	archive includes:"codeready-workspaces-apb/installer-package/target/*.tar.*, codeready-workspaces-apb/stacks/dependencies/*/target/*.tar.*"
 
         // sh 'printenv | sort'
-        sh 'BUILD_DESC=$(egrep "<version>" codeready-workspaces-apb/pom.xml|head -1|sed -e "s#.*<version>\\(.\\+\\)</version>#\\1#")'
-        sh 'BUILD_DESC=${BUILD_DESC} :: $(cd codeready-workspaces-apb/ && git rev-parse HEAD) :: $(date -u +%Y-%m-%d_%H-%M-%S)'
-        script { currentBuild.description="Build #${BUILD_NUMBER} :: ${BUILD_DESC}" }
-    }
+        BUILD_DESC = sh(
+            returnStdout: true, 
+            script: 'echo $(egrep "<version>" codeready-workspaces-apb/pom.xml|head -1|sed -e "s#.*<version>\\(.\\+\\)</version>#\\1#") && \
+BUILD_DESC=${BUILD_DESC} :: $(cd codeready-workspaces-apb/ && git rev-parse HEAD) :: $(date -u +%Y-%m-%d_%H-%M-%S)'
+        ).trim()
+        echo "Build #${BUILD_NUMBER} :: ${BUILD_DESC}"
+        currentBuild.description="Build #${BUILD_NUMBER} :: ${BUILD_DESC}"
 }
 
