@@ -61,7 +61,7 @@ timeout(20) {
         // sh 'printenv | sort'
         BUILD_VER = sh(returnStdout:true,script:'egrep "<version>" codeready-workspaces-apb/pom.xml|head -1|sed -e "s#.*<version>\\(.\\+\\)</version>#\\1#"').trim()
         BUILD_SHA = sh(returnStdout:true,script:'cd codeready-workspaces-apb/ && git rev-parse HEAD').trim()
-        echo "Build #${BUILD_NUMBER} :: ${BUILD_DESC}"
+        echo "Build #${BUILD_NUMBER} :: ${BUILD_VER} :: ${BUILD_SHA} :: ${BUILD_TIMESTAMP}"
         currentBuild.description="Build #${BUILD_NUMBER} :: ${BUILD_VER} :: ${BUILD_SHA} :: ${BUILD_TIMESTAMP}"
     }
 }
