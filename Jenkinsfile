@@ -17,9 +17,7 @@ def installGo(){
 	sh "go version"
 }
 
-def MVN_FLAGS="-Pfast -Dmaven.repo.local=.repository/ -V -ff -B -e -Dskip-enforce -DskipTests -Dskip-validate-sources -Dfindbugs.skip -DskipIntegrationTests=true \
--Dmdep.analyze.skip=true -Dmaven.javadoc.skip -Dgpg.skip -Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss \
--Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
+def MVN_FLAGS="-Dmaven.repo.local=.repository/ -V -B -e"
 
 def buildMaven(){
 	def mvnHome = tool 'maven-3.5.4'
@@ -61,13 +59,10 @@ timeout(20) {
     	archive includes:"codeready-workspaces-apb/installer-package/target/*.tar.*, codeready-workspaces-apb/stacks/dependencies/*/target/*.tar.*"
 
         // sh 'printenv | sort'
-        BUILD_DESC = sh(
-            returnStdout: true, 
-            script: 'echo $(egrep "<version>" codeready-workspaces-apb/pom.xml|head -1|sed -e "s#.*<version>\\(.\\+\\)</version>#\\1#") && \
-BUILD_DESC=${BUILD_DESC} :: $(cd codeready-workspaces-apb/ && git rev-parse HEAD) :: $(date -u +%Y-%m-%d_%H-%M-%S)'
-        ).trim()
+        BUILD_VER = sh(returnStdout:true,script:'egrep "<version>" codeready-workspaces-apb/pom.xml|head -1|sed -e "s#.*<version>\\(.\\+\\)</version>#\\1#"').trim()
+        BUILD_SHA = sh(returnStdout:true,script:'cd codeready-workspaces-apb/ && git rev-parse HEAD').trim()
         echo "Build #${BUILD_NUMBER} :: ${BUILD_DESC}"
-        currentBuild.description="Build #${BUILD_NUMBER} :: ${BUILD_DESC}"
+        currentBuild.description="Build #${BUILD_NUMBER} :: ${BUILD_VER} :: ${BUILD_SHA} :: ${BUILD_TIMESTAMP}"
     }
 }
 
