@@ -61,3 +61,6 @@ timeout(20) {
     	archive includes:"codeready-workspaces-apb/installer-package/target/*.tar.*, codeready-workspaces-apb/stacks/dependencies/*/target/*.tar.*"
     }
 }
+
+echo sh(returnStdout: true, script: 'env')
+currentBuild.description = "Build #"
