@@ -60,8 +60,10 @@ timeout(20) {
     	sh "mvn clean install ${MVN_FLAGS} -f codeready-workspaces-apb/pom.xml"
     	archive includes:"codeready-workspaces-apb/installer-package/target/*.tar.*, codeready-workspaces-apb/stacks/dependencies/*/target/*.tar.*"
 
-        sh 'printenv | sort'
-        currentBuild.description = "Build #"
+        // sh 'printenv | sort'
+        sh 'BUILD_DESC=$(egrep "<version>" codeready-workspaces-apb/pom.xml|head -2|tail -1|sed -e "s#.*<version>\(.\+\)</version>#\1#") :: \
+$(cd codeready-workspaces-apb/ && git rev-parse HEAD) :: $(date -u +%Y-%m-%d_%H-%M-%S)'
+        currentBuild.description = "Build #${BUILD_NUMBER} :: ${BUILD_DESC}"
     }
 }
 
