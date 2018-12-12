@@ -59,8 +59,9 @@ timeout(20) {
     	buildMaven()
     	sh "mvn clean install ${MVN_FLAGS} -f codeready-workspaces-apb/pom.xml"
     	archive includes:"codeready-workspaces-apb/installer-package/target/*.tar.*, codeready-workspaces-apb/stacks/dependencies/*/target/*.tar.*"
+
+        sh 'printenv | sort'
+        currentBuild.description = "Build #"
     }
 }
 
-sh 'printenv | sort'
-currentBuild.description = "Build #"
