@@ -68,5 +68,6 @@ BUILD_DESC=${BUILD_DESC} :: $(cd codeready-workspaces-apb/ && git rev-parse HEAD
         ).trim()
         echo "Build #${BUILD_NUMBER} :: ${BUILD_DESC}"
         currentBuild.description="Build #${BUILD_NUMBER} :: ${BUILD_DESC}"
+    }
 }
 
