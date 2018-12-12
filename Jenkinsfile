@@ -62,5 +62,5 @@ timeout(20) {
     }
 }
 
-echo sh(returnStdout: true, script: 'env')
+sh 'printenv | sort'
 currentBuild.description = "Build #"
