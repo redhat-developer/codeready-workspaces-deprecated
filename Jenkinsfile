@@ -24,10 +24,9 @@ def buildMaven(){
 	env.PATH="${env.PATH}:${mvnHome}/bin"
 }
 
-cleanWs()
-
 timeout(120) {
 	node("${node}"){ stage 'Build Che LS Deps'
+		cleanWs()
 		checkout([$class: 'GitSCM', 
 			branches: [[name: "${branchToBuild}"]], 
 			doGenerateSubmoduleConfigurations: false, 
