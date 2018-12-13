@@ -46,6 +46,7 @@ timeout(120) {
 
 timeout(120) {
 	node("${node}"){ stage 'Build CRW APB'
+		cleanWs()
 		checkout([$class: 'GitSCM', 
 			branches: [[name: "${branchToBuild}"]], 
 			doGenerateSubmoduleConfigurations: false, 
