@@ -1,7 +1,7 @@
 #!/usr/bin/env groovy
 
 // PARAMETERS for this pipeline:
-// node == slave label, eg., rhel7-devstudio-releng-16gb-ram||rhel7-16gb-ram or rhel7-32gb
+// node == slave label, eg., rhel7-devstudio-releng-16gb-ram||rhel7-16gb-ram||rhel7-devstudio-releng||rhel7 or rhel7-32gb||rhel7-16gb||rhel7-8gb
 // branchToBuild = */master or some branch like 6.16.x
 
 def installNPM(){
@@ -23,6 +23,8 @@ def buildMaven(){
 	def mvnHome = tool 'maven-3.5.4'
 	env.PATH="${env.PATH}:${mvnHome}/bin"
 }
+
+cleanWs()
 
 timeout(120) {
 	node("${node}"){ stage 'Build Che LS Deps'
