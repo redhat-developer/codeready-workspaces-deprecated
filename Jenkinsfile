@@ -24,7 +24,7 @@ def buildMaven(){
 	env.PATH="${env.PATH}:${mvnHome}/bin"
 }
 
-timeout(20) {
+timeout(120) {
 	node("${node}"){ stage 'Build Che LS Deps'
 		checkout([$class: 'GitSCM', 
 			branches: [[name: "${branchToBuild}"]], 
@@ -43,7 +43,7 @@ timeout(20) {
 	}
 }
 
-timeout(20) {
+timeout(120) {
 	node("${node}"){ stage 'Build CRW APB'
 		checkout([$class: 'GitSCM', 
 			branches: [[name: "${branchToBuild}"]], 
