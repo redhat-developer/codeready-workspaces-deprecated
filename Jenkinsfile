@@ -54,14 +54,14 @@ def CRW_path = "codeready-workspaces-apb"
 timeout(120) {
 	node("${node}"){ stage "Build ${CRW_path}"
 		cleanWs()
+		// for private repo, use checkout(credentialsId: 'devstudio-release')
 		checkout([$class: 'GitSCM', 
 			branches: [[name: "${branchToBuild}"]], 
 			doGenerateSubmoduleConfigurations: false, 
 			poll: true,
 			extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: "${CRW_path}"]], 
 			submoduleCfg: [], 
-			credentialsId: 'devstudio-release',
-			userRemoteConfigs: [[url: "git@github.com:redhat-developer/${CRW_path}.git"]]])
+			userRemoteConfigs: [[url: "https://github.com/redhat-developer/${CRW_path}.git"]]])
 		unstash 'stashLSDeps'
 		buildMaven()
 		sh "mvn clean install ${MVN_FLAGS} -f ${CRW_path}/pom.xml"
