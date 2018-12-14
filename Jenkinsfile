@@ -75,7 +75,7 @@ timeout(120) {
 		echo "Built ${CRW_path} from SHA: ${SHA_CRW} (${VER_CRW})"
 
 		// sh 'printenv | sort'
-		def descriptString="Build #${BUILD_NUMBER} (${BUILD_TIMESTAMP}) :: ${CHE_path} @ ${SHA_CHE} (${VER_CHE}):: ${CRW_path} @ ${SHA_CRW} (${VER_CRW})"
+		def descriptString="Build #${BUILD_NUMBER} (${BUILD_TIMESTAMP}) <br/> :: ${CHE_path} @ ${SHA_CHE} (${VER_CHE}) <br/> :: ${CRW_path} @ ${SHA_CRW} (${VER_CRW})"
 		echo "${descriptString}"
 		currentBuild.description="${descriptString}"
 	}
