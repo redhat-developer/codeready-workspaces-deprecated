@@ -45,6 +45,7 @@ timeout(120) {
 		stash name: 'stashLSDeps', includes: findFiles(glob: '.repository/**').join(", ")
 		VER_CHE = sh(returnStdout:true,script:'egrep "<version>" ls-dependencies/pom.xml|head -1|sed -e "s#.*<version>\\(.\\+\\)</version>#\\1#"').trim()
 		SHA_CHE = sh(returnStdout:true,script:'cd ls-dependencies/ && git rev-parse HEAD').trim()
+		echo "Built ls-dependencies from SHA: ${SHA_CHE} (${VER_CHE})"
 	}
 }
 
@@ -69,8 +70,9 @@ timeout(120) {
 		// sh 'printenv | sort'
 		VER_CRW = sh(returnStdout:true,script:'egrep "<version>" codeready-workspaces-apb/pom.xml|head -1|sed -e "s#.*<version>\\(.\\+\\)</version>#\\1#"').trim()
 		SHA_CRW = sh(returnStdout:true,script:'cd codeready-workspaces-apb/ && git rev-parse HEAD').trim()
+		echo "Built codeready-workspaces-apb from SHA: ${SHA_CRW} (${VER_CRW})"
 		def descriptString="Build #${BUILD_NUMBER} (${BUILD_TIMESTAMP}) :: ${SHA_CHE} (${VER_CHE}):: ${SHA_CRW} (${VER_CRW})"
-		echo ${descriptString}
+		echo "${descriptString}"
 		currentBuild.description="${descriptString}"
 	}
 }
