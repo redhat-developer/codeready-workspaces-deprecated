@@ -44,6 +44,7 @@ timeout(120) {
 		buildMaven()
 		sh "mvn clean install ${MVN_FLAGS} -f ${CHE_path}/pom.xml"
 		stash name: 'stashLSDeps', includes: findFiles(glob: '.repository/**').join(", ")
+		sh(script:"perl -0777 -p -i -e 's|(\ +<parent>.*?<\/parent>)| $1 =~ /<version>/?\"\":$1|gse' ${CHE_path}/pom.xml")
 		VER_CHE = sh(returnStdout:true,script:'egrep "<version>" ${CHE_path}/pom.xml|head -1|sed -e "s#.*<version>\\(.\\+\\)</version>#\\1#"').trim()
 		SHA_CHE = sh(returnStdout:true,script:'cd ${CHE_path}/ && git rev-parse HEAD').trim()
 		echo "Built ${CHE_path} from SHA: ${SHA_CHE} (${VER_CHE})"
