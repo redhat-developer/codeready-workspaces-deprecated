@@ -28,14 +28,13 @@ def CHE_path = "ls-dependencies"
 def VER_CHE = ""
 def SHA_CHE = ""
 timeout(120) {
-	node("${node}"){ stage 'Build ${CHE_path}'
+	node("${node}"){ stage "Build ${CHE_path}"
 		cleanWs()
 		checkout([$class: 'GitSCM', 
 			branches: [[name: "${branchToBuild}"]], 
 			doGenerateSubmoduleConfigurations: false, 
 			poll: true,
-			extensions: [[$class: 'RelativeTargetDirectory', 
-				relativeTargetDir: "${CHE_path}"]], 
+			extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: "${CHE_path}"]], 
 			submoduleCfg: [], 
 			userRemoteConfigs: [[url: "https://github.com/che-samples/${CHE_path}.git"]]])
 		installNPM()
@@ -53,14 +52,13 @@ timeout(120) {
 
 def CRW_path = "codeready-workspaces-apb"
 timeout(120) {
-	node("${node}"){ stage 'Build ${CRW_path}'
+	node("${node}"){ stage "Build ${CRW_path}"
 		cleanWs()
 		checkout([$class: 'GitSCM', 
 			branches: [[name: "${branchToBuild}"]], 
 			doGenerateSubmoduleConfigurations: false, 
 			poll: true,
-			extensions: [[$class: 'RelativeTargetDirectory', 
-				relativeTargetDir: "${CRW_path}"]], 
+			extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: "${CRW_path}"]], 
 			submoduleCfg: [], 
 			credentialsId: 'devstudio-release',
 			userRemoteConfigs: [[url: "git@github.com:redhat-developer/${CRW_path}.git"]]])
@@ -81,3 +79,35 @@ timeout(120) {
 	}
 }
 
+// trigger OSBS build
+build(
+  job: 'get-sources-rhpkg-container-build',
+  parameters: [
+    [
+      $class: 'StringParameterValue',
+      name: 'GIT_PATH',
+      value: "apbs/codeready-workspaces",
+    ],
+    [
+      $class: 'BooleanParameterValue',
+      name: 'SCRATCH',
+      value: true,
+    ]
+  ]
+)
+
+build(
+  job: 'get-sources-rhpkg-container-build',
+  parameters: [
+    [
+      $class: 'StringParameterValue',
+      name: 'GIT_PATH',
+      value: "containers/codeready-workspaces-stacks-java",
+    ],
+    [
+      $class: 'BooleanParameterValue',
+      name: 'SCRATCH',
+      value: true,
+    ]
+  ]
+)
