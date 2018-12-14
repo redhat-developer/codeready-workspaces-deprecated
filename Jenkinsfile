@@ -68,7 +68,7 @@ timeout(120) {
 		unstash 'stashLSDeps'
 		buildMaven()
 		sh "mvn clean install ${MVN_FLAGS} -f ${CRW_path}/pom.xml"
-		archiveArtifacts fingerprint: false, artifacts: "${CRW_path}/installer-package/target/*.tar.*, ${CRW_path}/stacks/dependencies/*/target/*.tar.*""
+		archiveArtifacts fingerprint: false, artifacts: "${CRW_path}/installer-package/target/*.tar.*, ${CRW_path}/stacks/dependencies/*/target/*.tar.*"
 
 		// sh 'printenv | sort'
 		VER_CRW = sh(returnStdout:true,script:"egrep \"<version>\" ${CRW_path}/pom.xml|head -1|sed -e \"s#.*<version>\\(.\\+\\)</version>#\\1#\"").trim()
