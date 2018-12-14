@@ -24,6 +24,7 @@ def buildMaven(){
 	env.PATH="${env.PATH}:${mvnHome}/bin"
 }
 
+def CHE_path = "ls-dependencies"
 def VER_CHE = ""
 def SHA_CHE = ""
 timeout(120) {
@@ -34,21 +35,22 @@ timeout(120) {
 			doGenerateSubmoduleConfigurations: false, 
 			poll: true,
 			extensions: [[$class: 'RelativeTargetDirectory', 
-				relativeTargetDir: 'ls-dependencies']], 
+				relativeTargetDir: '${CHE_path}']], 
 			submoduleCfg: [], 
-			userRemoteConfigs: [[url: 'https://github.com/che-samples/ls-dependencies.git']]])
-		// dir ('ls-dependencies') { sh 'ls -1art' }
+			userRemoteConfigs: [[url: 'https://github.com/che-samples/${CHE_path}.git']]])
+		// dir ('${CHE_path}') { sh 'ls -1art' }
 		installNPM()
 		installGo()
 		buildMaven()
-		sh "mvn clean install ${MVN_FLAGS} -f ls-dependencies/pom.xml"
+		sh "mvn clean install ${MVN_FLAGS} -f ${CHE_path}/pom.xml"
 		stash name: 'stashLSDeps', includes: findFiles(glob: '.repository/**').join(", ")
-		VER_CHE = sh(returnStdout:true,script:'egrep "<version>" ls-dependencies/pom.xml|head -1|sed -e "s#.*<version>\\(.\\+\\)</version>#\\1#"').trim()
-		SHA_CHE = sh(returnStdout:true,script:'cd ls-dependencies/ && git rev-parse HEAD').trim()
-		echo "Built ls-dependencies from SHA: ${SHA_CHE} (${VER_CHE})"
+		VER_CHE = sh(returnStdout:true,script:'egrep "<version>" ${CHE_path}/pom.xml|head -1|sed -e "s#.*<version>\\(.\\+\\)</version>#\\1#"').trim()
+		SHA_CHE = sh(returnStdout:true,script:'cd ${CHE_path}/ && git rev-parse HEAD').trim()
+		echo "Built ${CHE_path} from SHA: ${SHA_CHE} (${VER_CHE})"
 	}
 }
 
+def CRW_path = "codeready-workspaces-apb"
 timeout(120) {
 	node("${node}"){ stage 'Build CRW APB'
 		cleanWs()
@@ -57,21 +59,21 @@ timeout(120) {
 			doGenerateSubmoduleConfigurations: false, 
 			poll: true,
 			extensions: [[$class: 'RelativeTargetDirectory', 
-				relativeTargetDir: 'codeready-workspaces-apb']], 
+				relativeTargetDir: '${CRW_path}']], 
 			submoduleCfg: [], 
 			credentialsId: 'devstudio-release',
-			userRemoteConfigs: [[url: 'git@github.com:redhat-developer/codeready-workspaces-apb.git']]])
-		// dir ('codeready-workspaces-apb') { sh "ls -lart" }
+			userRemoteConfigs: [[url: 'git@github.com:redhat-developer/${CRW_path}.git']]])
+		// dir ('${CRW_path}') { sh "ls -lart" }
 		unstash 'stashLSDeps'
 		buildMaven()
-		sh "mvn clean install ${MVN_FLAGS} -f codeready-workspaces-apb/pom.xml"
-		archiveArtifacts fingerprint: false, artifacts: 'codeready-workspaces-apb/installer-package/target/*.tar.*, codeready-workspaces-apb/stacks/dependencies/*/target/*.tar.*'
+		sh "mvn clean install ${MVN_FLAGS} -f ${CRW_path}/pom.xml"
+		archiveArtifacts fingerprint: false, artifacts: '${CRW_path}/installer-package/target/*.tar.*, ${CRW_path}/stacks/dependencies/*/target/*.tar.*'
 
 		// sh 'printenv | sort'
-		VER_CRW = sh(returnStdout:true,script:'egrep "<version>" codeready-workspaces-apb/pom.xml|head -1|sed -e "s#.*<version>\\(.\\+\\)</version>#\\1#"').trim()
-		SHA_CRW = sh(returnStdout:true,script:'cd codeready-workspaces-apb/ && git rev-parse HEAD').trim()
-		echo "Built codeready-workspaces-apb from SHA: ${SHA_CRW} (${VER_CRW})"
-		def descriptString="Build #${BUILD_NUMBER} (${BUILD_TIMESTAMP}) :: ${SHA_CHE} (${VER_CHE}):: ${SHA_CRW} (${VER_CRW})"
+		VER_CRW = sh(returnStdout:true,script:'egrep "<version>" ${CRW_path}/pom.xml|head -1|sed -e "s#.*<version>\\(.\\+\\)</version>#\\1#"').trim()
+		SHA_CRW = sh(returnStdout:true,script:'cd ${CRW_path}/ && git rev-parse HEAD').trim()
+		echo "Built ${CRW_path} from SHA: ${SHA_CRW} (${VER_CRW})"
+		def descriptString="Build #${BUILD_NUMBER} (${BUILD_TIMESTAMP}) :: ${CHE_path} @ ${SHA_CHE} (${VER_CHE}):: ${CRW_path} @ ${SHA_CRW} (${VER_CRW})"
 		echo "${descriptString}"
 		currentBuild.description="${descriptString}"
 	}
