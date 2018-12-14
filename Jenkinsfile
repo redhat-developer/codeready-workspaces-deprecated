@@ -24,6 +24,8 @@ def buildMaven(){
 	env.PATH="${env.PATH}:${mvnHome}/bin"
 }
 
+def VER_CHE = ""
+def SHA_CHE = ""
 timeout(120) {
 	node("${node}"){ stage 'Build Che LS Deps'
 		cleanWs()
@@ -41,6 +43,8 @@ timeout(120) {
 		buildMaven()
 		sh "mvn clean install ${MVN_FLAGS} -f ls-dependencies/pom.xml"
 		stash name: 'stashLSDeps', includes: findFiles(glob: '.repository/**').join(", ")
+		VER_CHE = sh(returnStdout:true,script:'egrep "<version>" ls-dependencies/pom.xml|head -1|sed -e "s#.*<version>\\(.\\+\\)</version>#\\1#"').trim()
+		SHA_CHE = sh(returnStdout:true,script:'cd ls-dependencies/ && git rev-parse HEAD').trim()
 	}
 }
 
@@ -63,9 +67,7 @@ timeout(120) {
 		archiveArtifacts fingerprint: false, artifacts: 'codeready-workspaces-apb/installer-package/target/*.tar.*, codeready-workspaces-apb/stacks/dependencies/*/target/*.tar.*'
 
 		// sh 'printenv | sort'
-		VER_CHE = sh(returnStdout:true,script:'egrep "<version>" ls-dependencies/pom.xml|head -1|sed -e "s#.*<version>\\(.\\+\\)</version>#\\1#"').trim()
 		VER_CRW = sh(returnStdout:true,script:'egrep "<version>" codeready-workspaces-apb/pom.xml|head -1|sed -e "s#.*<version>\\(.\\+\\)</version>#\\1#"').trim()
-		SHA_CHE = sh(returnStdout:true,script:'cd ls-dependencies/ && git rev-parse HEAD').trim()
 		SHA_CRW = sh(returnStdout:true,script:'cd codeready-workspaces-apb/ && git rev-parse HEAD').trim()
 		def descriptString="Build #${BUILD_NUMBER} (${BUILD_TIMESTAMP}) :: ${SHA_CHE} (${VER_CHE}):: ${SHA_CRW} (${VER_CRW})"
 		echo ${descriptString}
