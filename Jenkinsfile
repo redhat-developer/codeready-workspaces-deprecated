@@ -28,7 +28,7 @@ def CHE_path = "ls-dependencies"
 def VER_CHE = ""
 def SHA_CHE = ""
 timeout(120) {
-	node("${node}"){ stage 'Build Che LS Deps'
+	node("${node}"){ stage 'Build ${CHE_path}'
 		cleanWs()
 		checkout([$class: 'GitSCM', 
 			branches: [[name: "${branchToBuild}"]], 
@@ -38,7 +38,6 @@ timeout(120) {
 				relativeTargetDir: "${CHE_path}"]], 
 			submoduleCfg: [], 
 			userRemoteConfigs: [[url: "https://github.com/che-samples/${CHE_path}.git"]]])
-		// dir ("${CHE_path}") { sh 'ls -1art' }
 		installNPM()
 		installGo()
 		buildMaven()
@@ -54,7 +53,7 @@ timeout(120) {
 
 def CRW_path = "codeready-workspaces-apb"
 timeout(120) {
-	node("${node}"){ stage 'Build CRW APB'
+	node("${node}"){ stage 'Build ${CRW_path}'
 		cleanWs()
 		checkout([$class: 'GitSCM', 
 			branches: [[name: "${branchToBuild}"]], 
@@ -65,7 +64,6 @@ timeout(120) {
 			submoduleCfg: [], 
 			credentialsId: 'devstudio-release',
 			userRemoteConfigs: [[url: "git@github.com:redhat-developer/${CRW_path}.git"]]])
-		// dir ("${CRW_path}") { sh "ls -lart" }
 		unstash 'stashLSDeps'
 		buildMaven()
 		sh "mvn clean install ${MVN_FLAGS} -f ${CRW_path}/pom.xml"
@@ -75,7 +73,7 @@ timeout(120) {
 		VER_CRW = sh(returnStdout:true,script:"egrep \"<version>\" ${CRW_path}/pom.xml|head -1|sed -e \"s#.*<version>\\(.\\+\\)</version>#\\1#\"").trim()
 		SHA_CRW = sh(returnStdout:true,script:"cd ${CRW_path}/ && git rev-parse HEAD").trim()
 		echo "Built ${CRW_path} from SHA: ${SHA_CRW} (${VER_CRW})"
-		
+
 		// sh 'printenv | sort'
 		def descriptString="Build #${BUILD_NUMBER} (${BUILD_TIMESTAMP}) :: ${CHE_path} @ ${SHA_CHE} (${VER_CHE}):: ${CRW_path} @ ${SHA_CRW} (${VER_CRW})"
 		echo "${descriptString}"
