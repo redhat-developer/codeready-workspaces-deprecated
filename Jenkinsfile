@@ -35,7 +35,7 @@ timeout(120) {
 			doGenerateSubmoduleConfigurations: false, 
 			poll: true,
 			extensions: [[$class: 'RelativeTargetDirectory', 
-				relativeTargetDir: "{CHE_path}"]], 
+				relativeTargetDir: "${CHE_path}"]], 
 			submoduleCfg: [], 
 			userRemoteConfigs: [[url: "https://github.com/che-samples/${CHE_path}.git"]]])
 		// dir ("${CHE_path}") { sh 'ls -1art' }
