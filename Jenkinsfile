@@ -80,23 +80,23 @@ timeout(120) {
 }
 
 // trigger OSBS build
-build(
-  job: 'get-sources-rhpkg-container-build',
-  parameters: [
-    [
-      $class: 'StringParameterValue',
-      name: 'GIT_PATH',
-      value: "apbs/codeready-workspaces",
-    ],
-    [
-      $class: 'StringParameterValue',
-      name: 'GIT_BRANCH',
-      value: "codeready-1.0-rhel-7",
-    ],
-    [
-      $class: 'BooleanParameterValue',
-      name: 'SCRATCH',
-      value: true,
-    ]
-  ]
-)
+// build(
+//   job: 'get-sources-rhpkg-container-build',
+//   parameters: [
+//     [
+//       $class: 'StringParameterValue',
+//       name: 'GIT_PATH',
+//       value: "apbs/codeready-workspaces",
+//     ],
+//     [
+//       $class: 'StringParameterValue',
+//       name: 'GIT_BRANCH',
+//       value: "codeready-1.0-rhel-7",
+//     ],
+//     [
+//       $class: 'BooleanParameterValue',
+//       name: 'SCRATCH',
+//       value: true,
+//     ]
+//   ]
+// )
