@@ -14,6 +14,34 @@
     <artifactId>codeready-workspaces</artifactId>
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Root</name>
+
+    <properties>
+      <!-- Additional properties to activate the compression of already compressed archives - time expensive -->
+      <maven.assembly.recompressZippedFiles>false</maven.assembly.recompressZippedFiles>
+      <version.assembly.plugin>3.1.0</version.assembly.plugin>
+    </properties>
+
+    <build>
+        <pluginManagement>
+            <!-- All plugins ordered by shortname (antrun, assembly ...) -->
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>${version.assembly.plugin}</version>
+                    <configuration>
+                        <!-- Use GNU Tar -->
+                        <tarLongFileMode>gnu</tarLongFileMode>
+                        <!-- Perfs improvements - PAR-191 -->
+                        <useJvmChmod>true</useJvmChmod>
+                        <!-- Allow to activate/deactivate the recompression of zip files -->
+                        <recompressZippedFiles>${maven.assembly.recompressZippedFiles}</recompressZippedFiles>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
   <modules>
       <module>installer-package</module>
       <module>stacks/dependencies</module>
