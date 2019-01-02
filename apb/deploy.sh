@@ -217,7 +217,7 @@ ${OC_BINARY} run -ti "che-operator" \
         --restart='Never' \
         --serviceaccount='che-operator' \
         --image="${OPERATOR_IMAGE_NAME}" \
-        --overrides='{"spec":{"containers":[{"image": "eivantsov/che-operator", "name": "che-operator", "imagePullPolicy":"IfNotPresent","envFrom":[{"configMapRef":{"name":"che-operator"}}]}]}}' \
+        --overrides='{"spec":{"containers":[{"image": "'${OPERATOR_IMAGE_NAME}'", "name": "che-operator", "imagePullPolicy":"IfNotPresent","envFrom":[{"configMapRef":{"name":"che-operator"}}]}]}}' \
         -n=${OPENSHIFT_PROJECT}
 
 OUT=$?
