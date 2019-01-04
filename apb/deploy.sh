@@ -211,7 +211,7 @@ fi
 
 
 ${OC_BINARY} create -f ${BASE_DIR}/config.yaml -n=${OPENSHIFT_PROJECT}
-${OC_BINARY} patch cm/che-operator -p "{\"data\": {\"CHE_IMAGE\":\"${SERVER_IMAGE_NAME}\", \"OPENSHIFT_OAUTH\": \"${ENABLE_OPENSHIFT_OAUTH}\", \"SELF_SIGNED_CERT\": \"${SELF_SIGNED_CERT}\", \"OPENSHIFT_API_URL\": \"${OPENSHIFT_API_URI}\"}}" -n ${OPENSHIFT_PROJECT}
+${OC_BINARY} patch cm/che-operator -p "{\"data\": {\"CHE_IMAGE\":\"${SERVER_IMAGE_NAME}\", \"CHE_OPENSHIFT_OAUTH\": \"${ENABLE_OPENSHIFT_OAUTH}\", \"CHE_SELF__SIGNED__CERT\": \"${SELF_SIGNED_CERT}\", \"CHE_OPENSHIFT_API_URL\": \"${OPENSHIFT_API_URI}\"}}" -n ${OPENSHIFT_PROJECT}
 ${OC_BINARY} delete pod che-operator -n=${OPENSHIFT_PROJECT}  2> /dev/null || true
 ${OC_BINARY} run -ti "che-operator" \
         --restart='Never' \
@@ -226,11 +226,11 @@ OUT=$?
     exit 1
   else
     PROTOCOL="http"
-    TLS=$(${OC_BINARY} get route che -n=${OPENSHIFT_PROJECT} -o=jsonpath='{.spec.tls.termination}')
+    TLS=$(${OC_BINARY} get route codeready -n=${OPENSHIFT_PROJECT} -o=jsonpath='{.spec.tls.termination}')
     if [ "${TLS}" ]; then
       PROTOCOL="https"
     fi
-    CODEREADY_HOST=${PROTOCOL}://$(${OC_BINARY} get route che -n=${OPENSHIFT_PROJECT} -o=jsonpath='{.spec.host}')
+    CODEREADY_HOST=${PROTOCOL}://$(${OC_BINARY} get route codeready -n=${OPENSHIFT_PROJECT} -o=jsonpath='{.spec.host}')
     printInfo "CodeReady Workspaces successfully deployed and available at ${CODEREADY_HOST}"
   fi
 }
