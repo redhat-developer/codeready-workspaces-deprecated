@@ -85,7 +85,16 @@ Specify a namespace:
 #### Deploy with support of self signed certs, OpenShift oAuth and a custom server-image
 
 ```
-./deploy.sh -d -c=/var/lib/origin/openshift.local.config/master/ca.crt -oauth --server-image=myserver/image:mytag
+./deploy.sh -d -c=/var/lib/origin/openshift.local.config/master/ca.crt -oauth --server-image=registry.access.redhat.com/codeready-workspaces-beta/server:1.0.0.Beta1
+```
+
+#### Deploy with a custom namespace, operator-image and server-image
+
+```
+./deploy.sh -d -p=crw \
+--operator-image=brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888/codeready-workspaces/operator-container:latest \
+--server-image=brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888/codeready-workspaces/server-container:latest
+
 ```
 
 ##### Deploy with external Red Hat SSO and enabled realm provisioning:
