@@ -2,7 +2,7 @@
 
 NOTE: Dockerfiles in this repo are NOT the ones used to build RHCC container images in OSBS.
 
-To build stacks in OSBS, see http://pkgs.devel.redhat.com/cgit/apbs/codeready-workspaces/tree/README.adoc?h=codeready-1.0-rhel-7
+To build stack container images in OSBS, see https://github.com/redhat-developer/codeready-workspaces-productization/tree/master/devdoc
 
 ## How to Build Locally
 
@@ -93,7 +93,7 @@ Specify a namespace:
 In `config.json`:
 
 ```
-"external_keycloak": true,                         
+"external_keycloak": true,
 "external_keycloak_uri":"https://my-rh-sso.com",
 "keycloak_provision_realm_user": true,
 ```
@@ -112,7 +112,7 @@ In `config.json`:
 
 ....
 
-"external_keycloak": true,                         
+"external_keycloak": true,
 "external_keycloak_uri":"https://my-rh-sso.com",
 "keycloak_provision_realm_user": true,
 ```
