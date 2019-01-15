@@ -36,7 +36,6 @@ timeout(120) {
 			extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: "${CRW_path}"]], 
 			submoduleCfg: [], 
 			userRemoteConfigs: [[url: "https://github.com/redhat-developer/${CRW_path}.git"]]])
-		unstash 'stashLSDeps'
 		buildMaven()
 		sh "mvn clean install ${MVN_FLAGS} -f ${CRW_path}/pom.xml"
 		archiveArtifacts fingerprint: false, artifacts: "${CRW_path}/operator-installer/target/*.tar.*, ${CRW_path}/stacks/dependencies/*/target/*.tar.*"
