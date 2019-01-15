@@ -1,11 +1,15 @@
-# Code Ready Workspaces APB Installer and Stack Builder
+# Code Ready Workspaces Operator - Installer and Stack Dependencies Builder
+
+This repo is deprecated and will only be needed for CodeReady Workspaces 1.0.
+
+After that we'll move to Theia and the OSD Operator Framework, so language servers will be installed on demand and the operator will be completely rewritten.
 
 ## What's Inside
 
 This repository contains:
 
 * `operator-installer/`  :: an installer script that launches the Operator with its configuration file; Maven module that packages both into a tar.gz
-* `stacks/dependencies/` :: language servers and their dependencies packaged as tar.gzs, retrieved via Docker-based builds
+* `stacks/dependencies/` :: language servers and their dependencies packaged as tar.gzs, retrieved via Docker-based builds; these are then included in the stacks' container builds
 
 * `pom.xml` :: maven pom to build all of the above artifacts locally
 * `Jenkinsfile` :: script that builds all of the above artifacts in Jenkins
