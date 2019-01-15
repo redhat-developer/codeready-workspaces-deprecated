@@ -7,8 +7,8 @@ How to use this script:
 -c=,    --cert=           | absolute path to a self signed certificate which OpenShift Console uses
 -oauth, --enable-oauth    | enable Log into CodeReady Workspaces with OpenShift credentials
 --force-cleanup           | clean up existing namespace to remove CodeReady objects from previous installations
---operator-image=         | installer image, defaults to "registry.access.redhat.com/codeready-workspaces/apb:1.0.0"
---server-image=           | server image, defaults to "registry.access.redhat.com/codeready-workspaces/server:1.0.0".
+--operator-image=         | installer image, defaults to "registry.access.redhat.com/codeready-workspaces/apb"
+--server-image=           | server image, defaults to "registry.access.redhat.com/codeready-workspaces/server".
 -h,     --help            | script help menu
 "
 

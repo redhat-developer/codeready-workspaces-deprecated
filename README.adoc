@@ -4,13 +4,5 @@
 
 This repository contains:
 
-* apb/ :: ansible playbook bundle file for Code Ready Workspaces installer, as well as an installer script
-* assembly/ :: maven build to fetch 3rd party deps we need to include in the stack image builds
-* product/ :: script to set up proxy config to build in Project Newcastle (NCL) server
-* stacks/ :: Dockerfiles for stack images, as well as a script that builds them.
-
-See individual folders for more README files.
-
-NOTE: Dockerfiles in this repo are NOT the ones used to build RHCC container images in OSBS.
-
-To build stacks in OSBS, see http://pkgs.devel.redhat.com/cgit/apbs/codeready-workspaces/tree/README.adoc?h=codeready-1.0-rhel-7
+* operator-installer/ :: an installer script that launches the Operator, its configuration file and Maven module that packages both as tar
+* stacks/ :: language servers and their dependencies packaged as tars and retrieved in Docker builds

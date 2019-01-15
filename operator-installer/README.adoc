@@ -31,30 +31,8 @@ The installer script will use command line args and `config.yaml` file to popula
 
 You can override default envs. Not all configuration parameters are available as flags. Run `./deploy.sh --help` to get a list of all available arguments.
 
-`config.yaml` contains default values for installation params. Those params that take environment variables as values can be overridden from a command line. Before running the script in a fast mode, review `config.yaml`.
-
-
-```
-"che_image_name": "${SERVER_IMAGE_NAME}",             // defaults to eclipse/che-server
-"che_image_tag": "${SERVER_IMAGE_TAG}",               // defaults to nightly
-"che_secure_routes": false,                           // https support in Che. Keep it false if you are on a local Origin with self signed certs
-"che_external_db": false,                             // Set to true, if you want to connect to an external db, and skip deploying Postgres instance
-"che_jdbc_db_host": "postgres",                       // Database hostname. Do not change, unless you want to connect to an external DB
-"che_jdbc_db_port": "5432",                           // Postgres port. Do not change unless a remote DB runs on a non default port
-"che_jdbc_db_name": "dbcodeready",                    // Database name
-"che_jdbc_username": "pgcodeready",                   // Database user. MUST be a SUPERUSER
-"che_jdbc_password": "pgcodereadypassword",           // Database password
-"external_keycloak": false,                           // Set to true if you want to connect to an existing Red Hat SSO/Keycloak instance
-"external_keycloak_uri":"",                           // Provide Red hat SSO URL. No trailing /auth. Just protocol and hostname
-"keycloak_provision_realm_user": true,                // Keep unchanged unless you want to use an existing realm and client (must be public)
-"che_keycloak_admin_username": "admin",               // Red Hat SSO admin name
-"che_keycloak_admin_password": "admin",               // Red Hat SSO admin password
-"namespace": "${OPENSHIFT_PROJECT}",                  // Leave as is. Defaults to current namespace
-"che_keycloak_realm": "codeready",                    // Red Hat SSO realm
-"che_keycloak_client__id": "codeready-public",        // Red Hat SSO client
-"use_self_signed_cert": false,                        // Add self signed certs to truststore of server and Red Hat SSO. If enabled, provide path to cert file - -c=/path/to/file
-"enable_openshift_oauth": "${ENABLE_OPENSHIFT_OAUTH}",// Enable Login with OpenShift. Requires cluster-admin privileges. Enable self signed certs if your cluster uses them
-```
+`config.yaml` is a ConfigMap passed to the Operator pod. This ConfigMap contains environment variables that are installation options.
+ Each environment variable is documented in the file.
 
 #### Examples
 
@@ -82,9 +60,8 @@ Specify a project/namespace:
 In `config.yaml`:
 
 ```
-"external_keycloak": true,
-"external_keycloak_uri":"https://my-rh-sso.com",
-"keycloak_provision_realm_user": true,
+CHE_EXTERNAL_KEYCLOAK: true
+CHE_KEYCLOAK_AUTH__SERVER__URL: "https://my-rh-sso.com"
 ```
 
 ##### Deploy with external Red Hat SSO and Postgres DB:
@@ -92,18 +69,16 @@ In `config.yaml`:
 In `config.yaml`:
 
 ```
-"che_external_db": true,
-"che_jdbc_db_host": "114.54.123.40",
-"che_jdbc_db_port": "5432",
-"che_jdbc_db_name": "mydatabase",
-"che_jdbc_username": "mysuperuser",
-"che_jdbc_password": "mypassword",
+CHE_EXTERNAL_DB: true
+CHE_DB_HOSTNAME: "myhost"
+CHE_DB_PORT: "5432"
+CHE_DB_DATABASE: "mydb"
+CHE_JDBC_USERNAME: "myuser"
+CHE_JDBC_PASSWORD: "mypassword"
 
 ....
-
-"external_keycloak": true,
-"external_keycloak_uri":"https://my-rh-sso.com",
-"keycloak_provision_realm_user": true,
+CHE_EXTERNAL_KEYCLOAK: true
+CHE_KEYCLOAK_AUTH__SERVER__URL: "https://my-rh-sso.com"
 ```
 
 ### External DB and RH SSO Support
@@ -113,4 +88,5 @@ You can connect to external DB and RH SSO instances. The installer supports the 
 * DB + RH SSO
 * RH SSO alone
 
-External DB + bundled RH SSO isn't currently supported
+External DB + bundled RH SSO isn't currently supported. Provisioning of database and Keycloak realm and client happens only with bundled resources,
+i.e. if you are connecting your own DB or Keycloak you need to pre-create resources. Refer to installation docs for more details.
