@@ -50,7 +50,7 @@ timeout(120) {
 	}
 }
 
-def CRW_path = "codeready-workspaces-apb"
+def CRW_path = "codeready-workspaces-deprecated"
 timeout(120) {
 	node("${node}"){ stage "Build ${CRW_path}"
 		cleanWs()
@@ -65,7 +65,7 @@ timeout(120) {
 		unstash 'stashLSDeps'
 		buildMaven()
 		sh "mvn clean install ${MVN_FLAGS} -f ${CRW_path}/pom.xml"
-		archiveArtifacts fingerprint: false, artifacts: "${CRW_path}/installer-package/target/*.tar.*, ${CRW_path}/stacks/dependencies/*/target/*.tar.*"
+		archiveArtifacts fingerprint: false, artifacts: "${CRW_path}/operator-installer/target/*.tar.*, ${CRW_path}/stacks/dependencies/*/target/*.tar.*"
 
 		sh "perl -0777 -p -i -e 's|(\\ +<parent>.*?<\\/parent>)| ${1} =~ /<version>/?\"\":${1}|gse' ${CRW_path}/pom.xml"
 		VER_CRW = sh(returnStdout:true,script:"egrep \"<version>\" ${CRW_path}/pom.xml|head -1|sed -e \"s#.*<version>\\(.\\+\\)</version>#\\1#\"").trim()
