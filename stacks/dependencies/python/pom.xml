@@ -15,17 +15,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
+        <artifactId>codeready-workspaces-stacks-language-servers-dependencies</artifactId>
         <groupId>com.redhat</groupId>
         <version>1.0.0.GA-SNAPSHOT</version>
-        <artifactId>codeready-workspaces-stacks-language-servers-dependencies</artifactId>
     </parent>
     <groupId>com.redhat</groupId>
-    <version>1.0.0.GA-SNAPSHOT</version>
     <artifactId>codeready-workspaces-stacks-language-servers-dependencies-python</artifactId>
+    <version>1.0.0.GA-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Stacks :: Language Servers :: Python Dependencies</name>
     <properties>
-        <PYTHON_LS_VERSION>1.0.0-SNAPSHOT</PYTHON_LS_VERSION>
+        <PYTHON_LS_VERSION>0.21.2</PYTHON_LS_VERSION>
     </properties>
     <build>
         <plugins>
@@ -35,7 +35,7 @@
                 <executions>
                     <execution>
                         <id>make-assembly</id>
-                        <phase>package</phase>
+                        <phase>prepare-package</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>
@@ -52,36 +52,28 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.1.1</version>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
                 <executions>
+                    <!-- python: python-ls deps -->
                     <execution>
-                        <id>unpack</id>
-                        <phase>prepare-package</phase>
+                        <id>download-python-ls</id>
+                        <phase>compile</phase>
                         <goals>
-                            <goal>unpack</goal>
+                            <goal>run</goal>
                         </goals>
                         <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>org.eclipse.che.ls.dependencies</groupId>
-                                    <artifactId>language-servers-dependencies-python</artifactId>
-                                    <version>${PYTHON_LS_VERSION}</version>
-                                    <type>tar.gz</type>
-                                    <overWrite>true</overWrite>
-                                    <outputDirectory>${project.basedir}/target/python</outputDirectory>
-                                    <includes>**/*</includes>
-                                </artifactItem>
-                            </artifactItems>
-                            <overWriteReleases>true</overWriteReleases>
-                            <overWriteSnapshots>true</overWriteSnapshots>
-                            <outputDirectory>${project.basedir}/target/python</outputDirectory>
-                            <includes>**/*</includes>
+                            <target>
+                                <mkdir dir="${basedir}/target/python-ls" />
+                                <echo message="Running pip install to download pyls and its deps..." />
+                                <exec dir="${basedir}" executable="docker" failonerror="true">
+                                    <arg line="run -v ${basedir}/target/python-ls:/python -u root registry.access.redhat.com/rhscl/python-36-rhel7:1-30 sh -c 'pip install python-language-server[all]==${PYTHON_LS_VERSION} --install-option='--prefix=/python'; chmod -R 777 /python'" />
+                                </exec>
+                            </target>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
-
 </project>

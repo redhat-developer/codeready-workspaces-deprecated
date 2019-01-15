@@ -20,8 +20,12 @@
     <includeBaseDirectory>false</includeBaseDirectory>
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}/target/golang</directory>
-            <outputDirectory>/</outputDirectory>
+            <directory>${project.basedir}/target/node_modules</directory>
+            <outputDirectory>/node_modules</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/target/go</directory>
+            <outputDirectory>/go</outputDirectory>
         </fileSet>
     </fileSets>
 </assembly>

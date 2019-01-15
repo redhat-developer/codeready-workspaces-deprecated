@@ -20,7 +20,7 @@
     <includeBaseDirectory>false</includeBaseDirectory>
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}/target/dotnet</directory>
+            <directory>${project.basedir}/target/dotnet-ls</directory>
             <outputDirectory>/</outputDirectory>
         </fileSet>
     </fileSets>

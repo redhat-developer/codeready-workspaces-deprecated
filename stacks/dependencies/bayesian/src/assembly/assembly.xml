@@ -20,7 +20,7 @@
     <includeBaseDirectory>false</includeBaseDirectory>
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}/target/bayesian</directory>
+            <directory>${project.basedir}/target/bayesian-ls</directory>
             <outputDirectory>/</outputDirectory>
         </fileSet>
     </fileSets>

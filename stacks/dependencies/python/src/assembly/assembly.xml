@@ -20,7 +20,7 @@
     <includeBaseDirectory>false</includeBaseDirectory>
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}/target/python</directory>
+            <directory>${project.basedir}/target/python-ls</directory>
             <outputDirectory>/</outputDirectory>
         </fileSet>
     </fileSets>

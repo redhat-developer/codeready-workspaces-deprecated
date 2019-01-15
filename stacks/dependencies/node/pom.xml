@@ -15,17 +15,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
+      <artifactId>codeready-workspaces-stacks-language-servers-dependencies</artifactId>
       <groupId>com.redhat</groupId>
       <version>1.0.0.GA-SNAPSHOT</version>
-      <artifactId>codeready-workspaces-stacks-language-servers-dependencies</artifactId>
     </parent>
     <groupId>com.redhat</groupId>
-    <version>1.0.0.GA-SNAPSHOT</version>
     <artifactId>codeready-workspaces-stacks-language-servers-dependencies-node</artifactId>
+    <version>1.0.0.GA-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Stacks :: Language Servers :: Node Dependencies</name>
     <properties>
-        <NODE_LS_VERSION>1.0.0-SNAPSHOT</NODE_LS_VERSION>
+        <TYPERSCRIPT_VERSION>2.8.4</TYPERSCRIPT_VERSION>
+        <TYPESCRIPT_LS_VERSION>0.1.12</TYPESCRIPT_LS_VERSION>
     </properties>
     <build>
         <plugins>
@@ -35,7 +36,7 @@
                 <executions>
                     <execution>
                         <id>make-assembly</id>
-                        <phase>package</phase>
+                        <phase>prepare-package</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>
@@ -51,40 +52,42 @@
                 </configuration>
             </plugin>
             <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-dependency-plugin</artifactId>
-              <version>3.1.1</version>
-              <executions>
-                <execution>
-                  <id>unpack</id>
-                  <phase>prepare-package</phase>
-                  <goals>
-                    <goal>unpack</goal>
-                  </goals>
-                  <configuration>
-                    <artifactItems>
-                      <artifactItem>
-                        <groupId>org.eclipse.che.ls.dependencies</groupId>
-                        <artifactId>language-servers-dependencies-node</artifactId>
-                        <version>${NODE_LS_VERSION}</version>
-                        <type>tar.gz</type>
-                        <overWrite>true</overWrite>
-                        <outputDirectory>${project.basedir}/target/</outputDirectory>
-                        <includes>**/*</includes>
-                      </artifactItem>
-                    </artifactItems>
-                    <overWriteReleases>true</overWriteReleases>
-                    <overWriteSnapshots>true</overWriteSnapshots>
-                    <outputDirectory>${project.basedir}/target/</outputDirectory>
-                    <includes>**/*</includes>
-                  </configuration>
-                </execution>
-              </executions>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <!--clean-up build folders-->
+                    <execution>
+                        <id>clean-up</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                                <delete dir="${basedir}/target" />
+                            </tasks>
+                        </configuration>
+                    </execution>
+                    <!-- node: typescript deps -->
+                    <execution>
+                        <id>download-node_modules</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <mkdir dir="${basedir}/target" />
+                                <exec dir="${basedir}" executable="docker" failonerror="true">
+                                    <arg line="run -v ${basedir}/target:/node_modules node:8.12-alpine sh -c 'npm install --prefix /node_modules typescript@${TYPERSCRIPT_VERSION} typescript-language-server@${TYPESCRIPT_LS_VERSION}; chmod -R 777 /node_modules'" />
+                                </exec>
+                                &gt;
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
-
-            <!-- add more artifacts to unpack & include here -->
-
         </plugins>
     </build>
-
 </project>
