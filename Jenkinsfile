@@ -24,32 +24,6 @@ def buildMaven(){
 	env.PATH="${env.PATH}:${mvnHome}/bin"
 }
 
-def CHE_path = "ls-dependencies"
-def VER_CHE = ""
-def SHA_CHE = ""
-timeout(120) {
-	node("${node}"){ stage "Build ${CHE_path}"
-		cleanWs()
-		checkout([$class: 'GitSCM', 
-			branches: [[name: "${branchToBuild}"]], 
-			doGenerateSubmoduleConfigurations: false, 
-			poll: true,
-			extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: "${CHE_path}"]], 
-			submoduleCfg: [], 
-			userRemoteConfigs: [[url: "https://github.com/che-samples/${CHE_path}.git"]]])
-		installNPM()
-		installGo()
-		buildMaven()
-		sh "mvn clean install ${MVN_FLAGS} -f ${CHE_path}/pom.xml"
-		stash name: 'stashLSDeps', includes: findFiles(glob: '.repository/**').join(", ")
-
-		sh "perl -0777 -p -i -e 's|(\\ +<parent>.*?<\\/parent>)| ${1} =~ /<version>/?\"\":${1}|gse' ${CHE_path}/pom.xml"
-		VER_CHE = sh(returnStdout:true,script:"egrep \"<version>\" ${CHE_path}/pom.xml|head -1|sed -e \"s#.*<version>\\(.\\+\\)</version>#\\1#\"").trim()
-		SHA_CHE = sh(returnStdout:true,script:"cd ${CHE_path}/ && git rev-parse HEAD").trim()
-		echo "Built ${CHE_path} from SHA: ${SHA_CHE} (${VER_CHE})"
-	}
-}
-
 def CRW_path = "codeready-workspaces-deprecated"
 timeout(120) {
 	node("${node}"){ stage "Build ${CRW_path}"
@@ -73,7 +47,7 @@ timeout(120) {
 		echo "Built ${CRW_path} from SHA: ${SHA_CRW} (${VER_CRW})"
 
 		// sh 'printenv | sort'
-		def descriptString="Build #${BUILD_NUMBER} (${BUILD_TIMESTAMP}) <br/> :: ${CHE_path} @ ${SHA_CHE} (${VER_CHE}) <br/> :: ${CRW_path} @ ${SHA_CRW} (${VER_CRW})"
+		def descriptString="Build #${BUILD_NUMBER} (${BUILD_TIMESTAMP}) <br/> :: ${CRW_path} @ ${SHA_CRW} (${VER_CRW})"
 		echo "${descriptString}"
 		currentBuild.description="${descriptString}"
 	}
