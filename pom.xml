@@ -9,11 +9,21 @@
 
 --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <version>1.0.0.GA-SNAPSHOT</version>
+    <parent>
+        <artifactId>maven-depmgt-pom</artifactId>
+        <groupId>org.eclipse.che.depmgt</groupId>
+        <version>6.16.0</version>
+    </parent>
     <groupId>com.redhat</groupId>
     <artifactId>codeready-workspaces</artifactId>
+    <version>1.0.0.GA-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Root</name>
+
+  <modules>
+      <module>operator-installer</module>
+      <module>stacks/dependencies</module>
+  </modules>
 
     <properties>
       <!-- Additional properties to activate the compression of already compressed archives - time expensive -->
@@ -23,7 +33,6 @@
 
     <build>
         <pluginManagement>
-            <!-- All plugins ordered by shortname (antrun, assembly ...) -->
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -40,11 +49,25 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>**/*.*</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.google.code.sortpom</groupId>
+                <artifactId>maven-sortpom-plugin</artifactId>
+                <version>${version.sortpom.plugin}</version>
+                <configuration>
+                    <skip>false</skip>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 
-  <modules>
-      <module>installer-package</module>
-      <module>stacks/dependencies</module>
-      <!-- TODO add more deps -->
-  </modules>
 </project>
