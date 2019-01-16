@@ -36,7 +36,7 @@ timeout(120) {
 			userRemoteConfigs: [[url: 'https://github.com/eclipse/che-parent.git']]])
 		// dir ('che-parent') { sh 'ls -1art' }
 		buildMaven()
-		sh "mvn clean install ${MVN_FLAGS} -f che-parent/pom.xml ${MVN_EXTRA_FLAGS}"
+		sh "mvn clean install ${MVN_FLAGS} -f che-parent/pom.xml"
 		stash name: 'stashParent', includes: findFiles(glob: '.repository/**').join(", ")
 	}
 }
