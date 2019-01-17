@@ -71,7 +71,7 @@ export SERVER_IMAGE_NAME=${SERVER_IMAGE_NAME:-${DEFAULT_SERVER_IMAGE_NAME}}
 DEFAULT_APB_NAME="codeready-workspaces"
 export APB_NAME=${APB_NAME:-${DEFAULT_APB_NAME}}
 
-DEFAULT_OPERATOR_IMAGE_NAME="eivantsov/che-operator" # TODO: switch to an image from brew or rhcc
+DEFAULT_OPERATOR_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces-beta/server-operator:latest"
 export OPERATOR_IMAGE_NAME=${OPERATOR_IMAGE_NAME:-${DEFAULT_OPERATOR_IMAGE_NAME}}
 
 DEFAULT_NO_NEW_NAMESPACE="false"
