@@ -65,13 +65,13 @@ export OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT:-${DEFAULT_OPENSHIFT_PROJECT}}
 DEFAULT_ENABLE_OPENSHIFT_OAUTH="false"
 export ENABLE_OPENSHIFT_OAUTH=${ENABLE_OPENSHIFT_OAUTH:-${DEFAULT_ENABLE_OPENSHIFT_OAUTH}}
 
-DEFAULT_SERVER_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces-beta/server:latest"
+DEFAULT_SERVER_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/server:latest"
 export SERVER_IMAGE_NAME=${SERVER_IMAGE_NAME:-${DEFAULT_SERVER_IMAGE_NAME}}
 
 DEFAULT_APB_NAME="codeready-workspaces"
 export APB_NAME=${APB_NAME:-${DEFAULT_APB_NAME}}
 
-DEFAULT_OPERATOR_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces-beta/server-operator:latest"
+DEFAULT_OPERATOR_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/server-operator:latest"
 export OPERATOR_IMAGE_NAME=${OPERATOR_IMAGE_NAME:-${DEFAULT_OPERATOR_IMAGE_NAME}}
 
 DEFAULT_NO_NEW_NAMESPACE="false"
