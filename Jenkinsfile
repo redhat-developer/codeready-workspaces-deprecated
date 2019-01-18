@@ -74,11 +74,13 @@ timeout(120) {
 // trigger OSBS build
 // build(
 //   job: 'get-sources-rhpkg-container-build',
+//   wait: false,
+//   propagate: false,
 //   parameters: [
 //     [
 //       $class: 'StringParameterValue',
 //       name: 'GIT_PATH',
-//       value: "apbs/codeready-workspaces",
+//       value: "containers/codeready-workspaces-operator",
 //     ],
 //     [
 //       $class: 'StringParameterValue',
@@ -86,9 +88,14 @@ timeout(120) {
 //       value: "codeready-1.0-rhel-7",
 //     ],
 //     [
-//       $class: 'BooleanParameterValue',
+//       $class: 'StringParameterValue',
+//       name: 'QUAY_REPO_PATHs',
+//       value: "${QUAY_REPO_PATHs}",
+//     ],
+//     [
+//       $class: 'StringParameterValue',
 //       name: 'SCRATCH',
-//       value: true,
+//       value: "${SCRATCH}",
 //     ]
 //   ]
 // )
