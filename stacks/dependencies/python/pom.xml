@@ -25,7 +25,7 @@
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Stacks :: Language Servers :: Python Dependencies</name>
     <properties>
-        <PYTHON_LS_VERSION>0.21.2</PYTHON_LS_VERSION>
+        <PYTHON_LS_VERSION>0.21.5</PYTHON_LS_VERSION>
     </properties>
     <build>
         <plugins>
@@ -67,7 +67,7 @@
                                 <mkdir dir="${basedir}/target/python-ls" />
                                 <echo message="Running pip install to download pyls and its deps..." />
                                 <exec dir="${basedir}" executable="docker" failonerror="true">
-                                    <arg line="run -v ${basedir}/target/python-ls:/python -u root registry.access.redhat.com/rhscl/python-36-rhel7:1-30 sh -c 'pip install python-language-server[all]==${PYTHON_LS_VERSION} --install-option='--prefix=/python'; chmod -R 777 /python'" />
+                                    <arg line="run -v ${basedir}/target/python-ls:/python -u root registry.access.redhat.com/rhscl/python-36-rhel7:1-30 sh -c 'pip install python-language-server[all]==${PYTHON_LS_VERSION} --install-option='--prefix=/python';  chmod -R 777 /python'" />
                                 </exec>
                             </target>
                         </configuration>
