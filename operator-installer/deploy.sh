@@ -1,17 +1,24 @@
 #!/bin/bash
 BASE_DIR=$(cd "$(dirname "$0")"; pwd)
-HELP="
-How to use this script:
--d,     --deploy          | deployment with envs from config.json
--p=,    --project=        | namespace to deploy Code Ready Workspaces
--c=,    --cert=           | absolute path to a self signed certificate which OpenShift Console uses
--oauth, --enable-oauth    | enable Log into CodeReady Workspaces with OpenShift credentials
---force-cleanup           | clean up existing namespace to remove CodeReady objects from previous installations
---operator-image=         | installer image, defaults to "registry.access.redhat.com/codeready-workspaces/apb"
---server-image=           | server image, defaults to "registry.access.redhat.com/codeready-workspaces/server".
--h,     --help            | script help menu
-"
 
+DEFAULT_OPENSHIFT_PROJECT="codeready"
+DEFAULT_ENABLE_OPENSHIFT_OAUTH="false"
+DEFAULT_SERVER_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/server:latest"
+DEFAULT_OPERATOR_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/server-operator:latest"
+DEFAULT_NAMESPACE_CLEANUP="false"
+
+HELP="
+
+How to use this script:
+-d,     --deploy          | deploy using settings in config.yaml
+-p=,    --project=        | project namespace to deploy Code Ready Workspaces, default: ${DEFAULT_OPENSHIFT_PROJECT}
+-c=,    --cert=           | absolute path to a self signed certificate which OpenShift Console uses
+-oauth, --enable-oauth    | enable Log into CodeReady Workspaces with OpenShift credentials, default: ${DEFAULT_ENABLE_OPENSHIFT_OAUTH}
+--force-cleanup           | clean up existing namespace to remove CodeReady objects from previous installations, default: ${DEFAULT_NAMESPACE_CLEANUP}
+--operator-image=         | operator image, default: ${DEFAULT_OPERATOR_IMAGE_NAME}
+--server-image=           | server image, default: ${DEFAULT_SERVER_IMAGE_NAME}
+-h,     --help            | show this help menu
+"
 if [[ $# -eq 0 ]] ; then
   echo -e "$HELP"
   exit 0
@@ -59,25 +66,17 @@ done
 
 export TERM=xterm
 
-DEFAULT_OPENSHIFT_PROJECT="codeready"
 export OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT:-${DEFAULT_OPENSHIFT_PROJECT}}
 
-DEFAULT_ENABLE_OPENSHIFT_OAUTH="false"
 export ENABLE_OPENSHIFT_OAUTH=${ENABLE_OPENSHIFT_OAUTH:-${DEFAULT_ENABLE_OPENSHIFT_OAUTH}}
 
-DEFAULT_SERVER_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/server:latest"
 export SERVER_IMAGE_NAME=${SERVER_IMAGE_NAME:-${DEFAULT_SERVER_IMAGE_NAME}}
 
-DEFAULT_APB_NAME="codeready-workspaces"
-export APB_NAME=${APB_NAME:-${DEFAULT_APB_NAME}}
-
-DEFAULT_OPERATOR_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/server-operator:latest"
 export OPERATOR_IMAGE_NAME=${OPERATOR_IMAGE_NAME:-${DEFAULT_OPERATOR_IMAGE_NAME}}
 
 DEFAULT_NO_NEW_NAMESPACE="false"
 export NO_NEW_NAMESPACE=${NO_NEW_NAMESPACE:-${DEFAULT_NO_NEW_NAMESPACE}}
 
-DEFAULT_NAMESPACE_CLEANUP="false"
 export NAMESPACE_CLEANUP=${NAMESPACE_CLEANUP:-${DEFAULT_NAMESPACE_CLEANUP}}
 
 printInfo() {
