@@ -98,18 +98,6 @@ data:
   CHE_KEYCLOAK_CLIENT__ID: ""
 
   ############################
-  ## k8s only settings #######
-  ############################
-
-  # k8s ingress domain
-  CHE_INFRA_KUBERNETES_INGRESS_DOMAIN: ""
-  # ingress strategy. Defaults to multi-host
-  CHE_INFRA_KUBERNETES_SERVER__STRATEGY: ""
-  # defaults to nginx
-  CHE_INGRESS_CLASS: ""
-  CHE_INFRA_KUBERNETES_TLS__SECRET: ""
-
-  ############################
   ## Operator settings #######
   ############################
 
