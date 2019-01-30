@@ -49,7 +49,7 @@ Specify a project/namespace:
 ./deploy.sh --deploy -p=mynamespace
 ```
 
-#### Deploy with support of self signed certs, OpenShift oAuth and a custom server-image
+#### Deploy with support of self signed certs, OpenShift OAuth and a custom server-image
 
 ```
 ./deploy.sh --deploy -c=/var/lib/origin/openshift.local.config/master/ca.crt -oauth --server-image=myserver/image:mytag
