@@ -1,7 +1,7 @@
 #!/bin/bash
 BASE_DIR=$(cd "$(dirname "$0")"; pwd)
 
-DEFAULT_OPENSHIFT_PROJECT="codeready"
+DEFAULT_OPENSHIFT_PROJECT="workspaces"
 DEFAULT_ENABLE_OPENSHIFT_OAUTH="false"
 DEFAULT_SERVER_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/server:latest"
 DEFAULT_OPERATOR_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/server-operator:latest"
@@ -11,10 +11,10 @@ HELP="
 
 How to use this script:
 -d,     --deploy          | deploy using settings in config.yaml
--p=,    --project=        | project namespace to deploy Code Ready Workspaces, default: ${DEFAULT_OPENSHIFT_PROJECT}
+-p=,    --project=        | project namespace to deploy CodeReady Workspaces, default: ${DEFAULT_OPENSHIFT_PROJECT}
 -c=,    --cert=           | absolute path to a self signed certificate which OpenShift Console uses
 -oauth, --enable-oauth    | enable Log into CodeReady Workspaces with OpenShift credentials, default: ${DEFAULT_ENABLE_OPENSHIFT_OAUTH}
---force-cleanup           | clean up existing namespace to remove CodeReady objects from previous installations, default: ${DEFAULT_NAMESPACE_CLEANUP}
+--force-cleanup           | clean up existing namespace to remove CodeReady Workspaces objects from previous installations, default: ${DEFAULT_NAMESPACE_CLEANUP}
 --operator-image=         | operator image, default: ${DEFAULT_OPERATOR_IMAGE_NAME}
 --server-image=           | server image, default: ${DEFAULT_SERVER_IMAGE_NAME}
 -h,     --help            | show this help menu
@@ -153,7 +153,7 @@ createNewProject() {
           fi
       else
           if [ "${NAMESPACE_CLEANUP}" = true ] ; then
-          printInfo "Deleting CodeReady related objects from namespace ${OPENSHIFT_PROJECT}"
+          printInfo "Deleting CodeReady Workspaces related objects from namespace ${OPENSHIFT_PROJECT}"
            ${OC_BINARY} delete all --all -n="${OPENSHIFT_PROJECT}"
            ${OC_BINARY} delete pvc -l=app=postgres -n="${OPENSHIFT_PROJECT}"
            ${OC_BINARY} delete sa -l=app=che -n="${OPENSHIFT_PROJECT}"
@@ -196,7 +196,7 @@ createCertSecret(){
   fi
 }
 
-deployCodeReady() {
+deployCRW() {
 
   if [ ! -z "${PATH_TO_SELF_SIGNED_CERT}" ]; then
   USE_SELF_SIGNED_CERT=true
@@ -240,5 +240,5 @@ if [ "${DEPLOY}" = true ] ; then
   createNewProject
   createServiceAccount
   createCertSecret
-  deployCodeReady
+  deployCRW
 fi
