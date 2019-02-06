@@ -2,7 +2,8 @@
 
 // PARAMETERS for this pipeline:
 // node == slave label, eg., rhel7-devstudio-releng-16gb-ram||rhel7-16gb-ram||rhel7-devstudio-releng||rhel7 or rhel7-32gb||rhel7-16gb||rhel7-8gb
-// branchToBuild = */master or some branch like 6.16.x
+// branchToBuildParent = refs/tags/6.18.0, */6.18.x, or */master
+// branchToBuildCRW = */6.18.x or */master
 
 def installNPM(){
 	def nodeHome = tool 'nodejs-10.9.0'
@@ -28,7 +29,7 @@ timeout(120) {
 	node("${node}"){ stage "Build che-parent"
 		cleanWs()
 		checkout([$class: 'GitSCM', 
-			branches: [[name: "${branchToBuild}"]], 
+			branches: [[name: "${branchToBuildParent}"]], 
 			doGenerateSubmoduleConfigurations: false, 
 			poll: true,
 			extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'che-parent']], 
