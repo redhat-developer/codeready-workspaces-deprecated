@@ -3,21 +3,26 @@ BASE_DIR=$(cd "$(dirname "$0")"; pwd)
 
 DEFAULT_OPENSHIFT_PROJECT="workspaces"
 DEFAULT_ENABLE_OPENSHIFT_OAUTH="false"
-DEFAULT_SERVER_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/server:latest"
+DEFAULT_TLS_SUPPORT="false"
+DEFAULT_SELF_SIGNED_CERT="true"
+DEFAULT_SERVER_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/server"
+DEFAULT_SERVER_IMAGE_TAG="latest"
 DEFAULT_OPERATOR_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/server-operator:latest"
 DEFAULT_NAMESPACE_CLEANUP="false"
 
 HELP="
 
 How to use this script:
--d,     --deploy          | deploy using settings in config.yaml
--p=,    --project=        | project namespace to deploy CodeReady Workspaces, default: ${DEFAULT_OPENSHIFT_PROJECT}
--c=,    --cert=           | absolute path to a self signed certificate which OpenShift Console uses
--oauth, --enable-oauth    | enable Log into CodeReady Workspaces with OpenShift credentials, default: ${DEFAULT_ENABLE_OPENSHIFT_OAUTH}
---force-cleanup           | clean up existing namespace to remove CodeReady Workspaces objects from previous installations, default: ${DEFAULT_NAMESPACE_CLEANUP}
---operator-image=         | operator image, default: ${DEFAULT_OPERATOR_IMAGE_NAME}
---server-image=           | server image, default: ${DEFAULT_SERVER_IMAGE_NAME}
--h,     --help            | show this help menu
+-d,     --deploy              | deploy using settings in codeready-cr.yaml
+-p=,    --project=            | project namespace to deploy CodeReady Workspaces, default: ${DEFAULT_OPENSHIFT_PROJECT}
+-oauth, --enable-oauth        | enable Log into CodeReady Workspaces with OpenShift credentials, default: ${DEFAULT_ENABLE_OPENSHIFT_OAUTH}
+-s,     --secure              | tls support, default: ${DEFAULT_TLS_SUPPORT}
+-public-certs, --public-certs | skip creating a secret with OpenShift router cert, default: false, which means operator will auto fetch router cert
+--operator-image=             | operator image, default: ${DEFAULT_OPERATOR_IMAGE_NAME}
+--server-image=               | server image, default: ${DEFAULT_SERVER_IMAGE_NAME}
+-v=, --version=               | server image tag, default: ${DEFAULT_SERVER_IMAGE_TAG}
+-follow-logs, --verbose       | stream deployment logs to console, default: false
+-h,     --help                | show this help menu
 "
 if [[ $# -eq 0 ]] ; then
   echo -e "$HELP"
@@ -26,12 +31,20 @@ fi
 for key in "$@"
 do
   case $key in
-    -c=*| --cert=*)
-      PATH_TO_SELF_SIGNED_CERT="${key#*=}"
+    -follow-logs| --verbose)
+      FOLLOW_LOGS="true"
+      shift
+      ;;
+    -public-certs| --public-certs)
+      SELF_SIGNED_CERT="false"
       shift
       ;;
     -oauth| --enable-oauth)
       ENABLE_OPENSHIFT_OAUTH="true"
+      shift
+      ;;
+    -s| --secure)
+      TLS_SUPPORT="true"
       shift
       ;;
     -p=*| --project=*)
@@ -46,11 +59,12 @@ do
       SERVER_IMAGE_NAME=$(echo "${key#*=}")
       shift
       ;;
+    -v=*|--version=*)
+      SERVER_IMAGE_TAG=$(echo "${key#*=}")
+      shift
+      ;;
     -d | --deploy)
       DEPLOY=true
-      ;;
-    --force-cleanup)
-      NAMESPACE_CLEANUP=true
       ;;
     -h | --help)
       echo -e "$HELP"
@@ -66,11 +80,17 @@ done
 
 export TERM=xterm
 
+export TLS_SUPPORT=${TLS_SUPPORT:-${DEFAULT_TLS_SUPPORT}}
+
+export SELF_SIGNED_CERT=${SELF_SIGNED_CERT:-${DEFAULT_SELF_SIGNED_CERT}}
+
 export OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT:-${DEFAULT_OPENSHIFT_PROJECT}}
 
 export ENABLE_OPENSHIFT_OAUTH=${ENABLE_OPENSHIFT_OAUTH:-${DEFAULT_ENABLE_OPENSHIFT_OAUTH}}
 
 export SERVER_IMAGE_NAME=${SERVER_IMAGE_NAME:-${DEFAULT_SERVER_IMAGE_NAME}}
+
+export SERVER_IMAGE_TAG=${SERVER_IMAGE_TAG:-${DEFAULT_SERVER_IMAGE_TAG}}
 
 export OPERATOR_IMAGE_NAME=${OPERATOR_IMAGE_NAME:-${DEFAULT_OPERATOR_IMAGE_NAME}}
 
@@ -124,13 +144,11 @@ isLoggedIn() {
     CONTEXT=$(${OC_BINARY} whoami -c)
     OPENSHIFT_API_URI=$(${OC_BINARY} whoami --show-server)
     printInfo "Active session found. Your current context is: ${CONTEXT}"
-    if [ ${ENABLE_OPENSHIFT_OAUTH} = true ] ; then
       ${OC_BINARY} get oauthclients > /dev/null 2>&1
       OUT=$?
       if [ ${OUT} -ne 0 ]; then
-        printError "You have enabled OpenShift oAuth for your installation but this feature requires cluster-admin privileges. Login in as user with cluster-admin role"
+        printError "Creation of a CRD requires cluster-admin privileges. Login in as user with cluster-admin role"
         exit $OUT
-      fi
     fi
   fi
 }
@@ -151,86 +169,206 @@ createNewProject() {
           else
             printInfo "Namespace \"${OPENSHIFT_PROJECT}\" successfully created"
           fi
-      else
-          if [ "${NAMESPACE_CLEANUP}" = true ] ; then
-          printInfo "Deleting CodeReady Workspaces related objects from namespace ${OPENSHIFT_PROJECT}"
-           ${OC_BINARY} delete all --all -n="${OPENSHIFT_PROJECT}"
-           ${OC_BINARY} delete pvc -l=app=postgres -n="${OPENSHIFT_PROJECT}"
-           ${OC_BINARY} delete sa -l=app=che -n="${OPENSHIFT_PROJECT}"
-           ${OC_BINARY} delete sa che-operator -n="${OPENSHIFT_PROJECT}"
-           ${OC_BINARY} delete cm che-operator che -n="${OPENSHIFT_PROJECT}"
-           ${OC_BINARY} delete role -l=app=che -n="${OPENSHIFT_PROJECT}"
-           ${OC_BINARY} delete rolebinding -l=app=che -n="${OPENSHIFT_PROJECT}"
-           ${OC_BINARY} delete rolebinding che-operator -n="${OPENSHIFT_PROJECT}"
-           ${OC_BINARY} delete secret self-signed-cert -n="${OPENSHIFT_PROJECT}"
-          fi
       fi
 }
 
 createServiceAccount() {
-  printInfo "Creating installer service account"
-  ${OC_BINARY} create sa che-operator -n=${OPENSHIFT_PROJECT}
-  ${OC_BINARY} create rolebinding che-operator --clusterrole=admin --serviceaccount=${OPENSHIFT_PROJECT}:che-operator -n=${OPENSHIFT_PROJECT}
-
-  if [ ${ENABLE_OPENSHIFT_OAUTH} = true ] ; then
-    printInfo "You have chosen an option to enable Login With OpenShift. Granting cluster-admin privileges for apb service account"
-    ${OC_BINARY} adm policy add-cluster-role-to-user cluster-admin -z che-operator
-    OUT=$?
-    if [ ${OUT} -ne 0 ]; then
-      printError "Failed to grant cluster-admin role to abp service account"
-      exit $OUT
-    fi
+  printInfo "Creating operator service account"
+  ${OC_BINARY} get sa codeready-operator > /dev/null 2>&1
+  OUT=$?
+  if [ ${OUT} -ne 0 ]; then
+    ${OC_BINARY} create sa codeready-operator -n=${OPENSHIFT_PROJECT} > /dev/null
+  else
+    printInfo "Serviceaccount already exists"
+  fi
+  ${OC_BINARY} get rolebinding codeready-operator > /dev/null 2>&1
+  OUT=$?
+  if [ ${OUT} -ne 0 ]; then
+    ${OC_BINARY} create rolebinding codeready-operator --clusterrole=admin --serviceaccount=${OPENSHIFT_PROJECT}:codeready-operator -n=${OPENSHIFT_PROJECT} > /dev/null
+  else
+    printInfo "Role Binding already exists"
+  fi
+  printInfo "Granting cluster-admin privileges for operator service account"
+  ${OC_BINARY} adm policy add-cluster-role-to-user cluster-admin -z codeready-operator > /dev/null
+  OUT=$?
+  if [ ${OUT} -ne 0 ]; then
+    printError "Failed to grant cluster-admin role to operator service account"
+  exit $OUT
   fi
 }
 
-createCertSecret(){
-  if [ ! -z "${PATH_TO_SELF_SIGNED_CERT}" ]; then
-    printInfo "You have provided a path to a self-signed certificate. Passing cert to Operator.."
-    ls ${PATH_TO_SELF_SIGNED_CERT} > /dev/null
-    OUT=$?
-    if [ ${OUT} -ne 0 ]; then
-      printError "Failed convert cert to base64 string"
-      exit $OUT
-    fi
-    SELF_SIGNED_CERT=$(cat ${PATH_TO_SELF_SIGNED_CERT} | base64 -w 0)
+checkCRD() {
+
+  ${OC_BINARY} get che > /dev/null 2>&1
+  OUT=$?
+  if [ ${OUT} -ne 0 ]; then
+    printInfo "Creating custom resource definition"
+    createCRD > /dev/null
+  else
+    printInfo "Custom resource definition already exists"
   fi
+
 }
 
-deployCRW() {
-
-  if [ ! -z "${PATH_TO_SELF_SIGNED_CERT}" ]; then
-  USE_SELF_SIGNED_CERT=true
-  fi
-
-if [ "${JENKINS_BUILD}" = true ] ; then
-  PARAMS="-i"
-else
-  PARAMS="-it"
-fi
-
-
-${OC_BINARY} create -f ${BASE_DIR}/config.yaml -n=${OPENSHIFT_PROJECT}
-${OC_BINARY} patch cm/che-operator -p "{\"data\": {\"CHE_IMAGE\":\"${SERVER_IMAGE_NAME}\", \"CHE_OPENSHIFT_OAUTH\": \"${ENABLE_OPENSHIFT_OAUTH}\", \"CHE_SELF__SIGNED__CERT\": \"${SELF_SIGNED_CERT}\", \"CHE_OPENSHIFT_API_URL\": \"${OPENSHIFT_API_URI}\"}}" -n ${OPENSHIFT_PROJECT}
-${OC_BINARY} delete pod che-operator -n=${OPENSHIFT_PROJECT}  2> /dev/null || true
-${OC_BINARY} run -ti "che-operator" \
-        --restart='Never' \
-        --serviceaccount='che-operator' \
-        --image="${OPERATOR_IMAGE_NAME}" \
-        --overrides='{"spec":{"containers":[{"image": "'${OPERATOR_IMAGE_NAME}'", "name": "che-operator", "imagePullPolicy":"IfNotPresent","envFrom":[{"configMapRef":{"name":"che-operator"}}]}]}}' \
-        -n=${OPENSHIFT_PROJECT}
+createCRD() {
+  ${OC_BINARY} create -f - <<EOF
+  apiVersion: apiextensions.k8s.io/v1beta1
+  kind: CustomResourceDefinition
+  metadata:
+    name: ches.org.eclipse.che
+  spec:
+    group: org.eclipse.che
+    names:
+      kind: Che
+      listKind: CheList
+      plural: ches
+      singular: che
+    scope: Namespaced
+    version: v1
+    subresources:
+      status: {}
+EOF
 
 OUT=$?
+if [ ${OUT} -ne 0 ]; then
+  printError "Failed to create custom resource definition"
+  exit $OUT
+fi
+}
+
+
+createOperatorDeployment() {
+
+DEPLOYMENT=$(cat <<EOF
+kind: Template
+apiVersion: v1
+metadata:
+  name: codeready-operator
+objects:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: codeready-operator
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        name: codeready-operator
+    template:
+      metadata:
+        labels:
+          name: codeready-operator
+      spec:
+        serviceAccountName: codeready-operator
+        containers:
+          - name: codeready-operator
+            image: \${IMAGE}
+            ports:
+            - containerPort: 60000
+              name: metrics
+            command:
+            - che-operator
+            imagePullPolicy: Always
+            env:
+              - name: WATCH_NAMESPACE
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.namespace
+              - name: POD_NAME
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.name
+              - name: OPERATOR_NAME
+                value: "codeready-operator"
+parameters:
+- name: IMAGE
+  displayName: Operator Image
+  description: Operator Image
+  required: true
+EOF
+  )
+
+printInfo "Creating Operator Deployment"
+echo "${DEPLOYMENT}" | ${OC_BINARY} new-app -p IMAGE=$OPERATOR_IMAGE_NAME -n="${OPENSHIFT_PROJECT}" -f - > /dev/null
+OUT=$?
   if [ ${OUT} -ne 0 ]; then
-    printError "Failed to deploy CodeReady Workspaces. Inspect error log."
+    printError "Failed to deploy CodeReady Operator"
     exit 1
   else
-    PROTOCOL="http"
-    TLS=$(${OC_BINARY} get route codeready -n=${OPENSHIFT_PROJECT} -o=jsonpath='{.spec.tls.termination}')
-    if [ "${TLS}" ]; then
-      PROTOCOL="https"
+    printInfo "Waiting for the Operator deployment to be scaled to 1"
+    DESIRED_REPLICA_COUNT=1
+    UNAVAILABLE=$(${OC_BINARY} get deployment/codeready-operator -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.unavailableReplicas}')
+    DEPLOYMENT_TIMEOUT_SEC=300
+    POLLING_INTERVAL_SEC=5
+    end=$((SECONDS+DEPLOYMENT_TIMEOUT_SEC))
+    while [ "${UNAVAILABLE}" == 1 ]; do
+      UNAVAILABLE=$(${OC_BINARY} get deployment/codeready-operator -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.unavailableReplicas}')
+      sleep 3
+    done
+    CURRENT_REPLICA_COUNT=$(${OC_BINARY} get deployment/codeready-operator -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.availableReplicas}')
+    while [ "${CURRENT_REPLICA_COUNT}" -ne "${DESIRED_REPLICA_COUNT}" ] && [ ${SECONDS} -lt ${end} ]; do
+      CURRENT_REPLICA_COUNT=$(${OC_BINARY} get deployment/codeready-operator -o=jsonpath='{.status.availableReplicas}')
+      timeout_in=$((end-SECONDS))
+      printInfo "Deployment is in progress...(Current replica count=${CURRENT_REPLICA_COUNT}, ${timeout_in} seconds remain)"
+      sleep ${POLLING_INTERVAL_SEC}
+    done
+
+    if [ "${CURRENT_REPLICA_COUNT}" -ne "${DESIRED_REPLICA_COUNT}"  ]; then
+      printError "CodeReady Operator deployment failed. Aborting. Run command 'oc logs deployment/codeready-operator' to get more details."
+      exit 1
+    elif [ ${SECONDS} -ge ${end} ]; then
+      printError "Deployment timeout. Aborting."
+      exit 1
     fi
-    CODEREADY_HOST=${PROTOCOL}://$(${OC_BINARY} get route codeready -n=${OPENSHIFT_PROJECT} -o=jsonpath='{.spec.host}')
-    printInfo "CodeReady Workspaces successfully deployed and available at ${CODEREADY_HOST}"
+    printInfo "Codeready Operator successfully deployed"
+  fi
+}
+
+createCustomResource() {
+  printInfo "Creating Custom resource. This will initiate CodeReady Workspaces deployment"
+  printInfo "CodeReady is going to be deployed with the following settings:"
+  printInfo "TLS support:       ${TLS_SUPPORT}"
+  printInfo "OpenShift oAuth:   ${ENABLE_OPENSHIFT_OAUTH}"
+  printInfo "Self-signed certs: ${SELF_SIGNED_CERT}"
+
+  ${OC_BINARY} new-app -f ${BASE_DIR}/codeready-cr.yaml \
+               -p SERVER_IMAGE_NAME=${SERVER_IMAGE_NAME} \
+               -p SERVER_IMAGE_TAG=${SERVER_IMAGE_TAG} \
+               -p TLS_SUPPORT=${TLS_SUPPORT} \
+               -p ENABLE_OPENSHIFT_OAUTH=${ENABLE_OPENSHIFT_OAUTH} \
+               -p SELF_SIGNED_CERT=${SELF_SIGNED_CERT} \
+               -n="${OPENSHIFT_PROJECT}" > /dev/null
+  OUT=$?
+    if [ ${OUT} -ne 0 ]; then
+      printError "Failed to create Custom Resource"
+      exit 1
+    else
+      DEPLOYMENT_TIMEOUT_SEC=1200
+      printInfo "Waiting for CodeReady to boot. Timeout: ${DEPLOYMENT_TIMEOUT_SEC} seconds"
+      if [ "${FOLLOW_LOGS}" == "true" ]; then
+        printInfo "You may exist this script as soon as the log reports a successful CodeReady deployment"
+        ${OC_BINARY} logs -f deployment/codeready-operator -n="${OPENSHIFT_PROJECT}"
+      else
+        DESIRED_STATE="Available"
+        CURRENT_STATE=$(${OC_BINARY} get che/codeready -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.cheClusterRunning}')
+        POLLING_INTERVAL_SEC=5
+        end=$((SECONDS+DEPLOYMENT_TIMEOUT_SEC))
+        while [ "${CURRENT_STATE}" != "${DESIRED_STATE}" ] && [ ${SECONDS} -lt ${end} ]; do
+          CURRENT_STATE=$(${OC_BINARY} get che/codeready -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.cheClusterRunning}')
+          timeout_in=$((end-SECONDS))
+          sleep ${POLLING_INTERVAL_SEC}
+        done
+
+        if [ "${CURRENT_STATE}" != "${DESIRED_STATE}"  ]; then
+          printError "CodeReady deployment failed. Aborting. Codeready operator logs: oc logs deployment/codeready-operator"
+          exit 1
+        elif [ ${SECONDS} -ge ${end} ]; then
+          printError "Deployment timeout. Aborting. Codeready operator logs: oc logs deployment/codeready-operator"
+          exit 1
+        fi
+        CODEREADY_ROUTE=$(${OC_BINARY} get che/codeready -o=jsonpath='{.status.cheURL}')
+        printInfo "CodeReady Workspaces successfully deployed and is available at ${CODEREADY_ROUTE}"
+    fi
   fi
 }
 
@@ -239,6 +377,7 @@ if [ "${DEPLOY}" = true ] ; then
   isLoggedIn
   createNewProject
   createServiceAccount
-  createCertSecret
-  deployCRW
+  checkCRD
+  createOperatorDeployment
+  createCustomResource
 fi

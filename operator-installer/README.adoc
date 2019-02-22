@@ -6,33 +6,30 @@ This document explains how to use the Operator installer (deployment script).
 
 * a running OpenShift or link:https://docs.okd.io/latest/minishift/index.html[Minishift] instance
 * an active session (you should be logged in)
+* cluster-admin privileges to register CRD and grant Operator service account cluster admin permissions
 ```
 oc login --server=https://your.ip.address.here:8443 -u developer -p developer
 ```
-
-* **OPTIONAL** Only if you enable Login with OpenShift (`-oauth, --enable-oauth`): current user must have cluster-admin privileges.
 
 ### Quickstart
 
 The simplest way to run the script is to use all the defaults.
 
-The following command will grab config from config.yaml and start an installer image:
+The following command will grab config from codeready-cr.yaml and start an installer image:
 
 ```
 ./deploy.sh --deploy
 ```
 
-
 ### Installation Configuration
 
-The installer script will use command line args and `config.yaml` file to populate Operator extra vars.
+The installer script will use command line args and `codeready-cr.yaml` file to populate Operator CR spec fields.
 
 #### Configuration
 
 You can override default envs. Not all configuration parameters are available as flags. Run `./deploy.sh --help` to get a list of all available arguments.
 
-`config.yaml` is a ConfigMap passed to the Operator pod. This ConfigMap contains environment variables that are installation options.
- Each environment variable is documented in the file.
+`codeready-cr.yaml` is a template with CR object holding spec fields that instruct the Operator on how exactly to deploy CodeReady Workspace.
 
 #### Examples
 
@@ -49,36 +46,41 @@ Specify a project/namespace:
 ./deploy.sh --deploy -p=mynamespace
 ```
 
-#### Deploy with support of self signed certs, OpenShift OAuth and a custom server-image
+#### Deploy without support of self signed certs, OpenShift OAuth and a custom server-image
 
 ```
-./deploy.sh --deploy -c=/var/lib/origin/openshift.local.config/master/ca.crt -oauth --server-image=myserver/image:mytag
+./deploy.sh --deploy --server-image=myserver/image --version=latest -public-certs
 ```
 
 ##### Deploy with external Red Hat SSO and enabled realm provisioning:
 
-In `config.yaml`:
+In `codeready-cr.yaml`:
 
 ```
-CHE_EXTERNAL_KEYCLOAK: true
-CHE_KEYCLOAK_AUTH__SERVER__URL: "https://my-rh-sso.com"
+externalKeycloak: true
+keycloakURL: 'https://my-keycloak.com'
+keycloakRealm: 'myrealm'
+keycloakClientId: 'myClient'
+
 ```
 
 ##### Deploy with external Red Hat SSO and Postgres DB:
 
-In `config.yaml`:
+In `codeready-cr.yaml`:
 
 ```
-CHE_EXTERNAL_DB: true
-CHE_DB_HOSTNAME: "myhost"
-CHE_DB_PORT: "5432"
-CHE_DB_DATABASE: "mydb"
-CHE_JDBC_USERNAME: "myuser"
-CHE_JDBC_PASSWORD: "mypassword"
+externalDb: true
+chePostgresHostname: 'http://postgres'
+chePostgresPort: '5432'
+chePostgresUser: 'myuser'
+chePostgresPassword: 'mypass'
+chePostgresDb: 'mydb'
 
 ....
-CHE_EXTERNAL_KEYCLOAK: true
-CHE_KEYCLOAK_AUTH__SERVER__URL: "https://my-rh-sso.com"
+externalKeycloak: true
+keycloakURL: 'https://my-keycloak.com'
+keycloakRealm: 'myrealm'
+keycloakClientId: 'myClient'
 ```
 
 ### External DB and RH SSO Support
