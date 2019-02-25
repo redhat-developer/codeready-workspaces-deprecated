@@ -199,7 +199,7 @@ createServiceAccount() {
 
 checkCRD() {
 
-  ${OC_BINARY} get che > /dev/null 2>&1
+  ${OC_BINARY} get customresourcedefinitions/checlusters.org.eclipse.che > /dev/null 2>&1
   OUT=$?
   if [ ${OUT} -ne 0 ]; then
     printInfo "Creating custom resource definition"
@@ -215,14 +215,14 @@ createCRD() {
   apiVersion: apiextensions.k8s.io/v1beta1
   kind: CustomResourceDefinition
   metadata:
-    name: ches.org.eclipse.che
+    name: checlusters.org.eclipse.che
   spec:
     group: org.eclipse.che
     names:
-      kind: Che
-      listKind: CheList
-      plural: ches
-      singular: che
+      kind: CheCluster
+      listKind: CheClusterList
+      plural: checlusters
+      singular: checluster
     scope: Namespaced
     version: v1
     subresources:
@@ -350,11 +350,11 @@ createCustomResource() {
         ${OC_BINARY} logs -f deployment/codeready-operator -n="${OPENSHIFT_PROJECT}"
       else
         DESIRED_STATE="Available"
-        CURRENT_STATE=$(${OC_BINARY} get che/codeready -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.cheClusterRunning}')
+        CURRENT_STATE=$(${OC_BINARY} get checluster/codeready -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.cheClusterRunning}')
         POLLING_INTERVAL_SEC=5
         end=$((SECONDS+DEPLOYMENT_TIMEOUT_SEC))
         while [ "${CURRENT_STATE}" != "${DESIRED_STATE}" ] && [ ${SECONDS} -lt ${end} ]; do
-          CURRENT_STATE=$(${OC_BINARY} get che/codeready -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.cheClusterRunning}')
+          CURRENT_STATE=$(${OC_BINARY} get checluster/codeready -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.cheClusterRunning}')
           timeout_in=$((end-SECONDS))
           sleep ${POLLING_INTERVAL_SEC}
         done
@@ -366,7 +366,7 @@ createCustomResource() {
           printError "Deployment timeout. Aborting. Codeready operator logs: oc logs deployment/codeready-operator"
           exit 1
         fi
-        CODEREADY_ROUTE=$(${OC_BINARY} get che/codeready -o=jsonpath='{.status.cheURL}')
+        CODEREADY_ROUTE=$(${OC_BINARY} get checluster/codeready -o=jsonpath='{.status.cheURL}')
         printInfo "CodeReady Workspaces successfully deployed and is available at ${CODEREADY_ROUTE}"
     fi
   fi

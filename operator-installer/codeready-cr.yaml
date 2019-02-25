@@ -4,7 +4,7 @@ metadata:
   name: che
 objects:
 - apiVersion: org.eclipse.che/v1
-  kind: Che
+  kind: CheCluster
   metadata:
     name: codeready
   spec:
