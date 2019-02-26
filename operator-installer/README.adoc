@@ -35,7 +35,7 @@ You can override default envs. Not all configuration parameters are available as
 
 ##### Deploy with all defaults
 
-The following command will grab config from config.yaml and start an installer image:
+The following command will grab config from codeready-cr.yaml and start an installer image:
 
 ```
 ./deploy.sh --deploy
@@ -49,7 +49,7 @@ Specify a project/namespace:
 #### Deploy without support of self signed certs, OpenShift OAuth and a custom server-image
 
 ```
-./deploy.sh --deploy --server-image=myserver/image --version=latest -public-certs
+./deploy.sh --deploy --server-image=myserver/image --version=latest --public-certs
 ```
 
 ##### Deploy with external Red Hat SSO:

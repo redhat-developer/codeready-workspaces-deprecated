@@ -31,15 +31,15 @@ fi
 for key in "$@"
 do
   case $key in
-    -follow-logs| --verbose)
+    --verbose)
       FOLLOW_LOGS="true"
       shift
       ;;
-    -public-certs| --public-certs)
+    --public-certs)
       SELF_SIGNED_CERT="false"
       shift
       ;;
-    -oauth| --enable-oauth)
+    -o| --oauth)
       ENABLE_OPENSHIFT_OAUTH="true"
       shift
       ;;
