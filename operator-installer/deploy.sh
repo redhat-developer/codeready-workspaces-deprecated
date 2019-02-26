@@ -15,13 +15,13 @@ HELP="
 How to use this script:
 -d,     --deploy              | deploy using settings in codeready-cr.yaml
 -p=,    --project=            | project namespace to deploy CodeReady Workspaces, default: ${DEFAULT_OPENSHIFT_PROJECT}
--oauth, --enable-oauth        | enable Log into CodeReady Workspaces with OpenShift credentials, default: ${DEFAULT_ENABLE_OPENSHIFT_OAUTH}
+-o, --oauth                   | enable Log into CodeReady Workspaces with OpenShift credentials, default: ${DEFAULT_ENABLE_OPENSHIFT_OAUTH}
 -s,     --secure              | tls support, default: ${DEFAULT_TLS_SUPPORT}
--public-certs, --public-certs | skip creating a secret with OpenShift router cert, default: false, which means operator will auto fetch router cert
+--public-certs                | skip creating a secret with OpenShift router cert, default: false, which means operator will auto fetch router cert
 --operator-image=             | operator image, default: ${DEFAULT_OPERATOR_IMAGE_NAME}
 --server-image=               | server image, default: ${DEFAULT_SERVER_IMAGE_NAME}
 -v=, --version=               | server image tag, default: ${DEFAULT_SERVER_IMAGE_TAG}
--follow-logs, --verbose       | stream deployment logs to console, default: false
+--verbose                     | stream deployment logs to console, default: false
 -h,     --help                | show this help menu
 "
 if [[ $# -eq 0 ]] ; then
