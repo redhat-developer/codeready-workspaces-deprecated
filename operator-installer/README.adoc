@@ -52,7 +52,7 @@ Specify a project/namespace:
 ./deploy.sh --deploy --server-image=myserver/image --version=latest -public-certs
 ```
 
-##### Deploy with external Red Hat SSO and enabled realm provisioning:
+##### Deploy with external Red Hat SSO:
 
 In `codeready-cr.yaml`:
 
