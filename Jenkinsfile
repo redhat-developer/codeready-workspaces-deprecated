@@ -2,8 +2,8 @@
 
 // PARAMETERS for this pipeline:
 // node == slave label, eg., rhel7-devstudio-releng-16gb-ram||rhel7-16gb-ram||rhel7-devstudio-releng||rhel7 or rhel7-32gb||rhel7-16gb||rhel7-8gb
-// branchToBuildParent = refs/tags/6.18.0, */6.18.x, or */master
-// branchToBuildCRW = */6.18.x or */master
+// branchToBuildParent = refs/tags/6.19.0, */6.19.x, or */master
+// branchToBuildCRW = */6.19.x or */master
 
 def installNPM(){
 	def nodeHome = tool 'nodejs-10.9.0'

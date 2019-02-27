@@ -17,11 +17,11 @@
     <parent>
         <artifactId>maven-depmgt-pom</artifactId>
         <groupId>org.eclipse.che.depmgt</groupId>
-        <version>6.18.0</version>
+        <version>6.19.0</version>
     </parent>
     <groupId>com.redhat</groupId>
     <artifactId>codeready-workspaces</artifactId>
-    <version>1.0.0.GA-SNAPSHOT</version>
+    <version>1.1.0.GA-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Root</name>
 

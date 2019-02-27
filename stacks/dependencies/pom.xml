@@ -18,12 +18,12 @@
     <parent>
         <artifactId>codeready-workspaces</artifactId>
         <groupId>com.redhat</groupId>
-        <version>1.0.0.GA-SNAPSHOT</version>
+        <version>1.1.0.GA-SNAPSHOT</version>
         <relativePath>../..</relativePath>
     </parent>
     <groupId>com.redhat</groupId>
     <artifactId>codeready-workspaces-stacks-language-servers-dependencies</artifactId>
-    <version>1.0.0.GA-SNAPSHOT</version>
+    <version>1.1.0.GA-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Stacks :: Language Servers :: Dependencies</name>
     <modules>
@@ -39,19 +39,19 @@
             <dependency>
                 <groupId>org.eclipse.che.ls.dependencies</groupId>
                 <artifactId>language-servers-dependencies-node</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.1.0.GA-SNAPSHOT</version>
                 <type>tar.gz</type>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.che.ls.dependencies</groupId>
                 <artifactId>language-servers-dependencies-php</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.1.0.GA-SNAPSHOT</version>
                 <type>tar.gz</type>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.che.ls.dependencies</groupId>
                 <artifactId>language-servers-dependencies-python</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+                <version>1.1.0.GA-SNAPSHOT</version>
                 <type>tar.gz</type>
             </dependency>
         </dependencies>
