@@ -144,11 +144,13 @@ isLoggedIn() {
     CONTEXT=$(${OC_BINARY} whoami -c)
     OPENSHIFT_API_URI=$(${OC_BINARY} whoami --show-server)
     printInfo "Active session found. Your current context is: ${CONTEXT}"
+    if [[ ${ENABLE_OPENSHIFT_OAUTH} == "true" ]]; then
       ${OC_BINARY} get oauthclients > /dev/null 2>&1
       OUT=$?
       if [ ${OUT} -ne 0 ]; then
         printError "Creation of a CRD requires cluster-admin privileges. Login in as user with cluster-admin role"
         exit $OUT
+      fi
     fi
   fi
 }
