@@ -15,7 +15,7 @@ oc login --server=https://your.ip.address.here:8443 -u developer -p developer
 
 The simplest way to run the script is to use all the defaults.
 
-The following command will grab config from codeready-cr.yaml and start an installer image:
+The following command will grab config from custom-resource.yaml and start an installer image:
 
 ```
 ./deploy.sh --deploy
@@ -23,19 +23,19 @@ The following command will grab config from codeready-cr.yaml and start an insta
 
 ### Installation Configuration
 
-The installer script will use command line args and `codeready-cr.yaml` file to populate Operator CR spec fields.
+The installer script will use command line args and `custom-resource.yaml` file to populate Operator CR spec fields.
 
 #### Configuration
 
 You can override default envs. Not all configuration parameters are available as flags. Run `./deploy.sh --help` to get a list of all available arguments.
 
-`codeready-cr.yaml` is a template with CR object holding spec fields that instruct the Operator on how exactly to deploy CodeReady Workspace.
+`custom-resource.yaml` is a template with CR object holding spec fields that instruct the Operator on how exactly to deploy and configure CodeReady Workspaces.
 
 #### Examples
 
 ##### Deploy with all defaults
 
-The following command will grab config from codeready-cr.yaml and start an installer image:
+The following command will grab config from custom-resource.yaml and start an installer image:
 
 ```
 ./deploy.sh --deploy
@@ -54,33 +54,36 @@ Specify a project/namespace:
 
 ##### Deploy with external Red Hat SSO:
 
-In `codeready-cr.yaml`:
+In `custom-resource.yaml`:
 
 ```
-externalKeycloak: true
-keycloakURL: 'https://my-keycloak.com'
-keycloakRealm: 'myrealm'
-keycloakClientId: 'myClient'
+auth:
+  externalKeycloak: true
+  keycloakURL: 'https://my-keycloak.com'
+  keycloakRealm: 'myrealm'
+  keycloakClientId: 'myClient'
 
 ```
 
 ##### Deploy with external Red Hat SSO and Postgres DB:
 
-In `codeready-cr.yaml`:
+In `custom-resource.yaml`:
 
 ```
-externalDb: true
-chePostgresHostname: 'http://postgres'
-chePostgresPort: '5432'
-chePostgresUser: 'myuser'
-chePostgresPassword: 'mypass'
-chePostgresDb: 'mydb'
+database:
+  externalDb: true
+  chePostgresHostname: 'http://postgres'
+  chePostgresPort: '5432'
+  chePostgresUser: 'myuser'
+  chePostgresPassword: 'mypass'
+  chePostgresDb: 'mydb'
 
 ....
-externalKeycloak: true
-keycloakURL: 'https://my-keycloak.com'
-keycloakRealm: 'myrealm'
-keycloakClientId: 'myClient'
+auth:
+  externalKeycloak: true
+  keycloakURL: 'https://my-keycloak.com'
+  keycloakRealm: 'myrealm'
+  keycloakClientId: 'myClient'
 ```
 
 ### External DB and RH SSO Support

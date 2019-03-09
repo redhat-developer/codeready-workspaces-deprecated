@@ -80,7 +80,7 @@
                                 <copy file="README.adoc" tofile="${basedir}/target/codeready-workspaces-operator-installer/README.adoc"/>
                                 <copy file="deploy.sh" tofile="${basedir}/target/codeready-workspaces-operator-installer/deploy.sh"/>
                                 <chmod file="${basedir}/target/codeready-workspaces-operator-installer/deploy.sh" perm="775"/>
-                                <copy file="codeready-cr.yaml" tofile="${basedir}/target/codeready-workspaces-operator-installer/codeready-cr.yaml"/>
+                                <copy file="custom-resource.yaml" tofile="${basedir}/target/codeready-workspaces-operator-installer/custom-resource.yaml"/>
                             </target>
                         </configuration>
                     </execution>
