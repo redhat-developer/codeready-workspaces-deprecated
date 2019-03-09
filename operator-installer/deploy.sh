@@ -13,7 +13,7 @@ DEFAULT_NAMESPACE_CLEANUP="false"
 HELP="
 
 How to use this script:
--d,     --deploy              | deploy using settings in codeready-cr.yaml
+-d,     --deploy              | deploy using settings in custom-resource.yaml
 -p=,    --project=            | project namespace to deploy CodeReady Workspaces, default: ${DEFAULT_OPENSHIFT_PROJECT}
 -o, --oauth                   | enable Log into CodeReady Workspaces with OpenShift credentials, default: ${DEFAULT_ENABLE_OPENSHIFT_OAUTH}
 -s,     --secure              | tls support, default: ${DEFAULT_TLS_SUPPORT}
@@ -331,7 +331,7 @@ createCustomResource() {
   printInfo "OpenShift oAuth:   ${ENABLE_OPENSHIFT_OAUTH}"
   printInfo "Self-signed certs: ${SELF_SIGNED_CERT}"
 
-  ${OC_BINARY} new-app -f ${BASE_DIR}/codeready-cr.yaml \
+  ${OC_BINARY} new-app -f ${BASE_DIR}/custom-resource.yaml \
                -p SERVER_IMAGE_NAME=${SERVER_IMAGE_NAME} \
                -p SERVER_IMAGE_TAG=${SERVER_IMAGE_TAG} \
                -p TLS_SUPPORT=${TLS_SUPPORT} \

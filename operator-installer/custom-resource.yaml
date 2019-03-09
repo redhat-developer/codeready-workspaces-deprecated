@@ -8,29 +8,33 @@ objects:
   metadata:
     name: codeready
   spec:
-    cheFlavor: codeready
-    cheImage: ${SERVER_IMAGE_NAME}
-    cheImageTag: ${SERVER_IMAGE_TAG}
-    tlsSupport: ${{TLS_SUPPORT}}
-    selfSignedCert: ${{SELF_SIGNED_CERT}}
-    pvcStrategy: common
-    pvcClaimSize: 1Gi
-    openShiftoAuth: ${{ENABLE_OPENSHIFT_OAUTH}}
-    externalDb: false
-    chePostgresHostname: ''
-    chePostgresPort: ''
-    chePostgresUser: ''
-    chePostgresPassword: ''
-    chePostgresDb: ''
-    externalKeycloak: false
-    keycloakURL: ''
-    keycloakRealm: ''
-    keycloakClientId: ''
-    proxyURL: ''
-    proxyPort: ''
-    nonProxyHosts: ''
-    proxyUser: ''
-    proxyPassword: ''
+    server:
+      cheFlavor: codeready
+      cheImage: ${SERVER_IMAGE_NAME}
+      cheImageTag: ${SERVER_IMAGE_TAG}
+      tlsSupport: ${{TLS_SUPPORT}}
+      selfSignedCert: ${{SELF_SIGNED_CERT}}
+      proxyURL: ''
+      proxyPort: ''
+      nonProxyHosts: ''
+      proxyUser: ''
+      proxyPassword: ''
+    storage:
+      pvcStrategy: common
+      pvcClaimSize: 1Gi
+    database:
+      externalDb: false
+      chePostgresHostname: ''
+      chePostgresPort: ''
+      chePostgresUser: ''
+      chePostgresPassword: ''
+      chePostgresDb: ''
+    auth:
+      openShiftoAuth: ${{ENABLE_OPENSHIFT_OAUTH}}
+      externalKeycloak: false
+      keycloakURL: ''
+      keycloakRealm: ''
+      keycloakClientId: ''
 parameters:
   - name: SERVER_IMAGE_NAME
     displayName: Server image repo
