@@ -2,7 +2,7 @@
 
 This document explains how to use the Operator installer (deployment script).
 
-### Pre-reqs
+### Prerequisites
 
 * a running OpenShift or link:https://docs.okd.io/latest/minishift/index.html[Minishift] instance
 * an active session (you should be logged in)
@@ -23,13 +23,13 @@ The following command will grab config from custom-resource.yaml and start an in
 
 ### Installation Configuration
 
-The installer script will use command line args and `custom-resource.yaml` file to populate Operator CR spec fields.
+The installer script will use command line args and `link:custom-resource.yaml[custom-resource.yaml]` file to populate Operator CR spec fields.
 
 #### Configuration
 
 You can override default envs. Not all configuration parameters are available as flags. Run `./deploy.sh --help` to get a list of all available arguments.
 
-`custom-resource.yaml` is a template with CR object holding spec fields that instruct the Operator on how exactly to deploy and configure CodeReady Workspaces.
+`link:custom-resource.yaml[custom-resource.yaml]` is a template with CR object holding spec fields that instruct the Operator on how exactly to deploy and configure CodeReady Workspaces.
 
 #### Examples
 
@@ -54,7 +54,7 @@ Specify a project/namespace:
 
 ##### Deploy with external Red Hat SSO:
 
-In `custom-resource.yaml`:
+In `link:custom-resource.yaml[custom-resource.yaml]`:
 
 ```
 auth:
@@ -67,7 +67,7 @@ auth:
 
 ##### Deploy with external Red Hat SSO and Postgres DB:
 
-In `custom-resource.yaml`:
+In `link:custom-resource.yaml[custom-resource.yaml]`:
 
 ```
 database:
@@ -99,27 +99,51 @@ i.e. if you are connecting your own DB or Keycloak you need to pre-create resour
 
 ## Upgrade from 1.0.1 to 1.1
 
-Since 1.1.0 introduces an Operator that uses controller to watch custom resources there is no direct upgrade path. If you do not have any important workspaces/projects in an existing 1.0.1 namespace, it is better to delete it and deploy 1.1.
+### Prerequisites
 
-If you want to keep existing installation, it is possible to upgrade by deploying the operator to an existing namespace. There are a few pre-requisites before running the script:
+These are the same Prerequisites as above.
 
-1. Get current Postgres password from existing Postrges deployment environment > POSTGRESQL_PASSWORD, or run the following oc command:
+* a running OpenShift or link:https://docs.okd.io/latest/minishift/index.html[Minishift] instance
+* an active session (you should be logged in)
+* cluster-admin privileges to register CRD and grant Operator service account cluster admin permissions
+```
+oc login --server=https://your.ip.address.here:8443 -u developer -p developer
+```
+
+### Migration
+
+CodeReady Workspaces 1.1.0 introduces an Operator that uses controller to watch custom resources. There is no direct upgrade path from CodeReady Workspaces 1.0.1 to CodeReady Workspaces 1.1.0. If you do not have any important workspaces and projects in an existing 1.0.1 namespace, we recommend deleting the 1.0.1 installation and deploying CodeReady Workspaces 1.1.0.
+
+However, if you want to keep an existing 1.0.1 installation, it is possible to upgrade by deploying the new operator to an existing namespace.
+
+#### Automated method
+
+. Run `link:migrate.sh[migrate.sh]` using the name of your existing deployed project / `$targetNamespace`.
+
+. Check changes in `link:custom-resource.yaml[custom-resource.yaml]`.
+
+. Run `link:deploy.sh[deploy.sh]` using the parameters for your environment.
+
+#### Manual method
+
+. Obtain the current Postgres password (`POSTGRESQL_PASSWORD`) from the existing Postgres deployment environment, or run the following `oc` command against your `$targetNamespace`:
 
 ```
 oc get deployment postgres -o=jsonpath={'.spec.template.spec.containers[0].env[?(@.name=="POSTGRESQL_PASSWORD")].value'} -n $targetNamespace
 ```
 
-2. Get current Keycloak admin username and password from existing Keycloak deployment environment > SSO_ADMIN_USERNAME and SSO_ADMIN_PASSWORD, or run the following oc command:
-
+[start=2]
+. Obtain the current Keycloak administrator username and password (`SSO_ADMIN_USERNAME` and `SSO_ADMIN_PASSWORD`) from the existing Keycloak deployment environment, or run the following `oc` command:
 
 ```
 oc get deployment keycloak -o=jsonpath={'.spec.template.spec.containers[0].env[?(@.name=="SSO_ADMIN_USERNAME")].value'} -n $targetNamespace
 oc get deployment keycloak -o=jsonpath={'.spec.template.spec.containers[0].env[?(@.name=="SSO_ADMIN_PASSWORD")].value'} -n $targetNamespace
 ```
 
-If you have changed RH SSO admin password, provide an actual password rather than get it from env.
+If you have changed the RH SSO administrator password, provide an actual password instead of fetching it from the environment variables.
 
-3. Set values in custom-resource.yaml with values you have previously obtained:
+[start=3]
+. Replace the following values in the `link:custom-resource.yaml[custom-resource.yaml]` file with values you have obtained:
 
 ```
 spec:
@@ -130,15 +154,21 @@ spec:
     keycloakAdminPassword: 'password'
 ```
 
-4. Optional. If you have configured OpenShift oAuth, get oAuth secret and set respective value in custom-resource.yaml:
+[start=4]
+. Optional. If you have configured OpenShift oAuth, obtain the oAuth secret and set its value in the `link:custom-resource.yaml[custom-resource.yaml]` file:
 
-To get a secret run as cluster admin:
+To obtain the secret, take the following steps.
+
+[start=a]
+.. Run the following command as the cluster administrator:
+
 
 ```
 oc get oauthclient openshift-identity-provider-h2fh -o=jsonpath={'.secret'}
 ```
 
-Now add two fields to spec.auth, replace $secret with an actual secret, keep `oAuthClientName` the same:
+[start=b]
+.. Add the following fields to the `spec.auth` section of the `link:custom-resource.yaml[custom-resource.yaml]` file. Replace `$secret` with an actual secret. Set `oAuthClientName` to `'openshift-identity-provider-h2fh'` if not already set.
 
 ```
 spec:
@@ -148,14 +178,20 @@ spec:
 
 ```
 
-Save `custom-resource.yaml` and run the script with arguments that suit your installation.
+[start=5]
+. Save `link:custom-resource.yaml[custom-resource.yaml]`
+
+[start=6]
+. Run the `link:deploy.sh[deploy.sh]` script using parameters for your environment.
 
 ## Uninstall
 
-There's no dedicated function in the script that would uninstall CodeReady Workspaces, however, you can delete a custom resource which will delete all associated objects:
+There's no dedicated function in the `link:deploy.sh[deploy.sh]` script that can uninstall CodeReady Workspaces.
+
+However, you can delete a custom resource, which will delete all associated objects:
 
 ```
 oc delete checluster/codeready -n $targetNamespace
 ```
 
-where `$targetNamespace` is an OpenShift project with deployed CodeReady Workspaces (`workspaces` by default)
+where `$targetNamespace` is an OpenShift project with deployed CodeReady Workspaces (`workspaces` by default).
