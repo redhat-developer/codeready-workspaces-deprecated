@@ -32,6 +32,7 @@ objects:
     auth:
       openShiftoAuth: ${{ENABLE_OPENSHIFT_OAUTH}}
       externalKeycloak: false
+      keycloakAdminUserName: 'admin'
       keycloakAdminPassword: 'admin'
       keycloakURL: ''
       keycloakRealm: ''
