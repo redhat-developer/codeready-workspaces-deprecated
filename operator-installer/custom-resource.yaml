@@ -24,7 +24,7 @@ objects:
       pvcClaimSize: 1Gi
     database:
       externalDb: false
-      chePostgresHostname: ''
+      chePostgresHostName: ''
       chePostgresPort: ''
       chePostgresUser: ''
       chePostgresPassword: ''
