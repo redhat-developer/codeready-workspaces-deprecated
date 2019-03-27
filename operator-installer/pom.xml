@@ -78,7 +78,7 @@
                                 <mkdir dir="${basedir}/target/codeready-workspaces-operator-installer"/>
                                 <echo message="Copying files ..."/>
                                 <copy todir="${basedir}/target/codeready-workspaces-operator-installer/">
-                                    <fileset dir="src_dir" includes="**/custom-resource.yaml, **/*.sh, **/README.adoc"/>
+                                    <fileset dir="${basedir}" includes="**/custom-resource.yaml, **/*.sh, **/README.adoc"/>
                                 </copy>
                                 <chmod dir="${basedir}/target/codeready-workspaces-operator-installer/" includes="**/*.sh" perm="775"/>
                             </target>
