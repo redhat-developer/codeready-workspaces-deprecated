@@ -292,10 +292,11 @@ fi
     else
       printInfo "Role secret-reader already exists"
     fi
-    ${OC_BINARY} get rolebinding codeready-operator -n=${ROUTER_NAMESPACE} > /dev/null 2>&1
+    printInfo "Creating role binding to let operator get secrets in namespace ${ROUTER_NAMESPACE}"
+    ${OC_BINARY} get rolebinding ${OPENSHIFT_PROJECT}-codeready-operator -n=${ROUTER_NAMESPACE} > /dev/null 2>&1
     OUT=$?
     if [ ${OUT} -ne 0 ]; then
-      ${OC_BINARY} create rolebinding codeready-operator --role=secret-reader --serviceaccount=${OPENSHIFT_PROJECT}:codeready-operator -n=${ROUTER_NAMESPACE} > /dev/null
+      ${OC_BINARY} create rolebinding ${OPENSHIFT_PROJECT}-codeready-operator --role=secret-reader --serviceaccount=${OPENSHIFT_PROJECT}:codeready-operator -n=${ROUTER_NAMESPACE} > /dev/null
       OUT=$?
       if [ ${OUT} -ne 0 ]; then
         printWarning "Failed to create rolebinding for secret reader role"
@@ -320,10 +321,10 @@ fi
       printInfo "Cluster role already exists"
     fi
     printInfo "Creating cluster role binding to let operator service account create oAuthClients"
-    ${OC_BINARY} get clusterrolebinding codeready-operator > /dev/null 2>&1
+    ${OC_BINARY} get clusterrolebinding ${OPENSHIFT_PROJECT}-codeready-operator > /dev/null 2>&1
     OUT=$?
     if [ ${OUT} -ne 0 ]; then
-      ${OC_BINARY} create clusterrolebinding codeready-operator --clusterrole=codeready-operator --serviceaccount=${OPENSHIFT_PROJECT}:codeready-operator > /dev/null
+      ${OC_BINARY} create clusterrolebinding ${OPENSHIFT_PROJECT}-codeready-operator --clusterrole=codeready-operator --serviceaccount=${OPENSHIFT_PROJECT}:codeready-operator > /dev/null
       OUT=$?
       if [ ${OUT} -ne 0 ]; then
         printError "Failed to create cluster RoleBinding"
