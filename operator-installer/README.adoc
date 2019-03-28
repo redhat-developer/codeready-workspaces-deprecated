@@ -11,6 +11,32 @@ This document explains how to use the Operator installer (deployment script).
 oc login --server=https://your.ip.address.here:8443 -u developer -p developer
 ```
 
+### Required Permissions
+
+To successfully deploy CodeReady Workspaces using this script, cluster-admin privileges are required. The table below lists objects and required permissions:
+
+[%autowidth]
+|===
+| *Kind*             | *Name*                          | *Description*                                                    | *Permissions*
+| CRD                |                                 | Custom Resource definition - CheCluster                          | cluster-admin
+| CR                 | codeready                       | Custom Resource of CheCluster Kind                               | cluster-admin. Alternatively, a clusterrole can be created
+| ServiceAccount     | codeready-operator              | Operator uses this SA to reconcile CRW objects                   | edit role in a target namespace
+| Role               | codeready-operator              | Scope of permissions for operator service account                | cluster-admin
+| RoleBinding        | codeready-operator              | Assign role to service account                                   | edit role in a target namespace
+| Deployment         | codeready-operator              | Deployment with operator image in template spec                  | edit role in a target namespace
+| ClusterRole        | codeready-operator              | ClusterRole that lets create, update, delete oAuthClients        | cluster-admin
+| ClusterRoleBinding | ${NAMESPACE}-codeready-operator | ClusterRoleBinding that lets create, update, delete oAuthClients | cluster-admin
+| Role               | secret-reader                   | Role that lets read secrets in router namespace                  | cluster-admin
+| RoleBinding        | ${NAMESPACE}-codeready-operator | RoleBinding that lets read secrets in router namespace           | cluster-admin
+|===
+
+By default, operator service account gets privileges to list, get, watch, create, update and delete ingresses, routes, service accounts, roles,
+rolebindings, pvcs, deployments, configmaps, secrets, as well as run execs into pods, watch events and read pod logs in a target namespace.
+
+With self signed certificates support enabled, the operator service account will get privileges to read secrets in an OpenShift router namespace.
+
+With OpenShift oAuth enabled, the operator service account will get privileges to get, list, create, update and delete oAuthclients at a cluster scope.
+
 ### Quickstart
 
 The simplest way to run the script is to use all the defaults.
