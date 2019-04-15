@@ -134,15 +134,13 @@ preReqs() {
 # check if ${OC_BINARY} client has an active session
 isLoggedIn() {
   printInfo "Checking if you are currently logged in..."
-  ${OC_BINARY} whoami -t > /dev/null
+  ${OC_BINARY} whoami > /dev/null
   OUT=$?
   if [ ${OUT} -ne 0 ]; then
-    printError "Log in to your OpenShift cluster: ${OC_BINARY} login --server=yourServer. Do not use system:admin login"
+    printError "Log in to your OpenShift cluster: ${OC_BINARY} login --server=yourServer"
     exit 1
   else
-    OC_TOKEN=$(${OC_BINARY} whoami -t)
     CONTEXT=$(${OC_BINARY} whoami -c)
-    OPENSHIFT_API_URI=$(${OC_BINARY} whoami --show-server)
     printInfo "Active session found. Your current context is: ${CONTEXT}"
       ${OC_BINARY} get customresourcedefinitions > /dev/null 2>&1
       OUT=$?
@@ -389,7 +387,6 @@ if [ ${OUT} -ne 0 ]; then
     subresources:
       status: {}
 EOF
-  # exit $OUT
 fi
 }
 
@@ -455,19 +452,26 @@ fi
 echo "${DEPLOYMENT}" | ${OC_BINARY} new-app -p IMAGE=$OPERATOR_IMAGE_NAME -n="${OPENSHIFT_PROJECT}" -f - > /dev/null
 OUT=$?
 if [ ${OUT} -ne 0 ]; then
-  printError "Failed to deploy CodeReady Operator"
+  printError "Failed to deploy CodeReady Workspaces operator"
   exit 1
 else
-  printInfo "Waiting for the Operator deployment to be scaled to 1"
+  printInfo "Waiting for the Operator deployment to be scaled to 1. Timeout 5 minutes"
   DESIRED_REPLICA_COUNT=1
   UNAVAILABLE=$(${OC_BINARY} get deployment/codeready-operator -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.unavailableReplicas}')
   DEPLOYMENT_TIMEOUT_SEC=300
   POLLING_INTERVAL_SEC=5
   end=$((SECONDS+DEPLOYMENT_TIMEOUT_SEC))
-  while [ "${UNAVAILABLE}" == 1 ]; do
+  while [ "${UNAVAILABLE}" == 1 ] && [ ${SECONDS} -lt ${end} ]; do
     UNAVAILABLE=$(${OC_BINARY} get deployment/codeready-operator -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.unavailableReplicas}')
     sleep 3
   done
+  if [ ${UNAVAILABLE} == 1 ]; then
+    printError "Deployment timeout. Aborting."
+    printError "Check deployment logs and events:"
+    printError "oc logs deployment/codeready-operator -n ${OPENSHIFT_PROJECT}"
+    printError "oc get events -n ${OPENSHIFT_PROJECT}"
+    exit 1
+  fi
   CURRENT_REPLICA_COUNT=$(${OC_BINARY} get deployment/codeready-operator -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.availableReplicas}')
   while [ "${CURRENT_REPLICA_COUNT}" -ne "${DESIRED_REPLICA_COUNT}" ] && [ ${SECONDS} -lt ${end} ]; do
     CURRENT_REPLICA_COUNT=$(${OC_BINARY} get deployment/codeready-operator -o=jsonpath='{.status.availableReplicas}')
@@ -477,13 +481,13 @@ else
   done
 
   if [ "${CURRENT_REPLICA_COUNT}" -ne "${DESIRED_REPLICA_COUNT}"  ]; then
-    printError "CodeReady Operator deployment failed. Aborting. Run command 'oc logs deployment/codeready-operator' to get more details."
+    printError "CodeReady Workspaces operator deployment failed. Aborting. Run command 'oc logs deployment/codeready-operator' to get more details."
     exit 1
   elif [ ${SECONDS} -ge ${end} ]; then
     printError "Deployment timeout. Aborting."
     exit 1
   fi
-  printInfo "Codeready Operator successfully deployed"
+  printInfo "Codeready Workspaces operator successfully deployed"
 fi
 }
 
@@ -508,12 +512,12 @@ createCustomResource() {
                -n="${OPENSHIFT_PROJECT}" > /dev/null
   OUT=$?
   if [ ${OUT} -ne 0 ]; then
-    printError "Failed to create Custom Resource. If it is already exists error, disregard it"
+    printError "Failed to create Custom Resource. If it is 'already exists' error, disregard it"
   fi
     DEPLOYMENT_TIMEOUT_SEC=1200
-    printInfo "Waiting for CodeReady to boot. Timeout: ${DEPLOYMENT_TIMEOUT_SEC} seconds"
+    printInfo "Waiting for CodeReady Workspaces to boot. Timeout: ${DEPLOYMENT_TIMEOUT_SEC} seconds"
     if [ "${FOLLOW_LOGS}" == "true" ]; then
-      printInfo "You may exit this script as soon as the log reports a successful CodeReady deployment"
+      printInfo "You may exit this script as soon as the log reports a successful CodeReady Workspaces deployment"
       ${OC_BINARY} logs -f deployment/codeready-operator -n="${OPENSHIFT_PROJECT}"
     else
       DESIRED_STATE="Available"
@@ -527,10 +531,10 @@ createCustomResource() {
       done
 
       if [ "${CURRENT_STATE}" != "${DESIRED_STATE}"  ]; then
-        printError "CodeReady deployment failed. Aborting. Codeready operator logs: oc logs deployment/codeready-operator"
+        printError "CodeReady Workspaces deployment failed. Aborting. Codeready Workspaces operator logs: oc logs deployment/codeready-operator -n ${OPENSHIFT_PROJECT}"
         exit 1
       elif [ ${SECONDS} -ge ${end} ]; then
-        printError "Deployment timeout. Aborting. Codeready operator logs: oc logs deployment/codeready-operator"
+        printError "Deployment timeout. Aborting. Codeready Workspaces operator logs: oc logs deployment/codeready-operator -n ${OPENSHIFT_PROJECT}"
         exit 1
       fi
       CODEREADY_ROUTE=$(${OC_BINARY} get checluster/codeready -o=jsonpath='{.status.cheURL}')
