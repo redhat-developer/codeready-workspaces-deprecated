@@ -465,7 +465,7 @@ else
     UNAVAILABLE=$(${OC_BINARY} get deployment/codeready-operator -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.unavailableReplicas}')
     sleep 3
   done
-  if [ ${UNAVAILABLE} == 1 ]; then
+  if [ "${UNAVAILABLE}" == 1 ]; then
     printError "Deployment timeout. Aborting."
     printError "Check deployment logs and events:"
     printError "oc logs deployment/codeready-operator -n ${OPENSHIFT_PROJECT}"
