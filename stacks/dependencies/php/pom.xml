@@ -25,7 +25,7 @@
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Stacks :: Language Servers :: PHP Dependencies</name>
     <properties>
-    <PHP_LS_VERSION>5.4.2</PHP_LS_VERSION>
+    <PHP_LS_VERSION>5.4.6</PHP_LS_VERSION>
     </properties>
     <build>
         <plugins>
@@ -69,7 +69,7 @@
                                     <arg line="run -v ${basedir}/target/php-ls:/php webdevops/php-apache-dev:alpine-php7 sh -c 'mkdir -p /php; cd /php; chmod -R 777 /php; su -l application -c &quot;cd /php; /usr/local/bin/composer require jetbrains/phpstorm-stubs:dev-master; /usr/local/bin/composer require felixfbecker/language-server:${PHP_LS_VERSION}; /usr/local/bin/composer run-script --working-dir=vendor/felixfbecker/language-server parse-stubs; mv vendor/* .; rm -rf vendor&quot;; cp /usr/local/bin/composer /php/composer; chmod -R 777 /php'" />
                                 </exec>
                                 <exec dir="${basedir}" executable="docker" failonerror="true">
-                                    <arg line="run -v ${basedir}/target/php-ls:/php php-zendserver:9.1 sh -c 'cp /usr/local/zend/lib/debugger/php-7.1.x/ZendDebugger.so /php/ZendDebugger.so; chmod -R 777 /php'" />
+                                    <arg line="run -v ${basedir}/target/php-ls:/php php-zendserver:2018.0 sh -c 'cp /usr/local/zend/lib/debugger/php-7.2.x/ZendDebugger.so /php/ZendDebugger.so; chmod -R 777 /php'" />
                                 </exec>
                             </target>
                         </configuration>
