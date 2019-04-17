@@ -25,8 +25,12 @@
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Stacks :: Language Servers :: Node Dependencies</name>
     <properties>
+        <!-- find latest version: https://www.npmjs.com/package/typescript -->
         <TYPERSCRIPT_VERSION>2.8.4</TYPERSCRIPT_VERSION>
+        <!-- find latest version: https://www.npmjs.com/package/typescript-language-server -->
         <TYPESCRIPT_LS_VERSION>0.1.12</TYPESCRIPT_LS_VERSION>
+        <!-- find latest version: https://hub.docker.com/_/node/?tab=description -->
+        <NODEJS_IMAGE_VERSION>node:8.12-alpine</NODEJS_IMAGE_VERSION>
     </properties>
     <build>
         <plugins>
@@ -80,7 +84,7 @@
                             <target>
                                 <mkdir dir="${basedir}/target" />
                                 <exec dir="${basedir}" executable="docker" failonerror="true">
-                                    <arg line="run -v ${basedir}/target:/node_modules node:8.12-alpine sh -c 'npm install --prefix /node_modules typescript@${TYPERSCRIPT_VERSION} typescript-language-server@${TYPESCRIPT_LS_VERSION}; chmod -R 777 /node_modules'" />
+                                    <arg line="run -v ${basedir}/target:/node_modules ${NODEJS_IMAGE_VERSION} sh -c 'npm install --prefix /node_modules typescript@${TYPERSCRIPT_VERSION} typescript-language-server@${TYPESCRIPT_LS_VERSION}; chmod -R 777 /node_modules'" />
                                 </exec>
                                 &gt;
                             </target>
