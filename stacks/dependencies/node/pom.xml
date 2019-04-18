@@ -25,12 +25,12 @@
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Stacks :: Language Servers :: Node Dependencies</name>
     <properties>
+        <!-- find latest version: https://hub.docker.com/_/node/?tab=description -->
+        <NODEJS_IMAGE_VERSION>node:8.12-alpine</NODEJS_IMAGE_VERSION>
         <!-- find latest version: https://www.npmjs.com/package/typescript -->
         <TYPERSCRIPT_VERSION>2.8.4</TYPERSCRIPT_VERSION>
         <!-- find latest version: https://www.npmjs.com/package/typescript-language-server -->
         <TYPESCRIPT_LS_VERSION>0.1.12</TYPESCRIPT_LS_VERSION>
-        <!-- find latest version: https://hub.docker.com/_/node/?tab=description -->
-        <NODEJS_IMAGE_VERSION>node:8.12-alpine</NODEJS_IMAGE_VERSION>
     </properties>
     <build>
         <plugins>
