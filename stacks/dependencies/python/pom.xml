@@ -68,7 +68,7 @@
                                 <mkdir dir="${basedir}/target/python-ls" />
                                 <echo message="Running pip install to download pyls and its deps..." />
                                 <exec dir="${basedir}" executable="docker" failonerror="true">
-                                    <arg line="run -v ${basedir}/target/python-ls:/python -u root ${PYTHON_IMAGE_VERSION} sh -c 'pip install python-language-server[all]==${PYTHON_LS_VERSION} --install-option='--prefix=/python';  chmod -R 777 /python'" />
+                                    <arg line="run -v ${basedir}/target/python-ls:/python -u root ${PYTHON_IMAGE_VERSION} sh -c 'pip install --upgrade pip; pip install python-language-server[all]==${PYTHON_LS_VERSION} --install-option='--prefix=/python';  chmod -R 777 /python'" />
                                 </exec>
                             </target>
                         </configuration>
