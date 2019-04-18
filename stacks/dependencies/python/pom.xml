@@ -25,8 +25,8 @@
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Stacks :: Language Servers :: Python Dependencies</name>
     <properties>
-        <PYTHON_LS_VERSION>0.21.5</PYTHON_LS_VERSION>
         <PYTHON_IMAGE_VERSION>registry.access.redhat.com/rhscl/python-36-rhel7:1-43</PYTHON_IMAGE_VERSION>
+        <PYTHON_LS_VERSION>0.21.5</PYTHON_LS_VERSION>
     </properties>
     <build>
         <plugins>
