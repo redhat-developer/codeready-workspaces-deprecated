@@ -11,18 +11,26 @@ DEFAULT_OPERATOR_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/ser
 DEFAULT_NAMESPACE_CLEANUP="false"
 
 HELP="
+Usage:
+ $0 [options]
 
-How to use this script:
--d,     --deploy              | deploy using settings in custom-resource.yaml
--p=,    --project=            | project namespace to deploy CodeReady Workspaces, default: ${DEFAULT_OPENSHIFT_PROJECT}
--o, --oauth                   | enable Log into CodeReady Workspaces with OpenShift credentials, default: ${DEFAULT_ENABLE_OPENSHIFT_OAUTH}
--s,     --secure              | tls support, default: ${DEFAULT_TLS_SUPPORT}
---public-certs                | skip creating a secret with OpenShift router cert, default: false, which means operator will auto fetch router cert
---operator-image=             | operator image, default: ${DEFAULT_OPERATOR_IMAGE_NAME}
---server-image=               | server image, default: ${DEFAULT_SERVER_IMAGE_NAME}
--v=, --version=               | server image tag, default: ${DEFAULT_SERVER_IMAGE_TAG}
---verbose                     | stream deployment logs to console, default: false
--h,     --help                | show this help menu
+Options:
+ -d,  --deploy              deploy using settings in custom-resource.yaml
+ -p=, --project=            OpenShift project to deploy CodeReady Workspaces to,
+                              default: ${DEFAULT_OPENSHIFT_PROJECT}
+ -o,  --oauth               enable logging into CodeReady Workspaces with OpenShift
+                              credentials, default: ${DEFAULT_ENABLE_OPENSHIFT_OAUTH}
+ -s,  --secure              enable TLS support, default: ${DEFAULT_TLS_SUPPORT}
+      --public-certs        skip creating a secret with an OpenShift router
+                              certificate, default: false, which means the operator
+                              will automatically fetch the router certificate
+      --operator-image=     operator image,
+                              default: ${DEFAULT_OPERATOR_IMAGE_NAME}
+      --server-image=       server image,
+                              default: ${DEFAULT_SERVER_IMAGE_NAME}
+ -v=, --version=            server-image tag, default: ${DEFAULT_SERVER_IMAGE_TAG}
+      --verbose             stream deployment logs to console, default: false
+ -h,  --help                show this help
 "
 if [[ $# -eq 0 ]] ; then
   echo -e "$HELP"
