@@ -84,6 +84,19 @@
                             </target>
                         </configuration>
                     </execution>
+
+                    <execution>
+                        <id>duplicate-tarball</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <copy file="${basedir}/target/codeready-workspaces-${project.version}-operator-installer.tar.gz" tofile="${basedir}/target/${project.artifactId}.tar.gz"/>
+                            </target>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
         </plugins>
