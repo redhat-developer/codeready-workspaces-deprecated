@@ -27,7 +27,10 @@
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Stacks :: Language Servers :: Dependencies</name>
     <modules>
-        <module>node</module>
+        <!-- deprecated: only for RHEL7 -->
+        <module>node8</module>
+        <!-- new for RHEL 8 -->
+        <module>node10</module>
         <module>php</module>
         <module>python</module>
         <module>dotnet</module>

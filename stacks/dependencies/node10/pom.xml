@@ -17,20 +17,20 @@
     <parent>
       <artifactId>codeready-workspaces-stacks-language-servers-dependencies</artifactId>
       <groupId>com.redhat</groupId>
-      <version>1.3.0.GA-SNAPSHOT</version>
+      <version>1.2.0.GA-SNAPSHOT</version>
     </parent>
     <groupId>com.redhat</groupId>
-    <artifactId>codeready-workspaces-stacks-language-servers-dependencies-node</artifactId>
-    <version>1.3.0.GA-SNAPSHOT</version>
+    <artifactId>codeready-workspaces-stacks-language-servers-dependencies-node10</artifactId>
+    <version>1.2.0.GA-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>CodeReady Workspaces :: Stacks :: Language Servers :: Node Dependencies</name>
+    <name>CodeReady Workspaces :: Stacks :: Language Servers :: Node 10 Dependencies</name>
     <properties>
         <!-- find latest version: https://hub.docker.com/_/node/?tab=description -->
-        <NODEJS_IMAGE_VERSION>node:8.12-alpine</NODEJS_IMAGE_VERSION>
+        <NODEJS_IMAGE_VERSION>node:10.15-alpine</NODEJS_IMAGE_VERSION>
         <!-- find latest version: https://www.npmjs.com/package/typescript -->
-        <TYPERSCRIPT_VERSION>2.8.4</TYPERSCRIPT_VERSION>
+        <TYPERSCRIPT_VERSION>3.4.5</TYPERSCRIPT_VERSION>
         <!-- find latest version: https://www.npmjs.com/package/typescript-language-server -->
-        <TYPESCRIPT_LS_VERSION>0.1.12</TYPESCRIPT_LS_VERSION>
+        <TYPESCRIPT_LS_VERSION>0.3.7</TYPESCRIPT_LS_VERSION>
     </properties>
     <build>
         <plugins>
