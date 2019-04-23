@@ -22,7 +22,7 @@
     </parent>
     <groupId>com.redhat</groupId>
     <artifactId>codeready-workspaces-operator-installer</artifactId>
-    <version>1.2.0.GA-SNAPSHOT</version>
+    <version>1.2.0.GA</version>
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Operator Installer</name>
     <build>
@@ -45,7 +45,7 @@
                         <descriptor>${project.basedir}/src/assembly/assembly.xml</descriptor>
                     </descriptors>
                     <tarLongFileMode>posix</tarLongFileMode>
-                    <finalName>${project.artifactId}</finalName>
+                    <finalName>codeready-workspaces-${project.version}-operator-installer</finalName>
                 </configuration>
             </plugin>
             <plugin>
