@@ -57,8 +57,8 @@ timeout(120) {
 			userRemoteConfigs: [[url: "https://github.com/redhat-developer/${CRW_path}.git"]]])
 		unstash 'stashParent'
 		buildMaven()
-		sh "mvn clean install ${MVN_FLAGS} -f ${CRW_path}/pom.xml"
-		archiveArtifacts fingerprint: false, artifacts: "${CRW_path}/operator-installer/target/*.tar.*, ${CRW_path}/stacks/dependencies/*/target/*.tar.*"
+		sh "mvn clean install ${MVN_FLAGS} -f ${CRW_path}/operator-installer/pom.xml" // just build the operator, not the stacks deps
+		archiveArtifacts fingerprint: false, artifacts: "${CRW_path}/operator-installer/target/*.tar.*" // , ${CRW_path}/stacks/dependencies/*/target/*.tar.*
 
 		sh "perl -0777 -p -i -e 's|(\\ +<parent>.*?<\\/parent>)| ${1} =~ /<version>/?\"\":${1}|gse' ${CRW_path}/pom.xml"
 		VER_CRW = sh(returnStdout:true,script:"egrep \"<version>\" ${CRW_path}/pom.xml|head -1|sed -e \"s#.*<version>\\(.\\+\\)</version>#\\1#\"").trim()
