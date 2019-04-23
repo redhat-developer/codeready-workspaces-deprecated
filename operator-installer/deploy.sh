@@ -3,8 +3,8 @@ BASE_DIR=$(cd "$(dirname "$0")"; pwd)
 
 DEFAULT_OPENSHIFT_PROJECT="workspaces"
 DEFAULT_ENABLE_OPENSHIFT_OAUTH="false"
-DEFAULT_SERVER_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/server:latest"
-DEFAULT_OPERATOR_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/server-operator:latest"
+DEFAULT_SERVER_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/server:1.0"
+DEFAULT_OPERATOR_IMAGE_NAME="registry.access.redhat.com/codeready-workspaces/server-operator:1.0"
 DEFAULT_NAMESPACE_CLEANUP="false"
 
 HELP="

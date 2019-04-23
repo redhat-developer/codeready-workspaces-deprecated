@@ -22,7 +22,7 @@
     </parent>
     <groupId>com.redhat</groupId>
     <artifactId>codeready-workspaces-operator-installer</artifactId>
-    <version>1.0.1.GA-SNAPSHOT</version>
+    <version>1.0.2.GA-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Operator Installer</name>
     <build>
