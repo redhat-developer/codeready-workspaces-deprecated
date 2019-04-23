@@ -126,15 +126,15 @@ printError() {
 }
 
 preReqs() {
-  printInfo "Welcome to CodeReady Workspaces Installer"
+  printInfo "Welcome to CodeReady Workspaces installer"
   if [ -x "$(command -v oc)" ]; then
     printInfo "Found oc client in PATH"
     export OC_BINARY="oc"
   elif [[ -f "/tmp/oc" ]]; then
-    printInfo "Using oc client from a tmp location"
+    printInfo "Using oc client from a /tmp location"
     export OC_BINARY="/tmp/oc"
   else
-    printError "Command line tool ${OC_BINARY} (https://docs.openshift.org/latest/cli_reference/get_started_cli.html) not found. Download oc client and add it to your \$PATH."
+    printError "The ${OC_BINARY} command-line tool (https://docs.openshift.org/latest/cli_reference/get_started_cli.html) not found. Download the oc client, and add it to your \$PATH."
     exit 1
   fi
 }
@@ -145,7 +145,7 @@ isLoggedIn() {
   ${OC_BINARY} whoami > /dev/null
   OUT=$?
   if [ ${OUT} -ne 0 ]; then
-    printError "Log in to your OpenShift cluster: ${OC_BINARY} login --server=yourServer"
+    printError "Log in to your OpenShift cluster: ${OC_BINARY} login --server=<yourServer>."
     exit 1
   else
     CONTEXT=$(${OC_BINARY} whoami -c)
@@ -153,8 +153,8 @@ isLoggedIn() {
       ${OC_BINARY} get customresourcedefinitions > /dev/null 2>&1
       OUT=$?
       if [ ${OUT} -ne 0 ]; then
-        printWarning "Creation of a CRD and RBAC rules requires cluster-admin privileges. Login in as user with cluster-admin role"
-        printWarning "The installer will continue, however deployment is likely to fail"
+        printWarning "Creation of a CRD and RBAC rules requires cluster-admin privileges. Log in as a user with the cluster-admin role."
+        printWarning "The installer will continue, but the deployment is likely to fail."
     fi
   fi
 }
@@ -163,31 +163,31 @@ createNewProject() {
   ${OC_BINARY} get namespace "${OPENSHIFT_PROJECT}" > /dev/null 2>&1
   OUT=$?
       if [ ${OUT} -ne 0 ]; then
-           printWarning "Namespace '${OPENSHIFT_PROJECT}' not found, or current user does not have access to it. Installer will try to create namespace '${OPENSHIFT_PROJECT}'"
-          printInfo "Creating namespace \"${OPENSHIFT_PROJECT}\""
+           printWarning "Project '${OPENSHIFT_PROJECT}' not found, or the current user does not have access to it. The installer will try to create a '${OPENSHIFT_PROJECT}' project."
+          printInfo "Creating project '${OPENSHIFT_PROJECT}'."
           # sometimes even if the project does not exist creating a new one is impossible as it apparently exists
           sleep 1
           ${OC_BINARY} new-project "${OPENSHIFT_PROJECT}" > /dev/null
           OUT=$?
           if [ ${OUT} -eq 1 ]; then
-            printError "Failed to create namespace ${OPENSHIFT_PROJECT}. It may exist in someone else's account or namespace deletion has not been fully completed. Try again in a short while or pick a different project name -p=myProject"
+            printError "Failed to create project '${OPENSHIFT_PROJECT}'. It may exist in someone else's account, or project deletion has not been fully completed. Try again in a short while, or pick a different project name using the '-p' option: -p=<myProject>."
             exit ${OUT}
           else
-            printInfo "Namespace \"${OPENSHIFT_PROJECT}\" successfully created"
+            printInfo "Project '${OPENSHIFT_PROJECT}' successfully created."
           fi
       fi
 }
 
 createServiceAccount() {
-  printInfo "Creating operator service account"
+  printInfo "Creating operator service account."
   ${OC_BINARY} get sa codeready-operator > /dev/null 2>&1
   OUT=$?
   if [ ${OUT} -ne 0 ]; then
     ${OC_BINARY} create sa codeready-operator -n=${OPENSHIFT_PROJECT} > /dev/null
   else
-    printInfo "Service account already exists"
+    printInfo "Service account already exists."
   fi
-  printInfo "Create service account roles"
+  printInfo "Creating service account roles."
   ${OC_BINARY} apply -f - <<EOF  > /dev/null
   apiVersion: rbac.authorization.k8s.io/v1
   kind: Role
@@ -263,21 +263,21 @@ createServiceAccount() {
 EOF
 OUT=$?
 if [ ${OUT} -ne 0 ]; then
-  printError "Failed to create role for operator service account"
+  printError "Failed to create a role for the operator service account."
   exit 1
 fi
   ${OC_BINARY} get rolebinding codeready-operator > /dev/null 2>&1
   OUT=$?
   if [ ${OUT} -ne 0 ]; then
-    printInfo "Creating Role Binding"
+    printInfo "Creating role binding."
     ${OC_BINARY} create rolebinding codeready-operator --role=codeready-operator --serviceaccount=${OPENSHIFT_PROJECT}:codeready-operator -n=${OPENSHIFT_PROJECT} > /dev/null
   else
-    printInfo "Role Binding already exists"
+    printInfo "Role binding already exists."
   fi
 
   if [ "${SELF_SIGNED_CERT}" == "true" ]; then
-    printInfo "Self-signed certificate support enabled"
-    printInfo "Adding extra privileges for an operator service account"
+    printInfo "Self-signed certificate support enabled."
+    printInfo "Adding extra privileges for the operator service account."
     ${OC_BINARY} get namespace openshift-ingress > /dev/null 2>&1
     OUT=$?
     if [ ${OUT} -ne 0 ]; then
@@ -285,59 +285,59 @@ fi
     else
       ROUTER_NAMESPACE="openshift-ingress"
     fi
-    printInfo "Creating secret-reader role and rolebinding in namespace ${ROUTER_NAMESPACE}"
+    printInfo "Creating secret-reader role and rolebinding in namespace '${ROUTER_NAMESPACE}'."
     ${OC_BINARY} get role secret-reader -n=${ROUTER_NAMESPACE} > /dev/null 2>&1
     OUT=$?
     if [ ${OUT} -ne 0 ]; then
       ${OC_BINARY} create role secret-reader --resource=secrets --verb=get -n=${ROUTER_NAMESPACE} > /dev/null
       OUT=$?
       if [ ${OUT} -ne 0 ]; then
-        printError "Failed to create secret reader role"
+        printError "Failed to create the secret-reader role."
         exit 1
       fi
     else
-      printInfo "Role secret-reader already exists"
+      printInfo "The secret-reader role already exists."
     fi
-    printInfo "Creating role binding to let operator get secrets in namespace ${ROUTER_NAMESPACE}"
+    printInfo "Creating role binding to let the operator get secrets in the '${ROUTER_NAMESPACE}' namespace."
     ${OC_BINARY} get rolebinding ${OPENSHIFT_PROJECT}-codeready-operator -n=${ROUTER_NAMESPACE} > /dev/null 2>&1
     OUT=$?
     if [ ${OUT} -ne 0 ]; then
       ${OC_BINARY} create rolebinding ${OPENSHIFT_PROJECT}-codeready-operator --role=secret-reader --serviceaccount=${OPENSHIFT_PROJECT}:codeready-operator -n=${ROUTER_NAMESPACE} > /dev/null
       OUT=$?
       if [ ${OUT} -ne 0 ]; then
-        printWarning "Failed to create rolebinding for secret reader role"
+        printWarning "Failed to create role binding for the secret-reader role."
         exit 1
       fi
     else
-      printInfo "Role binding codeready-operator already exists in namespace ${ROUTER_NAMESPACE}"
+      printInfo "Role binding codeready-operator already exists in the '${ROUTER_NAMESPACE}' namespace."
     fi
   fi
   if [ "${ENABLE_OPENSHIFT_OAUTH}" == "true" ]; then
-    printInfo "Creating cluster role to let operator service account create oAuthClients"
+    printInfo "Creating a cluster role to let the operator service account create oAuthClients."
     ${OC_BINARY} get clusterrole codeready-operator > /dev/null 2>&1
     OUT=$?
     if [ ${OUT} -ne 0 ]; then
       ${OC_BINARY} create clusterrole codeready-operator --resource=oauthclients --verb=get,create,delete,update,list,watch > /dev/null
       OUT=$?
       if [ ${OUT} -ne 0 ]; then
-        printError "Failed to create cluster role"
+        printError "Failed to create the cluster role."
         exit 1
       fi
     else
-      printInfo "Cluster role already exists"
+      printInfo "The cluster role already exists."
     fi
-    printInfo "Creating cluster role binding to let operator service account create oAuthClients"
+    printInfo "Creating cluster role binding to let the operator service account create oAuthClients."
     ${OC_BINARY} get clusterrolebinding ${OPENSHIFT_PROJECT}-codeready-operator > /dev/null 2>&1
     OUT=$?
     if [ ${OUT} -ne 0 ]; then
       ${OC_BINARY} create clusterrolebinding ${OPENSHIFT_PROJECT}-codeready-operator --clusterrole=codeready-operator --serviceaccount=${OPENSHIFT_PROJECT}:codeready-operator > /dev/null
       OUT=$?
       if [ ${OUT} -ne 0 ]; then
-        printError "Failed to create cluster RoleBinding"
+        printError "Failed to create cluster role binding."
         exit 1
       fi
     else
-      printInfo "Cluster role binding codeready-operator already exists"
+      printInfo "Cluster role binding codeready-operator already exists."
     fi
   fi
 }
@@ -347,15 +347,15 @@ checkCRD() {
   ${OC_BINARY} get customresourcedefinitions/checlusters.org.eclipse.che > /dev/null 2>&1
   OUT=$?
   if [ ${OUT} -ne 0 ]; then
-    printInfo "Creating custom resource definition"
+    printInfo "Creating a custom resource definition."
     createCRD > /dev/null
   else
-    printInfo "Custom resource definition already exists"
+    printInfo "Custom resource definition already exists."
   fi
 }
 
 createCRD() {
-  printInfo "Creating custom resource definition"
+  printInfo "Creating a custom resource definition."
   ${OC_BINARY} apply -f - <<EOF  > /dev/null
   apiVersion: apiextensions.k8s.io/v1beta1
   kind: CustomResourceDefinition
@@ -376,7 +376,7 @@ EOF
 
 OUT=$?
 if [ ${OUT} -ne 0 ]; then
-  printWarning "Failed to create custom resource definition. Current user does not have privileges to list and create CRDs"
+  printWarning "Failed to create the custom resource definition. The current user does not have privileges to list and create CRDs."
   printWarning "Ask your cluster admin to register a CheCluster CRD:"
   cat <<EOF
   apiVersion: apiextensions.k8s.io/v1beta1
@@ -450,20 +450,20 @@ parameters:
 EOF
   )
 
-printInfo "Creating Operator Deployment"
+printInfo "Creating the operator deployment."
 ${OC_BINARY} get deployments/codeready-operator -n=${OPENSHIFT_PROJECT} > /dev/null 2>&1
 OUT=$?
 if [ ${OUT} == 0 ]; then
-  printInfo "Existing operator deployment found. It will be deleted"
+  printInfo "Existing operator deployment found. It will be deleted."
   ${OC_BINARY} delete deployments/codeready-operator -n=${OPENSHIFT_PROJECT} --grace-period=1 > /dev/null
 fi
 echo "${DEPLOYMENT}" | ${OC_BINARY} new-app -p IMAGE=$OPERATOR_IMAGE_NAME -n="${OPENSHIFT_PROJECT}" -f - > /dev/null
 OUT=$?
 if [ ${OUT} -ne 0 ]; then
-  printError "Failed to deploy CodeReady Workspaces operator"
+  printError "Failed to deploy the CodeReady Workspaces operator."
   exit 1
 else
-  printInfo "Waiting for the Operator deployment to be scaled to 1. Timeout 5 minutes"
+  printInfo "Waiting for the operator deployment to be scaled to 1. Timeout 5 minutes."
   DESIRED_REPLICA_COUNT=1
   UNAVAILABLE=$(${OC_BINARY} get deployment/codeready-operator -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.unavailableReplicas}')
   DEPLOYMENT_TIMEOUT_SEC=300
@@ -476,40 +476,42 @@ else
   if [ "${UNAVAILABLE}" == 1 ]; then
     printError "Deployment timeout. Aborting."
     printError "Check deployment logs and events:"
-    printError "oc logs deployment/codeready-operator -n ${OPENSHIFT_PROJECT}"
-    printError "oc get events -n ${OPENSHIFT_PROJECT}"
+    printError " oc logs deployment/codeready-operator -n ${OPENSHIFT_PROJECT}"
+    printError " oc get events -n ${OPENSHIFT_PROJECT}"
     exit 1
   fi
   CURRENT_REPLICA_COUNT=$(${OC_BINARY} get deployment/codeready-operator -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.availableReplicas}')
   while [ "${CURRENT_REPLICA_COUNT}" -ne "${DESIRED_REPLICA_COUNT}" ] && [ ${SECONDS} -lt ${end} ]; do
     CURRENT_REPLICA_COUNT=$(${OC_BINARY} get deployment/codeready-operator -o=jsonpath='{.status.availableReplicas}')
     timeout_in=$((end-SECONDS))
-    printInfo "Deployment is in progress...(Current replica count=${CURRENT_REPLICA_COUNT}, ${timeout_in} seconds remain)"
+    printInfo "Deployment is in progress... (current replica count = ${CURRENT_REPLICA_COUNT}, ${timeout_in} seconds remaining)."
     sleep ${POLLING_INTERVAL_SEC}
   done
 
   if [ "${CURRENT_REPLICA_COUNT}" -ne "${DESIRED_REPLICA_COUNT}"  ]; then
-    printError "CodeReady Workspaces operator deployment failed. Aborting. Run command 'oc logs deployment/codeready-operator' to get more details."
+    printError "CodeReady Workspaces operator deployment failed. Aborting."
+    printError "Check deployment logs and events:"
+    printError " oc logs deployment/codeready-operator"
     exit 1
   elif [ ${SECONDS} -ge ${end} ]; then
     printError "Deployment timeout. Aborting."
     exit 1
   fi
-  printInfo "Codeready Workspaces operator successfully deployed"
+  printInfo "Codeready Workspaces operator successfully deployed."
 fi
 }
 
 createCustomResource() {
-  printInfo "Creating Custom resource. This will initiate CodeReady Workspaces deployment"
-  printInfo "CodeReady is going to be deployed with the following settings:"
-  printInfo "TLS support:       ${TLS_SUPPORT}"
-  printInfo "OpenShift oAuth:   ${ENABLE_OPENSHIFT_OAUTH}"
-  printInfo "Self-signed certs: ${SELF_SIGNED_CERT}"
+  printInfo "Creating custom resource. This will initiate CodeReady Workspaces deployment."
+  printInfo "CodeReady Workspaces is going to be deployed with the following settings:"
+  printInfo " TLS support:       ${TLS_SUPPORT}"
+  printInfo " OpenShift OAuth:   ${ENABLE_OPENSHIFT_OAUTH}"
+  printInfo " Self-signed certs: ${SELF_SIGNED_CERT}"
   ${OC_BINARY} get checlusters/codeready -n ${OPENSHIFT_PROJECT} > /dev/null 2>&1
   OUT=$?
   if [ ${OUT} == 0 ]; then
-    printWarning "Custom resource codeready aleady exists. If you want the installer to create a CR, delete an existing one:"
-    printWarning "${OC_BINARY} delete checlusters/codeready -n ${OPENSHIFT_PROJECT}"
+    printWarning "Custom resource 'codeready' already exists. If you want the installer to create a CR, delete an existing one:"
+    printWarning " ${OC_BINARY} delete checlusters/codeready -n ${OPENSHIFT_PROJECT}"
   fi
   ${OC_BINARY} new-app -f ${BASE_DIR}/custom-resource.yaml \
                -p SERVER_IMAGE_NAME=${SERVER_IMAGE_NAME} \
@@ -520,12 +522,12 @@ createCustomResource() {
                -n="${OPENSHIFT_PROJECT}" > /dev/null
   OUT=$?
   if [ ${OUT} -ne 0 ]; then
-    printError "Failed to create Custom Resource. If it is 'already exists' error, disregard it"
+    printError "Failed to create custom resource. If it is an 'already exists' error, disregard it."
   fi
     DEPLOYMENT_TIMEOUT_SEC=1200
-    printInfo "Waiting for CodeReady Workspaces to boot. Timeout: ${DEPLOYMENT_TIMEOUT_SEC} seconds"
+    printInfo "Waiting for CodeReady Workspaces to boot. Timeout: ${DEPLOYMENT_TIMEOUT_SEC} seconds."
     if [ "${FOLLOW_LOGS}" == "true" ]; then
-      printInfo "You may exit this script as soon as the log reports a successful CodeReady Workspaces deployment"
+      printInfo "You may exit this script as soon as the log reports a successful CodeReady Workspaces deployment."
       ${OC_BINARY} logs -f deployment/codeready-operator -n="${OPENSHIFT_PROJECT}"
     else
       DESIRED_STATE="Available"
@@ -539,10 +541,14 @@ createCustomResource() {
       done
 
       if [ "${CURRENT_STATE}" != "${DESIRED_STATE}"  ]; then
-        printError "CodeReady Workspaces deployment failed. Aborting. Codeready Workspaces operator logs: oc logs deployment/codeready-operator -n ${OPENSHIFT_PROJECT}"
+        printError "CodeReady Workspaces deployment failed. Aborting."
+        printError "Check deployment logs and events:"
+        printError " oc logs deployment/codeready-operator -n ${OPENSHIFT_PROJECT}"
         exit 1
       elif [ ${SECONDS} -ge ${end} ]; then
-        printError "Deployment timeout. Aborting. Codeready Workspaces operator logs: oc logs deployment/codeready-operator -n ${OPENSHIFT_PROJECT}"
+        printError "Deployment timeout. Aborting."
+        printError "Check deployment logs and events:"
+        printError " oc logs deployment/codeready-operator -n ${OPENSHIFT_PROJECT}"
         exit 1
       fi
       CODEREADY_ROUTE=$(${OC_BINARY} get checluster/codeready -o=jsonpath='{.status.cheURL}')
