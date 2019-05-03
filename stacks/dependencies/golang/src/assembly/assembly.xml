@@ -26,6 +26,9 @@
         <fileSet>
             <directory>${project.basedir}/target/go</directory>
             <outputDirectory>/go</outputDirectory>
+            <excludes>
+                <exclude>**/cache/**</exclude>
+            </excludes>
         </fileSet>
     </fileSets>
 </assembly>
