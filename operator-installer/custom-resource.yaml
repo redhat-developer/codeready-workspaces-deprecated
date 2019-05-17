@@ -20,7 +20,7 @@ objects:
       proxyUser: ''
       proxyPassword: ''
     storage:
-      pvcStrategy: per-workspace
+      pvcStrategy: 'per-workspace'
       pvcClaimSize: 1Gi
     database:
       externalDb: false
