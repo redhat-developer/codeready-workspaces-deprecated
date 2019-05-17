@@ -442,6 +442,47 @@ parameters:
 EOF
   )
 
+waitForDeployment()
+{
+  deploymentName=$1
+  DEPLOYMENT_TIMEOUT_SEC=300
+  POLLING_INTERVAL_SEC=5
+  printInfo "Waiting for the deployment/${deploymentName} to be scaled to 1. Timeout ${DEPLOYMENT_TIMEOUT_SEC} seconds"
+  DESIRED_REPLICA_COUNT=1
+  UNAVAILABLE=1
+  end=$((SECONDS+DEPLOYMENT_TIMEOUT_SEC))
+  while [[ "${UNAVAILABLE}" -eq 1 ]] && [[ ${SECONDS} -lt ${end} ]]; do
+    UNAVAILABLE=$(${OC_BINARY} get deployment/${deploymentName} -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.unavailableReplicas}')
+    if [[ ${DEBUG} -eq 1 ]]; then printInfo "Deployment is in progress...(Unavailable replica count=${UNAVAILABLE}, ${timeout_in} seconds remain)"; fi
+    sleep 3
+  done
+  if [[ "${UNAVAILABLE}" == 1 ]]; then
+    printError "Deployment timeout. Aborting."
+    printError "Check deployment logs and events:"
+    printError "${OC_BINARY} logs deployment/${deploymentName} -n ${OPENSHIFT_PROJECT}"
+    printError "${OC_BINARY} get events -n ${OPENSHIFT_PROJECT}"
+    exit 1
+  fi
+
+  CURRENT_REPLICA_COUNT=-1
+  while [[ "${CURRENT_REPLICA_COUNT}" -ne "${DESIRED_REPLICA_COUNT}" ]] && [[ ${SECONDS} -lt ${end} ]]; do
+    CURRENT_REPLICA_COUNT=$(${OC_BINARY} get deployment/${deploymentName} -o=jsonpath='{.status.availableReplicas}')
+    timeout_in=$((end-SECONDS))
+    if [[ ${DEBUG} -eq 1 ]]; then printInfo "Deployment in progress...(Current replica count=${CURRENT_REPLICA_COUNT}, ${timeout_in} seconds remain)"; fi
+    sleep ${POLLING_INTERVAL_SEC}
+  done
+
+  if [[ "${CURRENT_REPLICA_COUNT}" -ne "${DESIRED_REPLICA_COUNT}" ]]; then
+    printError "CodeReady Workspaces ${deploymentName} deployment failed. Aborting. Run command '${OC_BINARY} logs deployment/${deploymentName}' to get more details."
+    exit 1
+  elif [ ${SECONDS} -ge ${end} ]; then
+    printError "Deployment timeout. Aborting."
+    exit 1
+  fi
+  elapsed=$((DEPLOYMENT_TIMEOUT_SEC-timeout_in))
+  printInfo "Codeready Workspaces deployment/${deploymentName} started in ${elapsed} seconds"
+}
+
 printInfo "Creating Operator Deployment"
 ${OC_BINARY} get deployments/codeready-operator -n=${OPENSHIFT_PROJECT} > /dev/null 2>&1
 OUT=$?
@@ -455,39 +496,7 @@ if [ ${OUT} -ne 0 ]; then
   printError "Failed to deploy CodeReady Workspaces operator"
   exit 1
 else
-  printInfo "Waiting for the Operator deployment to be scaled to 1. Timeout 5 minutes"
-  DESIRED_REPLICA_COUNT=1
-  UNAVAILABLE=$(${OC_BINARY} get deployment/codeready-operator -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.unavailableReplicas}')
-  DEPLOYMENT_TIMEOUT_SEC=300
-  POLLING_INTERVAL_SEC=5
-  end=$((SECONDS+DEPLOYMENT_TIMEOUT_SEC))
-  while [ "${UNAVAILABLE}" == 1 ] && [ ${SECONDS} -lt ${end} ]; do
-    UNAVAILABLE=$(${OC_BINARY} get deployment/codeready-operator -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.unavailableReplicas}')
-    sleep 3
-  done
-  if [ "${UNAVAILABLE}" == 1 ]; then
-    printError "Deployment timeout. Aborting."
-    printError "Check deployment logs and events:"
-    printError "oc logs deployment/codeready-operator -n ${OPENSHIFT_PROJECT}"
-    printError "oc get events -n ${OPENSHIFT_PROJECT}"
-    exit 1
-  fi
-  CURRENT_REPLICA_COUNT=$(${OC_BINARY} get deployment/codeready-operator -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.availableReplicas}')
-  while [ "${CURRENT_REPLICA_COUNT}" -ne "${DESIRED_REPLICA_COUNT}" ] && [ ${SECONDS} -lt ${end} ]; do
-    CURRENT_REPLICA_COUNT=$(${OC_BINARY} get deployment/codeready-operator -o=jsonpath='{.status.availableReplicas}')
-    timeout_in=$((end-SECONDS))
-    printInfo "Deployment is in progress...(Current replica count=${CURRENT_REPLICA_COUNT}, ${timeout_in} seconds remain)"
-    sleep ${POLLING_INTERVAL_SEC}
-  done
-
-  if [ "${CURRENT_REPLICA_COUNT}" -ne "${DESIRED_REPLICA_COUNT}"  ]; then
-    printError "CodeReady Workspaces operator deployment failed. Aborting. Run command 'oc logs deployment/codeready-operator' to get more details."
-    exit 1
-  elif [ ${SECONDS} -ge ${end} ]; then
-    printError "Deployment timeout. Aborting."
-    exit 1
-  fi
-  printInfo "Codeready Workspaces operator successfully deployed"
+  waitForDeployment codeready-operator
 fi
 }
 
