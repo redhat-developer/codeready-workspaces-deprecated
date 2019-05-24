@@ -78,8 +78,8 @@ else
 fi
 
 # new default images & versions
-SSO_IMAGE="registry.access.redhat.com/redhat-sso-7/sso73-openshift:1.0-11"
-PG_IMAGE="registry.access.redhat.com/rhscl/postgresql-96-rhel7:1-40"
+SSO_IMAGE="registry.redhat.io/redhat-sso-7/sso73-openshift:1.0-11"
+PG_IMAGE="registry.redhat.io/rhscl/postgresql-96-rhel7:1-40"
 # if using quay.io, operator is simply operator-rhel8; if using RHCC, it's server-operator-rhel8
 if [[ ${REGISTRY_PREFIX} == "quay.io/crw" ]]; then OPERATOR_CONTAINER="operator-rhel8"; else OPERATOR_CONTAINER="server-operator-rhel8"; fi
 SERVER_CONTAINER="server-rhel8"
