@@ -93,19 +93,6 @@ OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT}
 DOCKER_CONFIG_JSON=${DOCKER_CONFIG_JSON}
 "; fi
 
-${OC_BINARY} adm policy --as system:admin add-cluster-role-to-user cluster-admin developer
-${OC_BINARY} login --username developer --password developer
-
-# check `${OC_BINARY} status` for an error
-status="$(${OC_BINARY} status 2>&1)"
-if [[ $status == *"Error"* ]]; then
-	printError "$status" 
-	printError "You must log in to your cluster to use this script. For example,
-
- ${OC_BINARY} login --username developer --password developer
-
-	" && exit 1
-fi
 # check `${OC_BINARY} project` for a selected project
 status="$(${OC_BINARY} project 2>&1)"
 if [[ $status == *"error"* ]]; then
@@ -206,8 +193,6 @@ waitForDeployment()
   printInfo "Codeready Workspaces deployment/${deploymentName} started in ${elapsed} seconds"
 }
 
-${OC_BINARY} login --username developer --password developer
-
 ${OC_BINARY} scale deployment/codeready --replicas=0
 ${OC_BINARY} scale deployment/keycloak --replicas=0
 ${OC_BINARY} set image deployment/codeready-operator *=${REGISTRY_PREFIX}/${OPERATOR_CONTAINER}:${CRW_VERSION} -n $OPENSHIFT_PROJECT
@@ -223,8 +208,6 @@ waitForDeployment codeready
 
 # for some reason minishift dies for a minute or two here, so give it time to recover
 sleep 60s
-
-${OC_BINARY} login --username developer --password developer
 
 echo; printInfo "Update postgres image"
 ${OC_BINARY} set image deployment/postgres "*=${PG_IMAGE}" -n $OPENSHIFT_PROJECT
