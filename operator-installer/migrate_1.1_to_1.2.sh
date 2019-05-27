@@ -5,6 +5,12 @@ DEBUG=0 # set to 1 for more output
 
 CRW_VERSION="1.2"
 
+# new default images & versions
+SSO_IMAGE="registry.redhat.io/redhat-sso-7/sso73-openshift:1.0-11"
+PG_IMAGE="registry.redhat.io/rhscl/postgresql-96-rhel7:1-40"
+OPERATOR_CONTAINER="server-operator-rhel8"
+SERVER_CONTAINER="server-rhel8"
+
 DEFAULT_REGISTRY_PREFIX="registry.redhat.io/codeready-workspaces" # could also use another registry, like quay.io/crw
 DEFAULT_DOCKER_CONFIG_JSON="${HOME}/.docker/config.json" # where your registry auth keys are stored
 DEFAULT_OPENSHIFT_PROJECT="workspaces" 
@@ -32,7 +38,7 @@ do
       OPENSHIFT_PROJECT="${key#*=}"
       shift
       ;;
-    -d=*| --docker-config=*)
+    --docker-config=*)
       DOCKER_CONFIG_JSON="${key#*=}"
       shift
       ;;
@@ -72,17 +78,27 @@ printError() {
 if [ -x "$(command -v oc)" ]; then
   if [[ ${DEBUG} -eq 1 ]]; then printInfo "Found oc client in PATH"; fi
   export OC_BINARY="oc"
+elif [[ -f "/tmp/oc" ]]; then
+  printInfo "Using oc client from a tmp location"
+  export OC_BINARY="/tmp/oc"
 else
-  printError "Command line tool ${OC_BINARY} (https://docs.openshift.org/latest/cli_reference/get_started_cli.html) not found. Download oc client and add it to your \$PATH."
+  printError "Command line tool oc (https://docs.openshift.org/latest/cli_reference/get_started_cli.html) not found. Download oc client and add it to your PATH."
   exit 1
 fi
 
-# new default images & versions
-SSO_IMAGE="registry.redhat.io/redhat-sso-7/sso73-openshift:1.0-11"
-PG_IMAGE="registry.redhat.io/rhscl/postgresql-96-rhel7:1-40"
+if [ -x "$(command -v jq)" ]; then
+  if [[ ${DEBUG} -eq 1 ]]; then printInfo "Found jq in PATH"; fi
+  export JQ_BINARY="jq"
+elif [[ -f "/tmp/jq" ]]; then
+  printInfo "Using jq from a tmp location"
+  export JQ_BINARY="/tmp/jq"
+else
+  printError "Command line tool jq (https://stedolan.github.io/jq/) not found. Download jq client and add it to your PATH."
+  exit 1
+fi
+
 # if using quay.io, operator is simply operator-rhel8; if using RHCC, it's server-operator-rhel8
-if [[ ${REGISTRY_PREFIX} == "quay.io/crw" ]]; then OPERATOR_CONTAINER="operator-rhel8"; else OPERATOR_CONTAINER="server-operator-rhel8"; fi
-SERVER_CONTAINER="server-rhel8"
+if [[ ${REGISTRY_PREFIX} == "quay.io/crw" ]]; then OPERATOR_CONTAINER="operator-rhel8"; fi
 
 export REGISTRY_PREFIX=${REGISTRY_PREFIX:-${DEFAULT_REGISTRY_PREFIX}}
 export OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT:-${DEFAULT_OPENSHIFT_PROJECT}}
@@ -93,7 +109,7 @@ OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT}
 DOCKER_CONFIG_JSON=${DOCKER_CONFIG_JSON}
 "; fi
 
-# check `${OC_BINARY} project` for a selected project
+# check `oc project` for the selected project (this also confirms we're logged in)
 status="$(${OC_BINARY} project 2>&1)"
 if [[ $status == *"error"* ]]; then
 	echo "$status" && exit 1
@@ -101,25 +117,88 @@ fi
 
 POSTGRESQL_PASSWORD=$(${OC_BINARY} get deployment keycloak -o=jsonpath={'.spec.template.spec.containers[0].env[?(@.name=="DB_PASSWORD")].value'} -n=$OPENSHIFT_PROJECT)
 
-# Ensure CRW can authenticate with new registry registry.redhat.io to pull images
-if [[ -f ${DOCKER_CONFIG_JSON} ]] && [[ $(grep registry.redhat.io ${DOCKER_CONFIG_JSON}) ]]; then # config is found and we probably have a key
-  echo; printInfo "Authenticate with registry.redhat.io:"
-  ${OC_BINARY} create secret generic registryredhatio --from-file=.dockerconfigjson=${DOCKER_CONFIG_JSON} --type=kubernetes.io/dockerconfigjson
-  ${OC_BINARY} secrets link default registryredhatio --for=pull
-  ${OC_BINARY} secrets link builder registryredhatio
-else
-  printError "You must authenticate with registry.redhat.io in order for this script to proceed!
+# check if oc client has an active session
+isLoggedIn() {
+  printInfo "Checking if you are currently logged in..."
+  ${OC_BINARY} whoami > /dev/null
+  OUT=$?
+  if [ ${OUT} -ne 0 ]; then
+    printError "Log in to your OpenShift cluster: ${OC_BINARY} login --server=yourServer"
+    exit 1
+  else
+    CONTEXT=$(${OC_BINARY} whoami -c)
+    printInfo "Active session found. Your current context is: ${CONTEXT}"
+      ${OC_BINARY} get customresourcedefinitions > /dev/null 2>&1
+      OUT=$?
+      if [ ${OUT} -ne 0 ]; then
+        printWarning "Creation of a CRD and RBAC rules requires cluster-admin privileges. Login in as user with cluster-admin role"
+        printWarning "The installer will continue, however deployment is likely to fail"
+    fi
+  fi
+}
 
-Steps:
+checkAuthenticationWithRegistryRedhatIo()
+{
+  AUTH_INSTRUCTIONS="You must authenticate with registry.redhat.io in order for this script to proceed.
 
-1. Get a login for the registry.   Details: https://access.redhat.com/RegistryAuthentication#getting-a-red-hat-login-2
-2. Log in using your new username. Details: https://access.redhat.com/RegistryAuthentication#using-authentication-3
-3. If you've done the above steps and your token is stored in ${DOCKER_CONFIG_JSON} re-run this script.
-4. NOTE: you may want to import only one token (not all of them) into your cluster. If so use a different file than ${DOCKER_CONFIG_JSON}, eg.,
-         $0 --docker-config=/path/to/alternate.config.json ...
-4. If it still fails, see https://access.redhat.com/RegistryAuthentication#allowing-pods-to-reference-images-from-other-secured-registries-9"
-  exit 1
-fi
+      Steps:
+
+      1. Get a login for the registry.   Details: https://access.redhat.com/RegistryAuthentication#getting-a-red-hat-login-2
+      2. Log in using your new username. Details: https://access.redhat.com/RegistryAuthentication#using-authentication-3
+      3. If you've done the above steps and your token is stored in ${DOCKER_CONFIG_JSON} re-run this script.
+      4. NOTE: you may want to import only one token (not all of them) into your cluster. If so use a different file than ${DOCKER_CONFIG_JSON}, eg.,
+               $0 --docker-config=/path/to/alternate.config.json ...
+      4. If it still fails, see https://access.redhat.com/RegistryAuthentication#allowing-pods-to-reference-images-from-other-secured-registries-9
+
+  "
+
+  # check if we already have a name=registryredhatio or type=kubernetes.io/dockerconfigjson secret
+  if [[ "$(oc get secret registryredhatio 2>&1)" == *"No resources found"* ]] || \
+     [[ "$(oc get secret --field-selector='type=kubernetes.io/dockerconfigjson' 2>&1)" == *"No resources found"* ]]; then
+
+    if [[ ! -f ${DOCKER_CONFIG_JSON} ]] && [[ ${DOCKER_CONFIG_JSON} != ${DEFAULT_DOCKER_CONFIG_JSON} ]]; then
+      echo; printWarning "Cannot authenticate using ${DOCKER_CONFIG_JSON} - file does not exist."
+      exit 1
+    fi
+
+    echo; printInfo "Attempt to authenticate with registry.redhat.io using ${DOCKER_CONFIG_JSON}:"
+    if [[ -f ${DOCKER_CONFIG_JSON} ]] && [[ ! $(grep registry.redhat.io ${DOCKER_CONFIG_JSON}) ]]; then 
+      printError "Cannot authenticate using ${DOCKER_CONFIG_JSON} - registry.redhat.io key does not exist."
+    fi
+
+    # find the relevant part of the config.json file
+    DOCKER_CONFIG_JSON_TMP=/tmp/registryredhatio-docker-config.json
+    if [[ -f ${DOCKER_CONFIG_JSON} ]] && [[ $(grep registry.redhat.io ${DOCKER_CONFIG_JSON}) ]]; then # config is found and we probably have a key
+      cat ${DOCKER_CONFIG_JSON} | ${JQ_BINARY} '{auths:{"registry.redhat.io": .auths|."registry.redhat.io"?}}' > ${DOCKER_CONFIG_JSON_TMP}
+      cat  ${DOCKER_CONFIG_JSON_TMP}
+
+      # Ensure CRW can authenticate with new registry registry.redhat.io to pull images
+      ${OC_BINARY} create secret generic registryredhatio --from-file=.dockerconfigjson=${DOCKER_CONFIG_JSON_TMP} --type=kubernetes.io/dockerconfigjson
+      ${OC_BINARY} secrets link default registryredhatio --for=pull
+      ${OC_BINARY} secrets link builder registryredhatio
+      rm -f ${DOCKER_CONFIG_JSON_TMP}
+    else
+      printError "${AUTH_INSTRUCTIONS}"
+      exit 1
+    fi
+  fi
+  if [[ "$(oc get secret registryredhatio 2>&1)" == *"No resources found"* ]] || \
+     [[ "$(oc get secret --field-selector='type=kubernetes.io/dockerconfigjson' 2>&1)" == *"No resources found"* ]]; then 
+    echo; printError "Could not authenticate with registry.redhat.io!"
+    echo; printError "${AUTH_INSTRUCTIONS}"
+    exit 1
+  fi
+
+  printInfo "Authenticated with registry.redhat.io:"
+  if [[ $DEBUG -eq 1 ]]; then
+    oc get secret registryredhatio -o=json
+  else
+    oc get secret registryredhatio
+  fi
+}
+
+isLoggedIn
+checkAuthenticationWithRegistryRedhatIo
 
 # update to latest defaults
 PATCH_JSON=$(cat << EOF
@@ -143,7 +222,7 @@ EOF
 )
 
 echo; printInfo "Patch checluster CR with:"
-if [[ -x /usr/bin/jq ]]; then echo ${PATCH_JSON} | jq; else echo ${PATCH_JSON}; fi
+echo ${PATCH_JSON} | ${JQ_BINARY}
 
 if [[ $DEBUG -eq 1 ]]; then printInfo "Unpatched checluster CR:"; echo "============>"; ${OC_BINARY} get checluster codeready -o json; echo "<============"; fi
 

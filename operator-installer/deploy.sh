@@ -9,6 +9,7 @@ DEFAULT_SERVER_IMAGE_NAME="registry.redhat.io/codeready-workspaces/server-rhel8"
 DEFAULT_SERVER_IMAGE_TAG="1.2"
 DEFAULT_OPERATOR_IMAGE_NAME="registry.redhat.io/codeready-workspaces/server-operator-rhel8:1.2"
 DEFAULT_NAMESPACE_CLEANUP="false"
+DEFAULT_DOCKER_CONFIG_JSON="${HOME}/.docker/config.json" # where your registry auth keys are stored
 
 HELP="
 
@@ -20,6 +21,7 @@ How to use this script:
 --public-certs                | skip creating a secret with OpenShift router cert, default: false, which means operator will auto fetch router cert
 --operator-image=             | operator image, default: ${DEFAULT_OPERATOR_IMAGE_NAME}
 --server-image=               | server image, default: ${DEFAULT_SERVER_IMAGE_NAME}
+--docker-config=              | path to config.json file which contains auth key for registry.redhat.io, default: ${DEFAULT_DOCKER_CONFIG_JSON}
 -v=, --version=               | server image tag, default: ${DEFAULT_SERVER_IMAGE_TAG}
 --verbose                     | stream deployment logs to console, default: false
 -h,     --help                | show this help menu
@@ -66,6 +68,10 @@ do
     -d | --deploy)
       DEPLOY=true
       ;;
+    --docker-config=*)
+      DOCKER_CONFIG_JSON="${key#*=}"
+      shift
+      ;;
     -h | --help)
       echo -e "$HELP"
       exit 1
@@ -99,6 +105,8 @@ export NO_NEW_NAMESPACE=${NO_NEW_NAMESPACE:-${DEFAULT_NO_NEW_NAMESPACE}}
 
 export NAMESPACE_CLEANUP=${NAMESPACE_CLEANUP:-${DEFAULT_NAMESPACE_CLEANUP}}
 
+export DOCKER_CONFIG_JSON=${DOCKER_CONFIG_JSON:-${DEFAULT_DOCKER_CONFIG_JSON}}
+
 printInfo() {
   green=`tput setaf 2`
   reset=`tput sgr0`
@@ -126,12 +134,23 @@ preReqs() {
     printInfo "Using oc client from a tmp location"
     export OC_BINARY="/tmp/oc"
   else
-    printError "Command line tool ${OC_BINARY} (https://docs.openshift.org/latest/cli_reference/get_started_cli.html) not found. Download oc client and add it to your \$PATH."
+    printError "Command line tool oc (https://docs.openshift.org/latest/cli_reference/get_started_cli.html) not found. Download oc client and add it to your PATH."
+    exit 1
+  fi
+
+  if [ -x "$(command -v jq)" ]; then
+    if [[ ${DEBUG} -eq 1 ]]; then printInfo "Found jq in PATH"; fi
+    export JQ_BINARY="jq"
+  elif [[ -f "/tmp/jq" ]]; then
+    printInfo "Using jq from a tmp location"
+    export JQ_BINARY="/tmp/jq"
+  else
+    printError "Command line tool jq (https://stedolan.github.io/jq/) not found. Download jq client and add it to your PATH."
     exit 1
   fi
 }
 
-# check if ${OC_BINARY} client has an active session
+# check if oc client has an active session
 isLoggedIn() {
   printInfo "Checking if you are currently logged in..."
   ${OC_BINARY} whoami > /dev/null
@@ -148,6 +167,66 @@ isLoggedIn() {
         printWarning "Creation of a CRD and RBAC rules requires cluster-admin privileges. Login in as user with cluster-admin role"
         printWarning "The installer will continue, however deployment is likely to fail"
     fi
+  fi
+}
+
+checkAuthenticationWithRegistryRedhatIo()
+{
+  AUTH_INSTRUCTIONS="You must authenticate with registry.redhat.io in order for this script to proceed.
+
+      Steps:
+
+      1. Get a login for the registry.   Details: https://access.redhat.com/RegistryAuthentication#getting-a-red-hat-login-2
+      2. Log in using your new username. Details: https://access.redhat.com/RegistryAuthentication#using-authentication-3
+      3. If you've done the above steps and your token is stored in ${DOCKER_CONFIG_JSON} re-run this script.
+      4. NOTE: you may want to import only one token (not all of them) into your cluster. If so use a different file than ${DOCKER_CONFIG_JSON}, eg.,
+               $0 --docker-config=/path/to/alternate.config.json ...
+      4. If it still fails, see https://access.redhat.com/RegistryAuthentication#allowing-pods-to-reference-images-from-other-secured-registries-9
+
+  "
+
+  # check if we already have a name=registryredhatio or type=kubernetes.io/dockerconfigjson secret
+  if [[ "$(oc get secret registryredhatio 2>&1)" == *"No resources found"* ]] || \
+     [[ "$(oc get secret --field-selector='type=kubernetes.io/dockerconfigjson' 2>&1)" == *"No resources found"* ]]; then
+
+    if [[ ! -f ${DOCKER_CONFIG_JSON} ]] && [[ ${DOCKER_CONFIG_JSON} != ${DEFAULT_DOCKER_CONFIG_JSON} ]]; then
+      echo; printWarning "Cannot authenticate using ${DOCKER_CONFIG_JSON} - file does not exist."
+      exit 1
+    fi
+
+    echo; printInfo "Attempt to authenticate with registry.redhat.io using ${DOCKER_CONFIG_JSON}:"
+    if [[ -f ${DOCKER_CONFIG_JSON} ]] && [[ ! $(grep registry.redhat.io ${DOCKER_CONFIG_JSON}) ]]; then 
+      printError "Cannot authenticate using ${DOCKER_CONFIG_JSON} - registry.redhat.io key does not exist."
+    fi
+
+    # find the relevant part of the config.json file
+    DOCKER_CONFIG_JSON_TMP=/tmp/registryredhatio-docker-config.json
+    if [[ -f ${DOCKER_CONFIG_JSON} ]] && [[ $(grep registry.redhat.io ${DOCKER_CONFIG_JSON}) ]]; then # config is found and we probably have a key
+      cat ${DOCKER_CONFIG_JSON} | ${JQ_BINARY} '{auths:{"registry.redhat.io": .auths|."registry.redhat.io"?}}' > ${DOCKER_CONFIG_JSON_TMP}
+      cat  ${DOCKER_CONFIG_JSON_TMP}
+
+      # Ensure CRW can authenticate with new registry registry.redhat.io to pull images
+      ${OC_BINARY} create secret generic registryredhatio --from-file=.dockerconfigjson=${DOCKER_CONFIG_JSON_TMP} --type=kubernetes.io/dockerconfigjson
+      ${OC_BINARY} secrets link default registryredhatio --for=pull
+      ${OC_BINARY} secrets link builder registryredhatio
+      rm -f ${DOCKER_CONFIG_JSON_TMP}
+    else
+      printError "${AUTH_INSTRUCTIONS}"
+      exit 1
+    fi
+  fi
+  if [[ "$(oc get secret registryredhatio 2>&1)" == *"No resources found"* ]] || \
+     [[ "$(oc get secret --field-selector='type=kubernetes.io/dockerconfigjson' 2>&1)" == *"No resources found"* ]]; then 
+    echo; printError "Could not authenticate with registry.redhat.io!"
+    echo; printError "${AUTH_INSTRUCTIONS}"
+    exit 1
+  fi
+
+  printInfo "Authenticated with registry.redhat.io:"
+  if [[ $DEBUG -eq 1 ]]; then
+    oc get secret registryredhatio -o=json
+  else
+    oc get secret registryredhatio
   fi
 }
 
@@ -554,6 +633,7 @@ createCustomResource() {
 if [ "${DEPLOY}" = true ] ; then
   preReqs
   isLoggedIn
+  checkAuthenticationWithRegistryRedhatIo
   createNewProject
   createServiceAccount
   createCRD
