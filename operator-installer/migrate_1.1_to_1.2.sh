@@ -1,20 +1,25 @@
 #!/bin/bash 
-BASE_DIR=$(cd "$(dirname "$0")"; pwd)
 
-DEBUG=0 # set to 1 for more output
-
+# new default images & versions
 CRW_VERSION="1.2"
+OPERATOR_CONTAINER="server-operator-rhel8"
+SERVER_CONTAINER="server-rhel8"
 
-DEFAULT_REGISTRY_PREFIX="registry.redhat.io/codeready-workspaces" # could also use another registry, like quay.io/crw
-DEFAULT_DOCKER_CONFIG_JSON="${HOME}/.docker/config.json" # where your registry auth keys are stored
+SSO_IMAGE="redhat-sso-7/sso73-openshift:1.0-11"
+PG_IMAGE="rhscl/postgresql-96-rhel7:1-40"
+
+DEFAULT_RH_REGISTRY="registry.redhat.io"  # could use another registry, like registry.access.redhat.com
+DEFAULT_CRW_REGISTRY="registry.redhat.io" # could use another registry, like quay.io
+DEFAULT_CRW_PREFIX="codeready-workspaces" # could use another organization, like crw
 DEFAULT_OPENSHIFT_PROJECT="workspaces" 
 HELP="
 
 How to use this script to migrate from CRW 1.1 to ${CRW_VERSION}:
--r=,    --registry=           | registry prefix for CodeReady Workspaces, default: ${DEFAULT_REGISTRY_PREFIX}
--p=,    --project=            | project namespace to deploy CodeReady Workspaces, default: ${DEFAULT_OPENSHIFT_PROJECT}
--d=,    --docker-config=      | path to config.json file which contains auth key for registry.redhat.io, default: ${DEFAULT_DOCKER_CONFIG_JSON}
--X,     --debug               | more console output
+-p=,    --project=            | REQUIRED: CodeReady Workspaces project to migrate;      default: ${DEFAULT_OPENSHIFT_PROJECT}
+-r=,    --rh-registry=        | Alternate RH registry, like registry.access.redhat.com; default: ${DEFAULT_RH_REGISTRY}
+-c=,    --crw-registry=       | Alternate CRW container registry, like quay.io;         default: ${DEFAULT_CRW_REGISTRY}
+-o=,    --organization=       | Alternate organization path for CodeReady Workspaces;   default: ${DEFAULT_CRW_PREFIX}
+        --verbose             | more console output
 -h,     --help                | show this help menu
 "
 if [[ $# -eq 0 ]] ; then
@@ -24,24 +29,29 @@ fi
 for key in "$@"
 do
   case $key in
-    -r=*| --registry=*)
-      REGISTRY_PREFIX="${key#*=}"
+    --verbose)
+      FOLLOW_LOGS="true"
       shift
       ;;
     -p=*| --project=*)
       OPENSHIFT_PROJECT="${key#*=}"
       shift
       ;;
-    -d=*| --docker-config=*)
-      DOCKER_CONFIG_JSON="${key#*=}"
+    -r=*| --rh-registry=*)
+      RH_REGISTRY="${key#*=}"
+      shift
+      ;;
+    -c=*| --crw-registry=*)
+      CRW_REGISTRY="${key#*=}"
+      shift
+      ;;
+    -o=*| --organization=*)
+      CRW_PREFIX="${key#*=}"
       shift
       ;;
     -h | --help)
       echo -e "$HELP"
       exit 1
-      ;;
-    -X | --debug)
-      DEBUG=1
       ;;
     *)
       echo "Unknown argument passed: '$key'."
@@ -70,25 +80,25 @@ printError() {
 }
 
 if [ -x "$(command -v oc)" ]; then
-  if [[ ${DEBUG} -eq 1 ]]; then printInfo "Found oc client in PATH"; fi
+  if [[ "${FOLLOW_LOGS}" == "true" ]]; then printInfo "Found oc client in PATH"; fi
   export OC_BINARY="oc"
 else
   printError "Command line tool ${OC_BINARY} (https://docs.openshift.org/latest/cli_reference/get_started_cli.html) not found. Download oc client and add it to your \$PATH."
   exit 1
 fi
 
-# new default images & versions
-SSO_IMAGE="registry.redhat.io/redhat-sso-7/sso73-openshift:1.0-11"
-PG_IMAGE="registry.redhat.io/rhscl/postgresql-96-rhel7:1-40"
 # if using quay.io, operator is simply operator-rhel8; if using RHCC, it's server-operator-rhel8
-if [[ ${REGISTRY_PREFIX} == "quay.io/crw" ]]; then OPERATOR_CONTAINER="operator-rhel8"; else OPERATOR_CONTAINER="server-operator-rhel8"; fi
-SERVER_CONTAINER="server-rhel8"
+if [[ ${CRW_REGISTRY} == "quay.io" ]]; then OPERATOR_CONTAINER="operator-rhel8"; fi
 
-export REGISTRY_PREFIX=${REGISTRY_PREFIX:-${DEFAULT_REGISTRY_PREFIX}}
+export RH_REGISTRY=${RH_REGISTRY:-${DEFAULT_RH_REGISTRY}}
+export CRW_REGISTRY=${CRW_REGISTRY:-${DEFAULT_CRW_REGISTRY}}
+export CRW_PREFIX=${CRW_PREFIX:-${DEFAULT_CRW_PREFIX}}
 export OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT:-${DEFAULT_OPENSHIFT_PROJECT}}
 export DOCKER_CONFIG_JSON=${DOCKER_CONFIG_JSON:-${DEFAULT_DOCKER_CONFIG_JSON}}
-if [[ $DEBUG -eq 1 ]]; then printInfo "
-REGISTRY_PREFIX=${REGISTRY_PREFIX}
+if [[ "${FOLLOW_LOGS}" == "true" ]]; then printInfo "
+RH_REGISTRY=${RH_REGISTRY}
+CRW_REGISTRY=${CRW_REGISTRY}
+CRW_PREFIX=${CRW_PREFIX}
 OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT}
 DOCKER_CONFIG_JSON=${DOCKER_CONFIG_JSON}
 "; fi
@@ -99,42 +109,88 @@ if [[ $status == *"error"* ]]; then
 	echo "$status" && exit 1
 fi
 
-POSTGRESQL_PASSWORD=$(${OC_BINARY} get deployment keycloak -o=jsonpath={'.spec.template.spec.containers[0].env[?(@.name=="DB_PASSWORD")].value'} -n=$OPENSHIFT_PROJECT)
+# check if oc client has an active session
+isLoggedIn() {
+  printInfo "Checking if you are currently logged in..."
+  ${OC_BINARY} whoami > /dev/null
+  OUT=$?
+  if [ ${OUT} -ne 0 ]; then
+    printError "Log in to your OpenShift cluster: ${OC_BINARY} login --server=yourServer"
+    exit 1
+  else
+    CONTEXT=$(${OC_BINARY} whoami -c)
+    printInfo "Active session found. Your current context is: ${CONTEXT}"
+      ${OC_BINARY} get customresourcedefinitions > /dev/null 2>&1
+      OUT=$?
+      if [ ${OUT} -ne 0 ]; then
+        printWarning "Creation of a CRD and RBAC rules requires cluster-admin privileges. Login in as user with cluster-admin role"
+        printWarning "The installer will continue, however deployment is likely to fail"
+    fi
+  fi
+}
 
-# Ensure CRW can authenticate with new registry registry.redhat.io to pull images
-if [[ -f ${DOCKER_CONFIG_JSON} ]] && [[ $(grep registry.redhat.io ${DOCKER_CONFIG_JSON}) ]]; then # config is found and we probably have a key
-  echo; printInfo "Authenticate with registry.redhat.io:"
-  ${OC_BINARY} create secret generic registryredhatio --from-file=.dockerconfigjson=${DOCKER_CONFIG_JSON} --type=kubernetes.io/dockerconfigjson
-  ${OC_BINARY} secrets link default registryredhatio --for=pull
-  ${OC_BINARY} secrets link builder registryredhatio
-else
-  printError "You must authenticate with registry.redhat.io in order for this script to proceed!
+# check if we already have a name=registryredhatio or type=kubernetes.io/dockerconfigjson secret
+checkAuthenticationWithRegistryRedhatIo()
+{
+  if [[ "$(oc get secret registryredhatio 2>&1)" == *"No resources found"* ]] || \
+     [[ "$(oc get secret --field-selector='type=kubernetes.io/dockerconfigjson' 2>&1)" == *"No resources found"* ]]; then
+    echo "You must authenticate with registry.redhat.io in order for this script to proceed.
 
-Steps:
+      Steps:
 
-1. Get a login for the registry.   Details: https://access.redhat.com/RegistryAuthentication#getting-a-red-hat-login-2
-2. Log in using your new username. Details: https://access.redhat.com/RegistryAuthentication#using-authentication-3
-3. If you've done the above steps and your token is stored in ${DOCKER_CONFIG_JSON} re-run this script.
-4. NOTE: you may want to import only one token (not all of them) into your cluster. If so use a different file than ${DOCKER_CONFIG_JSON}, eg.,
-         $0 --docker-config=/path/to/alternate.config.json ...
-4. If it still fails, see https://access.redhat.com/RegistryAuthentication#allowing-pods-to-reference-images-from-other-secured-registries-9"
-  exit 1
+      0. Log in to openshift:
+
+          oc login https://your.ip.address.here:8443 -u your_username -p your_password
+
+      1. Get a login for the registry.   Details: https://access.redhat.com/RegistryAuthentication#getting-a-red-hat-login-2
+
+      2. Log in using your new username. Details: https://access.redhat.com/RegistryAuthentication#using-authentication-3
+
+      To keep your registry.redhat.io login secret in a separate file:
+
+          docker --config /tmp/CRW.docker.config.json login https://registry.redhat.io
+
+      Otherwise your secret will be stored in ~/.docker/config.json, and all your secrets will be imported to openshift in the next step.
+
+      3. Add your secret to your openshift:
+
+          oc create secret generic registryredhatio --type=kubernetes.io/dockerconfigjson \\
+             --from-file=.dockerconfigjson=/tmp/CRW.docker.config.json
+          oc secrets link default registryredhatio --for=pull
+          oc secrets link builder registryredhatio
+
+      4. If successful, this query will show your new secret:
+
+          oc get secret registryredhatio
+
+      5. Rerun this script. If it still fails, see https://access.redhat.com/RegistryAuthentication#allowing-pods-to-reference-images-from-other-secured-registries-9
+"
+    exit 1
+  fi
+}
+
+isLoggedIn
+if [[ ${RH_REGISTRY} == ${DEFAULT_RH_REGISTRY} ]] || [[ ${CRW_REGISTRY} == ${DEFAULT_CRW_REGISTRY} ]]; then 
+  checkAuthenticationWithRegistryRedhatIo; 
 fi
+
+DB_PASSWORD=$(${OC_BINARY} get deployment keycloak -o=jsonpath={'.spec.template.spec.containers[0].env[?(@.name=="DB_PASSWORD")].value'} -n=$OPENSHIFT_PROJECT)
+OPERATOR_IMAGE="${CRW_REGISTRY}/${CRW_PREFIX}/${OPERATOR_CONTAINER}:${CRW_VERSION}"
+SERVER_IMAGE="${CRW_REGISTRY}/${CRW_PREFIX}/${SERVER_CONTAINER}"
 
 # update to latest defaults
 PATCH_JSON=$(cat << EOF
 {
   "spec": {
     "database": {
-      "postgresImage": "${PG_IMAGE}"
+      "postgresImage": "${RH_REGISTRY}/${PG_IMAGE}"
     },
     "auth": {
-      "identityProviderPostgresPassword": "${REGISTRY_PREFIX}",
-      "identityProviderImage": "${SSO_IMAGE}",
-      "identityProviderPostgresPassword":"${POSTGRESQL_PASSWORD}"
+      "identityProviderImage": "${RH_REGISTRY}/${SSO_IMAGE}",
+      "identityProviderPostgresPassword":"${DB_PASSWORD}"
     },
     "server": {
-      "cheImage":"${REGISTRY_PREFIX}/${SERVER_CONTAINER}",
+      "cheImage":"${SERVER_IMAGE}",
       "cheImageTag":"${CRW_VERSION}"
     }
   }
@@ -142,15 +198,14 @@ PATCH_JSON=$(cat << EOF
 EOF
 )
 
-echo; printInfo "Patch checluster CR with:"
-if [[ -x /usr/bin/jq ]]; then echo ${PATCH_JSON} | jq; else echo ${PATCH_JSON}; fi
+echo; printInfo "Patch checluster CR with:"; echo ${PATCH_JSON}
 
-if [[ $DEBUG -eq 1 ]]; then printInfo "Unpatched checluster CR:"; echo "============>"; ${OC_BINARY} get checluster codeready -o json; echo "<============"; fi
+if [[ "${FOLLOW_LOGS}" == "true" ]]; then printInfo "Unpatched checluster CR:"; echo "============>"; ${OC_BINARY} get checluster codeready -o json; echo "<============"; fi
 
 ${OC_BINARY} patch checluster codeready -p "${PATCH_JSON}" --type merge -n ${OPENSHIFT_PROJECT}
 #  echo $?
 
-if [[ $DEBUG -eq 1 ]]; then printInfo "Patched checluster CR:"; echo "============>>"; ${OC_BINARY} get checluster codeready -o json; echo "<<============"; fi
+if [[ "${FOLLOW_LOGS}" == "true" ]]; then printInfo "Patched checluster CR:"; echo "============>>"; ${OC_BINARY} get checluster codeready -o json; echo "<<============"; fi
 
 waitForDeployment()
 {
@@ -163,7 +218,7 @@ waitForDeployment()
   end=$((SECONDS+DEPLOYMENT_TIMEOUT_SEC))
   while [[ "${UNAVAILABLE}" -eq 1 ]] && [[ ${SECONDS} -lt ${end} ]]; do
     UNAVAILABLE=$(${OC_BINARY} get deployment/${deploymentName} -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.unavailableReplicas}')
-    if [[ ${DEBUG} -eq 1 ]]; then printInfo "Deployment is in progress...(Unavailable replica count=${UNAVAILABLE}, ${timeout_in} seconds remain)"; fi
+    if [[ "${FOLLOW_LOGS}" == "true" ]]; then printInfo "Deployment is in progress...(Unavailable replica count=${UNAVAILABLE}, ${timeout_in} seconds remain)"; fi
     sleep 3
   done
   if [[ "${UNAVAILABLE}" == 1 ]]; then
@@ -178,7 +233,7 @@ waitForDeployment()
   while [[ "${CURRENT_REPLICA_COUNT}" -ne "${DESIRED_REPLICA_COUNT}" ]] && [[ ${SECONDS} -lt ${end} ]]; do
     CURRENT_REPLICA_COUNT=$(${OC_BINARY} get deployment/${deploymentName} -o=jsonpath='{.status.availableReplicas}')
     timeout_in=$((end-SECONDS))
-    if [[ ${DEBUG} -eq 1 ]]; then printInfo "Deployment in progress...(Current replica count=${CURRENT_REPLICA_COUNT}, ${timeout_in} seconds remain)"; fi
+    if [[ "${FOLLOW_LOGS}" == "true" ]]; then printInfo "Deployment in progress...(Current replica count=${CURRENT_REPLICA_COUNT}, ${timeout_in} seconds remain)"; fi
     sleep ${POLLING_INTERVAL_SEC}
   done
 
@@ -195,7 +250,9 @@ waitForDeployment()
 
 ${OC_BINARY} scale deployment/codeready --replicas=0
 ${OC_BINARY} scale deployment/keycloak --replicas=0
-${OC_BINARY} set image deployment/codeready-operator *=${REGISTRY_PREFIX}/${OPERATOR_CONTAINER}:${CRW_VERSION} -n $OPENSHIFT_PROJECT
+
+echo; printInfo "Update operator image to ${OPERATOR_IMAGE}:"
+${OC_BINARY} set image deployment/codeready-operator *=${OPERATOR_IMAGE} -n $OPENSHIFT_PROJECT
 echo; printInfo "Successfully updated running deployment ${OPENSHIFT_PROJECT}."
 
 waitForDeployment codeready-operator
@@ -216,5 +273,4 @@ ${OC_BINARY} scale deployment/postgres --replicas=1
 waitForDeployment postgres
 
 echo; printInfo "Successfully updated running deployment ${OPENSHIFT_PROJECT}."
-echo; printInfo "Depending on your network speed when pulling new images, rolling update may take a few minutes to complete."
 echo
