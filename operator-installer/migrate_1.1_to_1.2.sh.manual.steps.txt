@@ -1,0 +1,85 @@
+      0. Log in to openshift:
+
+          oc login https://your.ip.address.here:8443 -u your_username -p your_password
+
+      1. Get a login for the registry.   Details: https://access.redhat.com/RegistryAuthentication#getting-a-red-hat-login-2
+
+      2. Log in using your new username. Details: https://access.redhat.com/RegistryAuthentication#using-authentication-3
+
+      To keep your registry.redhat.io login secret in a separate file:
+
+          docker --config /tmp/CRW.docker.config.json login https://registry.redhat.io
+
+      Otherwise your secret will be stored in ~/.docker/config.json, and all your secrets will be imported to openshift in the next step.
+
+      3. Add your secret to your openshift:
+
+          oc create secret generic registryredhatio --type=kubernetes.io/dockerconfigjson --from-file=.dockerconfigjson=/tmp/CRW.docker.config.json
+          oc secrets link default registryredhatio --for=pull
+          oc secrets link builder registryredhatio
+
+      4. If successful, this query will show your new secret:
+
+          oc get secret registryredhatio
+
+         If unsuccessful, see https://access.redhat.com/RegistryAuthentication#allowing-pods-to-reference-images-from-other-secured-registries-9
+
+      5. Select your CodeReady Workspaces deployment (default namespace is "workspaces"):
+
+          oc project workspaces
+
+      6. Get DB_PASSWORD from running CRW instance:
+
+          DB_PASSWORD=$(oc get deployment keycloak -o=jsonpath={'.spec.template.spec.containers[0].env[?(@.name=="DB_PASSWORD")].value'})
+
+      7. Create JSON patch:
+
+          PATCH_JSON=$(cat << EOF
+{
+  "spec": {
+    "database": {
+      "postgresImage": "registry.redhat.io/rhscl/postgresql-96-rhel7:1-40"
+    },
+    "auth": {
+      "identityProviderImage": "registry.redhat.io/redhat-sso-7/sso73-openshift:1.0-11",
+      "identityProviderPostgresPassword":"${DB_PASSWORD}"
+    },
+    "server": {
+      "cheImage":"registry.redhat.io/codeready-workspaces/server-rhel8",
+      "cheImageTag":"1.2"
+    }
+  }
+}
+EOF
+)
+
+      8. Patch running cluster:
+
+          oc patch checluster codeready -p "${PATCH_JSON}" --type merge
+
+      9. Scale down running deployments: 
+
+          oc scale deployment/codeready --replicas=0
+          oc scale deployment/keycloak --replicas=0
+
+      10. Update operator image, then wait until it's completed rolling update:
+
+          oc set image deployment/codeready-operator *=registry.redhat.io/codeready-workspaces/server-operator-rhel8
+
+      11. Once operator is redeployed, scale up keycloak deployment (RH SSO) and wait until it's completed rolling update:
+
+          oc scale deployment/keycloak --replicas=1
+
+      12. Once keycloak is redeployed, scale up codeready deployment (Che Server) and wait until it's completed rolling update:
+
+          oc scale deployment/codeready --replicas=1
+
+      13. Once codeready is redeployed, set new image for postgres
+
+          oc set image deployment/postgres "*=registry.redhat.io/rhscl/postgresql-96-rhel7:1-40"
+
+      14. Scale down the postgres deployment, then scale it back up. Wait until it's completed rolling update:
+      
+          oc scale deployment/postgres --replicas=0
+          oc scale deployment/postgres --replicas=1
+
