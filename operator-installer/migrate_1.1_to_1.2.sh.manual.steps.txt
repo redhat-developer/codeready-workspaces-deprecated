@@ -64,7 +64,7 @@ EOF
 
       10. Update operator image, then wait until it's completed rolling update:
 
-          oc set image deployment/codeready-operator *=registry.redhat.io/codeready-workspaces/server-operator-rhel8
+          oc set image deployment/codeready-operator *=registry.redhat.io/codeready-workspaces/server-operator-rhel8:1.2
 
       11. Once operator is redeployed, scale up keycloak deployment (RH SSO) and wait until it's completed rolling update:
 
