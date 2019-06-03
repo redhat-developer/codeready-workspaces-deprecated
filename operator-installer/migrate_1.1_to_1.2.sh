@@ -1,24 +1,54 @@
 #!/bin/bash 
 
-# new default images & versions
-CRW_VERSION="1.2"
-OPERATOR_CONTAINER="server-operator-rhel8"
-SERVER_CONTAINER="server-rhel8"
+# default images & versions - these CANNOT be overridden
+# see commandline flags below for what can be overridden for offline & custom registry scenarios
+DEFAULT_IDENTITY_PROVIDER_IMAGE_PATH_TAG="redhat-sso-7/sso73-openshift:1.0-11"
+DEFAULT_POSTGRES_IMAGE_PATH_TAG="rhscl/postgresql-96-rhel7:1-40"
+DEFAULT_PVC_JOBS_IMAGE_PATH_TAG="ubi8-minimal:8.0-127"
 
-SSO_IMAGE="redhat-sso-7/sso73-openshift:1.0-11"
-PG_IMAGE="rhscl/postgresql-96-rhel7:1-40"
+DEFAULT_SERVER_IMAGE_NAME="server-rhel8"
+DEFAULT_OPERATOR_IMAGE_NAME="server-operator-rhel8"
+# set this to 1 to support having a null CRW_PREFIX (see --no-crw-prefix flag)
+NO_CRW_PREFIX=0 
+
+# default images & versions - these CAN be overriden
+# see commandline flags below for what can be overridden for offline & custom registry scenarios
+DEFAULT_OPENSHIFT_PROJECT="workspaces" 
 
 DEFAULT_RH_REGISTRY="registry.redhat.io"  # could use another registry, like registry.access.redhat.com
-DEFAULT_CRW_REGISTRY="registry.redhat.io" # could use another registry, like quay.io
-DEFAULT_CRW_PREFIX="codeready-workspaces" # could use another organization, like crw
-DEFAULT_OPENSHIFT_PROJECT="workspaces" 
+DEFAULT_CRW_REGISTRY="${DEFAULT_RH_REGISTRY}" # could use another registry, like quay.io
+DEFAULT_CRW_PREFIX="codeready-workspaces/" # could use another organization, like crw/ (for quay.io), or set blank if not used
+
+DEFAULT_SERVER_VERSION="1.2"
+DEFAULT_OPERATOR_VERSION="${DEFAULT_SERVER_VERSION}"
+
+DEFAULT_SERVER_IMAGE="${DEFAULT_CRW_REGISTRY}/${DEFAULT_CRW_PREFIX}${DEFAULT_SERVER_IMAGE_NAME}"
+DEFAULT_OPERATOR_IMAGE="${DEFAULT_CRW_REGISTRY}/${DEFAULT_CRW_PREFIX}${DEFAULT_OPERATOR_IMAGE_NAME}:${DEFAULT_OPERATOR_VERSION}"
+
+DEFAULT_IDENTITY_PROVIDER_IMAGE="${DEFAULT_RH_REGISTRY}/${DEFAULT_IDENTITY_PROVIDER_IMAGE_PATH_TAG}"
+DEFAULT_POSTGRES_IMAGE="${DEFAULT_RH_REGISTRY}/${DEFAULT_POSTGRES_IMAGE_PATH_TAG}"
+DEFAULT_PVC_JOBS_IMAGE="${DEFAULT_RH_REGISTRY}/${DEFAULT_PVC_JOBS_IMAGE_PATH_TAG}"
+
 HELP="
 
-How to use this script to migrate from CRW 1.1 to ${CRW_VERSION}:
+How to use this script to migrate from CRW 1.1 to ${DEFAULT_SERVER_VERSION}:
 -p=,    --project=            | REQUIRED: CodeReady Workspaces project to migrate;      default: ${DEFAULT_OPENSHIFT_PROJECT}
--r=,    --rh-registry=        | Alternate RH registry, like registry.access.redhat.com; default: ${DEFAULT_RH_REGISTRY}
--c=,    --crw-registry=       | Alternate CRW container registry, like quay.io;         default: ${DEFAULT_CRW_REGISTRY}
--o=,    --organization=       | Alternate organization path for CodeReady Workspaces;   default: ${DEFAULT_CRW_PREFIX}
+
+        --rh-registry=        | Alternate RH registry, like registry.access.redhat.com; default: ${DEFAULT_RH_REGISTRY}
+        --crw-registry=       | Alternate CRW container registry, like quay.io;         default: ${DEFAULT_CRW_REGISTRY}
+        --crw-prefix=         | Alternate registry path (organization), eg., crw/;      default: ${DEFAULT_CRW_PREFIX}
+        --no-crw-prefix       | Use this flag to remove registry path (organization)
+
+        --server-version=     | Alternate CRW server version;                           default: ${DEFAULT_SERVER_VERSION}
+        --operator-version=   | Alternate CRW operator version;                         default: ${DEFAULT_OPERATOR_VERSION}
+
+        --server-image=       | Alt. CRW server image; eg., quay.io/crw/server-rhel8;   default: ${DEFAULT_SERVER_IMAGE}
+        --operator-image=     | Alt. CRW operator; eg., quay.io/crw/operator-rhel8:1.2; default: ${DEFAULT_OPERATOR_IMAGE}
+
+  --identity-provider-image=  | Alternate Identity Provider (RH SSO, Keycloak) image;   default: ${DEFAULT_IDENTITY_PROVIDER_IMAGE}
+        --postgres-image=     | Alternate PostgreSQL image;                             default: ${DEFAULT_POSTGRES_IMAGE}
+        --pvc-jobs-image=     | Alternate PVC Jobs image;                               default: ${DEFAULT_PVC_JOBS_IMAGE}
+
         --verbose             | more console output
 -h,     --help                | show this help menu
 "
@@ -29,24 +59,61 @@ fi
 for key in "$@"
 do
   case $key in
-    --verbose)
-      FOLLOW_LOGS="true"
-      shift
-      ;;
     -p=*| --project=*)
       OPENSHIFT_PROJECT="${key#*=}"
       shift
       ;;
-    -r=*| --rh-registry=*)
+
+    --rh-registry=*)
       RH_REGISTRY="${key#*=}"
       shift
       ;;
-    -c=*| --crw-registry=*)
+    --crw-registry=*)
       CRW_REGISTRY="${key#*=}"
       shift
       ;;
-    -o=*| --organization=*)
+    --crw-prefix=*)
       CRW_PREFIX="${key#*=}"
+      shift
+      ;;
+    --no-crw-prefix)
+      NO_CRW_PREFIX=1
+      shift
+      ;;
+
+    --server-version=*)
+      SERVER_VERSION="${key#*=}"
+      shift
+      ;;
+    --operator-version=*)
+      OPERATOR_VERSION="${key#*=}"
+      shift
+      ;;
+
+    --server-image=*)
+      SERVER_IMAGE="${key#*=}"
+      shift
+      ;;
+    --operator-image=*)
+      OPERATOR_IMAGE="${key#*=}"
+      shift
+      ;;
+
+    --identity-provider-image=*)
+      IDENTITY_PROVIDER_IMAGE="${key#*=}"
+      shift
+      ;;
+    --postgres-image=*)
+      POSTGRES_IMAGE="${key#*=}"
+      shift
+      ;;
+    --pvc-jobs-image=*)
+      PVC_JOBS_IMAGE="${key#*=}"
+      shift
+      ;;
+
+    --verbose)
+      FOLLOW_LOGS="true"
       shift
       ;;
     -h | --help)
@@ -60,6 +127,9 @@ do
       ;;
   esac
 done
+
+# required to get colours
+export TERM=xterm
 
 printInfo() {
   green=`tput setaf 2`
@@ -90,17 +160,43 @@ fi
 # if using quay.io, operator is simply operator-rhel8; if using RHCC, it's server-operator-rhel8
 if [[ ${CRW_REGISTRY} == "quay.io" ]]; then OPERATOR_CONTAINER="operator-rhel8"; fi
 
+export OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT:-${DEFAULT_OPENSHIFT_PROJECT}}
+
 export RH_REGISTRY=${RH_REGISTRY:-${DEFAULT_RH_REGISTRY}}
 export CRW_REGISTRY=${CRW_REGISTRY:-${DEFAULT_CRW_REGISTRY}}
-export CRW_PREFIX=${CRW_PREFIX:-${DEFAULT_CRW_PREFIX}}
-export OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT:-${DEFAULT_OPENSHIFT_PROJECT}}
-export DOCKER_CONFIG_JSON=${DOCKER_CONFIG_JSON:-${DEFAULT_DOCKER_CONFIG_JSON}}
+if [[ ${NO_CRW_PREFIX} -eq 1 ]]; then
+  export CRW_PREFIX=""
+else 
+  export CRW_PREFIX=${CRW_PREFIX:-${DEFAULT_CRW_PREFIX}}
+fi
+
+export SERVER_VERSION=${SERVER_VERSION:-${DEFAULT_SERVER_VERSION}}
+export OPERATOR_VERSION=${OPERATOR_VERSION:-${DEFAULT_OPERATOR_VERSION}}
+
+export SERVER_IMAGE=${SERVER_IMAGE:-${CRW_REGISTRY}/${CRW_PREFIX}${DEFAULT_SERVER_IMAGE_NAME}}
+export OPERATOR_IMAGE=${OPERATOR_IMAGE:-${CRW_REGISTRY}/${CRW_PREFIX}${DEFAULT_OPERATOR_IMAGE_NAME}:${OPERATOR_VERSION}}
+
+export IDENTITY_PROVIDER_IMAGE=${IDENTITY_PROVIDER_IMAGE:-${RH_REGISTRY}/${DEFAULT_IDENTITY_PROVIDER_IMAGE_PATH_TAG}}
+export POSTGRES_IMAGE=${POSTGRES_IMAGE:-${RH_REGISTRY}/${DEFAULT_POSTGRES_IMAGE_PATH_TAG}}
+export PVC_JOBS_IMAGE=${PVC_JOBS_IMAGE:-${RH_REGISTRY}/${DEFAULT_PVC_JOBS_IMAGE_PATH_TAG}}
+
 if [[ "${FOLLOW_LOGS}" == "true" ]]; then printInfo "
+OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT}
+
 RH_REGISTRY=${RH_REGISTRY}
 CRW_REGISTRY=${CRW_REGISTRY}
 CRW_PREFIX=${CRW_PREFIX}
-OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT}
-DOCKER_CONFIG_JSON=${DOCKER_CONFIG_JSON}
+
+SERVER_VERSION=${SERVER_VERSION}
+OPERATOR_VERSION=${OPERATOR_VERSION}
+
+SERVER_IMAGE=${SERVER_IMAGE}
+OPERATOR_IMAGE=${OPERATOR_IMAGE}
+
+IDENTITY_PROVIDER_IMAGE=${IDENTITY_PROVIDER_IMAGE}
+POSTGRES_IMAGE=${POSTGRES_IMAGE}
+PVC_JOBS_IMAGE=${PVC_JOBS_IMAGE}
+
 "; fi
 
 # check `${OC_BINARY} project` for a selected project
@@ -146,16 +242,16 @@ checkAuthenticationWithRegistryRedhatIo()
 
       2. Log in using your new username. Details: https://access.redhat.com/RegistryAuthentication#using-authentication-3
 
-      To keep your registry.redhat.io login secret in a separate file:
+      To keep your registry.redhat.io login secret in a separate file, such as in /path/to/some/folder/config.json:
 
-          docker --config /tmp/CRW.docker.config.json login https://registry.redhat.io
+          docker --config /path/to/some/folder/ login https://registry.redhat.io
 
       Otherwise your secret will be stored in ~/.docker/config.json, and all your secrets will be imported to openshift in the next step.
 
       3. Add your secret to your openshift:
 
           oc create secret generic registryredhatio --type=kubernetes.io/dockerconfigjson \\
-             --from-file=.dockerconfigjson=/tmp/CRW.docker.config.json
+             --from-file=.dockerconfigjson=/path/to/some/folder/config.json
           oc secrets link default registryredhatio --for=pull
           oc secrets link builder registryredhatio
 
@@ -170,28 +266,33 @@ checkAuthenticationWithRegistryRedhatIo()
 }
 
 isLoggedIn
-if [[ ${RH_REGISTRY} == ${DEFAULT_RH_REGISTRY} ]] || [[ ${CRW_REGISTRY} == ${DEFAULT_CRW_REGISTRY} ]]; then 
-  checkAuthenticationWithRegistryRedhatIo; 
-fi
+for image in ${SERVER_IMAGE} ${OPERATOR_IMAGE} ${IDENTITY_PROVIDER_IMAGE} ${POSTGRES_IMAGE} ${PVC_JOBS_IMAGE}; do
+  if [[ "${image}" == "registry.redhat.io/"* ]]; then
+    if [[ "${FOLLOW_LOGS}" == "true" ]]; then printInfo "Check authentication for ${image} ..."; fi
+    checkAuthenticationWithRegistryRedhatIo
+    break
+  fi
+done
 
 DB_PASSWORD=$(${OC_BINARY} get deployment keycloak -o=jsonpath={'.spec.template.spec.containers[0].env[?(@.name=="DB_PASSWORD")].value'} -n=$OPENSHIFT_PROJECT)
-OPERATOR_IMAGE="${CRW_REGISTRY}/${CRW_PREFIX}/${OPERATOR_CONTAINER}:${CRW_VERSION}"
-SERVER_IMAGE="${CRW_REGISTRY}/${CRW_PREFIX}/${SERVER_CONTAINER}"
 
 # update to latest defaults
 PATCH_JSON=$(cat << EOF
 {
   "spec": {
     "database": {
-      "postgresImage": "${RH_REGISTRY}/${PG_IMAGE}"
+      "postgresImage": "${POSTGRES_IMAGE}"
+    },
+    "storage": {
+      "pvcJobsImage": "${PVC_JOBS_IMAGE}"
     },
     "auth": {
-      "identityProviderImage": "${RH_REGISTRY}/${SSO_IMAGE}",
+      "identityProviderImage": "${IDENTITY_PROVIDER_IMAGE}",
       "identityProviderPostgresPassword":"${DB_PASSWORD}"
     },
     "server": {
       "cheImage":"${SERVER_IMAGE}",
-      "cheImageTag":"${CRW_VERSION}"
+      "cheImageTag":"${SERVER_VERSION}"
     }
   }
 }
@@ -267,7 +368,7 @@ waitForDeployment codeready
 sleep 60s
 
 echo; printInfo "Update postgres image"
-${OC_BINARY} set image deployment/postgres "*=${PG_IMAGE}" -n $OPENSHIFT_PROJECT
+${OC_BINARY} set image deployment/postgres "*=${POSTGRES_IMAGE}" -n $OPENSHIFT_PROJECT
 ${OC_BINARY} scale deployment/postgres --replicas=0
 ${OC_BINARY} scale deployment/postgres --replicas=1
 waitForDeployment postgres
