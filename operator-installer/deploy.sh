@@ -175,7 +175,7 @@ createServiceAccount() {
   ${OC_BINARY} get sa codeready-operator > /dev/null 2>&1
   OUT=$?
   if [ ${OUT} -ne 0 ]; then
-    ${OC_BINARY} create sa codeready-operator -n=${OPENSHIFT_PROJECT} > /dev/null
+    ${OC_BINARY} process sa codeready-operator -n=${OPENSHIFT_PROJECT} > /dev/null
   else
     printInfo "Service account already exists"
   fi
@@ -490,7 +490,7 @@ if [ ${OUT} == 0 ]; then
   printInfo "Existing operator deployment found. It will be deleted"
   ${OC_BINARY} delete deployments/codeready-operator -n=${OPENSHIFT_PROJECT} --grace-period=1 > /dev/null
 fi
-echo "${DEPLOYMENT}" | ${OC_BINARY} new-app -p IMAGE=$OPERATOR_IMAGE_NAME -n="${OPENSHIFT_PROJECT}" -f - > /dev/null
+echo "${DEPLOYMENT}" | ${OC_BINARY} process -p IMAGE=$OPERATOR_IMAGE_NAME -n="${OPENSHIFT_PROJECT}" -f - > /dev/null
 OUT=$?
 if [ ${OUT} -ne 0 ]; then
   printError "Failed to deploy CodeReady Workspaces operator"
@@ -512,7 +512,7 @@ createCustomResource() {
     printWarning "Custom resource codeready aleady exists. If you want the installer to create a CR, delete an existing one:"
     printWarning "${OC_BINARY} delete checlusters/codeready -n ${OPENSHIFT_PROJECT}"
   fi
-  ${OC_BINARY} new-app -f ${BASE_DIR}/custom-resource.yaml \
+  ${OC_BINARY} process -f ${BASE_DIR}/custom-resource.yaml \
                -p SERVER_IMAGE_NAME=${SERVER_IMAGE_NAME} \
                -p SERVER_IMAGE_TAG=${SERVER_IMAGE_TAG} \
                -p TLS_SUPPORT=${TLS_SUPPORT} \
