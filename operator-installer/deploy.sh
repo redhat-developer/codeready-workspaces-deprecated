@@ -518,7 +518,7 @@ createCustomResource() {
                -p TLS_SUPPORT=${TLS_SUPPORT} \
                -p ENABLE_OPENSHIFT_OAUTH=${ENABLE_OPENSHIFT_OAUTH} \
                -p SELF_SIGNED_CERT=${SELF_SIGNED_CERT} \
-               -n="${OPENSHIFT_PROJECT}" | oc create -f - > /dev/null
+               -n="${OPENSHIFT_PROJECT}" | ${OC_BINARY} create -f - > /dev/null
   OUT=$?
   if [ ${OUT} -ne 0 ]; then
     printError "Failed to create Custom Resource. If it is 'already exists' error, disregard it"
