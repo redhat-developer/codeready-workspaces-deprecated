@@ -175,7 +175,7 @@ createServiceAccount() {
   ${OC_BINARY} get sa codeready-operator > /dev/null 2>&1
   OUT=$?
   if [ ${OUT} -ne 0 ]; then
-    ${OC_BINARY} process sa codeready-operator -n=${OPENSHIFT_PROJECT} > /dev/null
+    ${OC_BINARY} create sa codeready-operator -n=${OPENSHIFT_PROJECT} > /dev/null
   else
     printInfo "Service account already exists"
   fi
@@ -490,7 +490,7 @@ if [ ${OUT} == 0 ]; then
   printInfo "Existing operator deployment found. It will be deleted"
   ${OC_BINARY} delete deployments/codeready-operator -n=${OPENSHIFT_PROJECT} --grace-period=1 > /dev/null
 fi
-echo "${DEPLOYMENT}" | ${OC_BINARY} process -p IMAGE=$OPERATOR_IMAGE_NAME -n="${OPENSHIFT_PROJECT}" -f - > /dev/null
+echo "${DEPLOYMENT}" | ${OC_BINARY} process -p IMAGE=$OPERATOR_IMAGE_NAME -n="${OPENSHIFT_PROJECT}" -f - | ${OC_BINARY} create -f - > /dev/null
 OUT=$?
 if [ ${OUT} -ne 0 ]; then
   printError "Failed to deploy CodeReady Workspaces operator"
@@ -518,7 +518,7 @@ createCustomResource() {
                -p TLS_SUPPORT=${TLS_SUPPORT} \
                -p ENABLE_OPENSHIFT_OAUTH=${ENABLE_OPENSHIFT_OAUTH} \
                -p SELF_SIGNED_CERT=${SELF_SIGNED_CERT} \
-               -n="${OPENSHIFT_PROJECT}" > /dev/null
+               -n="${OPENSHIFT_PROJECT}" | oc create -f - > /dev/null
   OUT=$?
   if [ ${OUT} -ne 0 ]; then
     printError "Failed to create Custom Resource. If it is 'already exists' error, disregard it"
