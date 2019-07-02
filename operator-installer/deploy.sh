@@ -558,7 +558,7 @@ createCustomResource() {
     printWarning "Custom resource 'codeready' already exists. If you want the installer to create a CR, delete an existing one:"
     printWarning " ${OC_BINARY} delete checlusters/codeready -n ${OPENSHIFT_PROJECT}"
   fi
-  ${OC_BINARY} process -f ${BASE_DIR}/custom-resource.yaml \
+  ${OC_BINARY} process -f "${BASE_DIR}/custom-resource.yaml" \
                -p SERVER_IMAGE_NAME=${SERVER_IMAGE_NAME} \
                -p SERVER_IMAGE_TAG=${SERVER_IMAGE_TAG} \
                -p TLS_SUPPORT=${TLS_SUPPORT} \
