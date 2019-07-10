@@ -312,7 +312,7 @@ fi
     fi
   fi
   if [ "${ENABLE_OPENSHIFT_OAUTH}" == "true" ]; then
-    printInfo "Creating a cluster role to let the operator service account create oAuthClients."
+    printInfo "Creating a cluster role to let the operator service account create OAuthClients."
     ${OC_BINARY} get clusterrole codeready-operator > /dev/null 2>&1
     OUT=$?
     if [ ${OUT} -ne 0 ]; then
@@ -325,7 +325,7 @@ fi
     else
       printInfo "The cluster role already exists."
     fi
-    printInfo "Creating cluster role binding to let the operator service account create oAuthClients."
+    printInfo "Creating cluster role binding to let the operator service account create OAuthClients."
     ${OC_BINARY} get clusterrolebinding ${OPENSHIFT_PROJECT}-codeready-operator > /dev/null 2>&1
     OUT=$?
     if [ ${OUT} -ne 0 ]; then
