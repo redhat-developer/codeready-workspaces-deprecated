@@ -49,7 +49,7 @@ parameters:
     description: Secure routes for CodeReady Workspaces
     required: true
   - name: ENABLE_OPENSHIFT_OAUTH
-    displayName: OpenShift oAuth
+    displayName: OpenShift OAuth
     description: Log in with OpenShift
     required: true
   - name: SELF_SIGNED_CERT
