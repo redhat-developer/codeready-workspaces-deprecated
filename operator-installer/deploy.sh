@@ -136,6 +136,17 @@ preReqs() {
     printError "The ${OC_BINARY} command-line tool (https://docs.openshift.org/latest/cli_reference/get_started_cli.html) not found. Download the oc client, and add it to your \$PATH."
     exit 1
   fi
+
+  if [ "${ENABLE_OPENSHIFT_OAUTH}" == "true" ]; then
+
+    # check if we have required yamls in this dir
+    if [[ ! -f ${BASE_DIR}/cluster_role.yaml ]]; then 
+      printError "File cluster_role.yaml not found in ${BASE_DIR}. Run 'mvn clean install' to download this file."; exit 1;
+    fi
+    if [[ ! -f ${BASE_DIR}/cluster_role_binding.yaml ]]; then 
+      printError "File cluster_role_binding.yaml not found in ${BASE_DIR}. Run 'mvn clean install' to download this file."; exit 1;
+    fi
+  fi
 }
 
 # check if ${OC_BINARY} client has an active session
