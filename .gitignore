@@ -77,3 +77,6 @@ docs/assets/imgs
 ##################
 plugins/plugin-terminal-ui/node_modules/
 plugins/plugin-terminal-ui/build/
+
+operator-installer/cluster_role.yaml
+operator-installer/cluster_role_binding.yaml

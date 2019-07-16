@@ -25,6 +25,10 @@
     <version>1.2.2.GA</version>
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Operator Installer</name>
+    <properties>
+        <!-- TODO: switch to 1.x branch, or a tag -->
+        <cheOperatorBranchOrTag>master</cheOperatorBranchOrTag>
+    </properties>
     <build>
         <plugins>
             <plugin>
@@ -76,9 +80,22 @@
                         <configuration>
                             <target>
                                 <mkdir dir="${basedir}/target/codeready-workspaces-operator-installer"/>
+
+                                <!-- get yaml files from che-operator repo -->
+                                <get 
+                                    dest="${basedir}/cluster_role.yaml" 
+                                    src="https://raw.githubusercontent.com/eclipse/che-operator/${cheOperatorBranchOrTag}/deploy/cluster_role.yaml" 
+                                    usetimestamp="true" 
+                                    verbose="false" />
+                                <get 
+                                    dest="${basedir}/cluster_role_binding.yaml" 
+                                    src="https://raw.githubusercontent.com/eclipse/che-operator/${cheOperatorBranchOrTag}/deploy/cluster_role_binding.yaml" 
+                                    usetimestamp="true" 
+                                    verbose="false" />
+
                                 <echo message="Copying files ..."/>
                                 <copy todir="${basedir}/target/codeready-workspaces-operator-installer/">
-                                    <fileset dir="${basedir}" includes="**/custom-resource.yaml, **/*.sh, **/README.adoc"/>
+                                    <fileset dir="${basedir}" includes="**/cluster_role.yaml, **/cluster_role_binding.yaml, **/custom-resource.yaml, **/*.sh, **/README.adoc"/>
                                 </copy>
                                 <chmod dir="${basedir}/target/codeready-workspaces-operator-installer/" includes="**/*.sh" perm="775"/>
                             </target>
