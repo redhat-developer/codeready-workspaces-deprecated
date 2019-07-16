@@ -138,7 +138,6 @@ preReqs() {
   fi
 
   if [ "${ENABLE_OPENSHIFT_OAUTH}" == "true" ]; then
-
     # check if we have required yamls in this dir
     if [[ ! -f ${BASE_DIR}/cluster_role.yaml ]]; then 
       printError "File cluster_role.yaml not found in ${BASE_DIR}. Run 'mvn clean install' to download this file."; exit 1;
@@ -408,12 +407,15 @@ EOF
 fi
 }
 
-createClusterRole() {
-  ${OC_BINARY} apply -f ${BASE_DIR}/cluster_role.yaml
-}
-
-createClusterRoleBinding() {
-  ${OC_BINARY} apply -f ${BASE_DIR}/cluster_role_binding.yaml
+# apply some yaml file
+applyYaml() {
+  ${OC_BINARY} apply -f ${1} >/tmp/applyYaml.log.txt
+  OUT=$?
+  if [ ${OUT} -ne 0 ]; then
+    printError "Failed to apply ${1}!"
+    printError "$(cat /tmp/deploy.sh_applyYaml.log.txt)"
+    exit 1
+  fi
 }
 
 createOperatorDeployment() {
@@ -588,8 +590,10 @@ if [ "${DEPLOY}" = true ] ; then
   createNewProject
   createServiceAccount
   createCRD
-  createClusterRole
-  createClusterRoleBinding
+  if [ "${ENABLE_OPENSHIFT_OAUTH}" == "true" ]; then
+    applyYaml ${BASE_DIR}/cluster_role.yaml
+    applyYaml ${BASE_DIR}/cluster_role_binding.yaml
+  fi
   createOperatorDeployment
   createCustomResource
 fi
