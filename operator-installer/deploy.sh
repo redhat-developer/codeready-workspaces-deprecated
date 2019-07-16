@@ -397,6 +397,13 @@ EOF
 fi
 }
 
+createClusterRole() {
+  ${OC_BINARY} apply -f ${BASE_DIR}/cluster_role.yaml
+}
+
+createClusterRoleBinding() {
+  ${OC_BINARY} apply -f ${BASE_DIR}/cluster_role_binding.yaml
+}
 
 createOperatorDeployment() {
 
@@ -570,6 +577,8 @@ if [ "${DEPLOY}" = true ] ; then
   createNewProject
   createServiceAccount
   createCRD
+  createClusterRole
+  createClusterRoleBinding
   createOperatorDeployment
   createCustomResource
 fi
