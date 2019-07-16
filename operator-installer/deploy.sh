@@ -407,13 +407,30 @@ EOF
 fi
 }
 
-# apply some yaml file
-applyYaml() {
-  ${OC_BINARY} apply -f ${1} >/tmp/applyYaml.log.txt
+# patch from yaml or json file
+patchYaml() {
+  fn=$1
+  obj=$2
+  printInfo "Applying patch ${fn##*/}"
+  patch="$(cat ${fn})"
+  ${OC_BINARY} patch $obj -p "${patch}" --type='merge' >/tmp/deploy.sh_patchYaml_${fn##*/}.log.txt
   OUT=$?
   if [ ${OUT} -ne 0 ]; then
-    printError "Failed to apply ${1}!"
-    printError "$(cat /tmp/deploy.sh_applyYaml.log.txt)"
+    printError "Failed to apply ${fn##*/}!"
+    printError "$(cat /tmp/deploy.sh_patchYaml_${fn##*/}.log.txt)"
+    exit 1
+  fi
+}
+
+# apply some yaml file
+applyYaml() {
+  fn=$1
+  printInfo "Applying ${fn##*/}"
+  ${OC_BINARY} apply -f $fn >/tmp/deploy.sh_applyYaml_${fn##*/}.log.txt
+  OUT=$?
+  if [ ${OUT} -ne 0 ]; then
+    printError "Failed to apply ${fn##*/}!"
+    printError "$(cat /tmp/deploy.sh_applyYaml_${fn##*/}.log.txt)"
     exit 1
   fi
 }
@@ -591,7 +608,9 @@ if [ "${DEPLOY}" = true ] ; then
   createServiceAccount
   createCRD
   if [ "${ENABLE_OPENSHIFT_OAUTH}" == "true" ]; then
-    applyYaml ${BASE_DIR}/cluster_role.yaml
+    patchYaml ${BASE_DIR}/cluster_role.yaml clusterrole/codeready-operator
+    # doesn't quite work -- need to tweak the yaml?
+    #patchYaml ${BASE_DIR}/cluster_role_binding.yaml clusterrolebinding/${OPENSHIFT_PROJECT}-codeready-operator
     applyYaml ${BASE_DIR}/cluster_role_binding.yaml
   fi
   createOperatorDeployment
