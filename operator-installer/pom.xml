@@ -87,11 +87,24 @@
                                     src="https://raw.githubusercontent.com/eclipse/che-operator/${cheOperatorBranchOrTag}/deploy/cluster_role.yaml" 
                                     usetimestamp="true" 
                                     verbose="false" />
+                                <replaceregexp file="${basedir}/cluster_role.yaml"
+                                    match="che-operator"
+                                    replace="codeready-operator"
+                                    byline="true"/>
+
                                 <get 
                                     dest="${basedir}/cluster_role_binding.yaml" 
                                     src="https://raw.githubusercontent.com/eclipse/che-operator/${cheOperatorBranchOrTag}/deploy/cluster_role_binding.yaml" 
                                     usetimestamp="true" 
                                     verbose="false" />
+                                <replaceregexp file="${basedir}/cluster_role_binding.yaml"
+                                    match="che-operator"
+                                    replace="codeready-operator"
+                                    byline="true"/>
+                                <replaceregexp file="${basedir}/cluster_role_binding.yaml"
+                                    match="namespace: che"
+                                    replace="namespace: codeready"
+                                    byline="true"/>
 
                                 <echo message="Copying files ..."/>
                                 <copy todir="${basedir}/target/codeready-workspaces-operator-installer/">
