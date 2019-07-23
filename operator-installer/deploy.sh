@@ -418,7 +418,7 @@ patchYaml() {
   if [ ${OUT} -ne 0 ]; then
     printError "Failed to apply ${fn##*/}!"
     printError "$(cat /tmp/deploy.sh_patchYaml_${fn##*/}.log.txt)"
-    exit 1
+    # exit 1
   fi
 }
 
@@ -431,12 +431,57 @@ applyYaml() {
   if [ ${OUT} -ne 0 ]; then
     printError "Failed to apply ${fn##*/}!"
     printError "$(cat /tmp/deploy.sh_applyYaml_${fn##*/}.log.txt)"
-    exit 1
+    # exit 1
   fi
 }
 
-createOperatorDeployment() {
+waitForDeployment()
+{
+  deploymentName=$1
+  DEPLOYMENT_TIMEOUT_SEC=300
+  POLLING_INTERVAL_SEC=5
+  printInfo "Waiting for the deployment/${deploymentName} to be scaled to 1. Timeout ${DEPLOYMENT_TIMEOUT_SEC} seconds"
+  DESIRED_REPLICA_COUNT=1
+  UNAVAILABLE=1
+  end=$((SECONDS+DEPLOYMENT_TIMEOUT_SEC))
+  while [[ "${UNAVAILABLE}" -eq 1 ]] && [[ ${SECONDS} -lt ${end} ]]; do
+    UNAVAILABLE=$(${OC_BINARY} get deployment/${deploymentName} -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.unavailableReplicas}')
+    if [[ ${DEBUG} -eq 1 ]]; then printInfo "Deployment is in progress...(Unavailable replica count=${UNAVAILABLE}, ${timeout_in} seconds remain)"; fi
+    sleep 3
+  done
+  if [[ "${UNAVAILABLE}" == 1 ]]; then
+    printError "Deployment timeout. Aborting."
+    printError "Check deployment logs and events:"
+    printError " ${OC_BINARY} logs deployment/${deploymentName} -n ${OPENSHIFT_PROJECT}"
+    printError " ${OC_BINARY} get events -n ${OPENSHIFT_PROJECT}"
+    exit 1
+  fi
 
+  CURRENT_REPLICA_COUNT=-1
+  while [[ "${CURRENT_REPLICA_COUNT}" -ne "${DESIRED_REPLICA_COUNT}" ]] && [[ ${SECONDS} -lt ${end} ]]; do
+    CURRENT_REPLICA_COUNT=$(${OC_BINARY} get deployment/${deploymentName} -o=jsonpath='{.status.availableReplicas}')
+    timeout_in=$((end-SECONDS))
+    if [[ ${DEBUG} -eq 1 ]]; then printInfo "Deployment is in progress...(Current replica count = ${CURRENT_REPLICA_COUNT}, ${timeout_in} seconds remaining)"; fi
+    sleep ${POLLING_INTERVAL_SEC}
+  done
+
+  if [[ "${CURRENT_REPLICA_COUNT}" -ne "${DESIRED_REPLICA_COUNT}" ]]; then
+    printError "CodeReady Workspaces ${deploymentName} deployment failed. Aborting. Run command '${OC_BINARY} logs deployment/${deploymentName}' for more details."
+    printError "Check deployment logs and events:"
+    printError " ${OC_BINARY} logs deployment/${deploymentName} -n ${OPENSHIFT_PROJECT}"
+    exit 1
+  elif [ ${SECONDS} -ge ${end} ]; then
+    printError "Deployment timeout. Aborting."
+     printError "Check deployment logs and events:"
+     printError " ${OC_BINARY} logs deployment/${deploymentName} -n ${OPENSHIFT_PROJECT}"
+      exit 1
+  fi
+  elapsed=$((DEPLOYMENT_TIMEOUT_SEC-timeout_in))
+  printInfo "Codeready Workspaces deployment/${deploymentName} started in ${elapsed} seconds"
+}
+
+createOperatorDeployment()
+{
 DEPLOYMENT=$(cat <<EOF
 kind: Template
 apiVersion: v1
@@ -486,49 +531,6 @@ parameters:
 EOF
   )
 
-waitForDeployment()
-{
-  deploymentName=$1
-  DEPLOYMENT_TIMEOUT_SEC=300
-  POLLING_INTERVAL_SEC=5
-  printInfo "Waiting for the deployment/${deploymentName} to be scaled to 1. Timeout ${DEPLOYMENT_TIMEOUT_SEC} seconds"
-  DESIRED_REPLICA_COUNT=1
-  UNAVAILABLE=1
-  end=$((SECONDS+DEPLOYMENT_TIMEOUT_SEC))
-  while [[ "${UNAVAILABLE}" -eq 1 ]] && [[ ${SECONDS} -lt ${end} ]]; do
-    UNAVAILABLE=$(${OC_BINARY} get deployment/${deploymentName} -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.unavailableReplicas}')
-    if [[ ${DEBUG} -eq 1 ]]; then printInfo "Deployment is in progress...(Unavailable replica count=${UNAVAILABLE}, ${timeout_in} seconds remain)"; fi
-    sleep 3
-  done
-  if [[ "${UNAVAILABLE}" == 1 ]]; then
-    printError "Deployment timeout. Aborting."
-    printError "Check deployment logs and events:"
-    printError " ${OC_BINARY} logs deployment/${deploymentName} -n ${OPENSHIFT_PROJECT}"
-    printError " ${OC_BINARY} get events -n ${OPENSHIFT_PROJECT}"
-    exit 1
-  fi
-
-  CURRENT_REPLICA_COUNT=-1
-  while [[ "${CURRENT_REPLICA_COUNT}" -ne "${DESIRED_REPLICA_COUNT}" ]] && [[ ${SECONDS} -lt ${end} ]]; do
-    CURRENT_REPLICA_COUNT=$(${OC_BINARY} get deployment/${deploymentName} -o=jsonpath='{.status.availableReplicas}')
-    timeout_in=$((end-SECONDS))
-    if [[ ${DEBUG} -eq 1 ]]; then printInfo "Deployment is in progress...(Current replica count = ${CURRENT_REPLICA_COUNT}, ${timeout_in} seconds remaining)"; fi
-    sleep ${POLLING_INTERVAL_SEC}
-  done
-
-  if [[ "${CURRENT_REPLICA_COUNT}" -ne "${DESIRED_REPLICA_COUNT}" ]]; then
-    printError "CodeReady Workspaces ${deploymentName} deployment failed. Aborting. Run command '${OC_BINARY} logs deployment/${deploymentName}' for more details."
-    printError "Check deployment logs and events:"
-    printError " ${OC_BINARY} logs deployment/${deploymentName}"
-    exit 1
-  elif [ ${SECONDS} -ge ${end} ]; then
-    printError "Deployment timeout. Aborting."
-    exit 1
-  fi
-  elapsed=$((DEPLOYMENT_TIMEOUT_SEC-timeout_in))
-  printInfo "Codeready Workspaces deployment/${deploymentName} started in ${elapsed} seconds"
-}
-
 printInfo "Creating Operator Deployment"
 ${OC_BINARY} get deployments/${deploymentName} -n=${OPENSHIFT_PROJECT} > /dev/null 2>&1
 OUT=$?
@@ -569,50 +571,33 @@ createCustomResource() {
   if [ ${OUT} -ne 0 ]; then
     printError "Failed to create custom resource. If it is an 'already exists' error, disregard it."
   fi
-    DEPLOYMENT_TIMEOUT_SEC=1200
-    printInfo "Waiting for CodeReady Workspaces to boot. Timeout: ${DEPLOYMENT_TIMEOUT_SEC} seconds."
-    if [ "${FOLLOW_LOGS}" == "true" ]; then
-      printInfo "You may exit this script as soon as the log reports a successful CodeReady Workspaces deployment."
-      ${OC_BINARY} logs -f deployment/codeready-operator -n="${OPENSHIFT_PROJECT}"
-    else
-      DESIRED_STATE="Available"
-      CURRENT_STATE=$(${OC_BINARY} get checluster/codeready -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.cheClusterRunning}')
-      POLLING_INTERVAL_SEC=5
-      end=$((SECONDS+DEPLOYMENT_TIMEOUT_SEC))
-      while [ "${CURRENT_STATE}" != "${DESIRED_STATE}" ] && [ ${SECONDS} -lt ${end} ]; do
-        CURRENT_STATE=$(${OC_BINARY} get checluster/codeready -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.cheClusterRunning}')
-        timeout_in=$((end-SECONDS))
-        sleep ${POLLING_INTERVAL_SEC}
-      done
+  waitForDeployment postgres
 
-      if [ "${CURRENT_STATE}" != "${DESIRED_STATE}"  ]; then
-        printError "CodeReady Workspaces deployment failed. Aborting."
-        printError "Check deployment logs and events:"
-        printError " ${OC_BINARY} logs deployment/codeready-operator -n ${OPENSHIFT_PROJECT}"
-        exit 1
-      elif [ ${SECONDS} -ge ${end} ]; then
-        printError "Deployment timeout. Aborting."
-        printError "Check deployment logs and events:"
-        printError " ${OC_BINARY} logs deployment/codeready-operator -n ${OPENSHIFT_PROJECT}"
-        exit 1
-      fi
-      CODEREADY_ROUTE=$(${OC_BINARY} get checluster/codeready -o=jsonpath='{.status.cheURL}')
-      printInfo "CodeReady Workspaces successfully deployed and is available at ${CODEREADY_ROUTE}"
+  if [ "${ENABLE_OPENSHIFT_OAUTH}" == "true" ]; then
+    # patch RHSSO with Openshift v4 OAuth support
+    patchYaml ${BASE_DIR}/deployment-identityProvider-oauthv4.yaml deployment/keycloak
+    waitForDeployment keycloak
   fi
+
+  waitForDeployment codeready
 }
 
-if [ "${DEPLOY}" = true ] ; then
-  preReqs
-  isLoggedIn
-  createNewProject
-  createServiceAccount
-  createCRD
-  if [ "${ENABLE_OPENSHIFT_OAUTH}" == "true" ]; then
-    patchYaml ${BASE_DIR}/cluster_role.yaml clusterrole/codeready-operator
-    # doesn't quite work -- need to tweak the yaml?
-    #patchYaml ${BASE_DIR}/cluster_role_binding.yaml clusterrolebinding/${OPENSHIFT_PROJECT}-codeready-operator
-    applyYaml ${BASE_DIR}/cluster_role_binding.yaml
-  fi
-  createOperatorDeployment
-  createCustomResource
+if [[ "${DEPLOY}" != "true" ]] ; then exit 0; fi
+
+preReqs
+isLoggedIn
+createNewProject
+createServiceAccount
+createCRD
+if [ "${ENABLE_OPENSHIFT_OAUTH}" == "true" ]; then
+  patchYaml ${BASE_DIR}/cluster_role.yaml clusterrole/codeready-operator
+  # doesn't quite work -- need to tweak the yaml?
+  #patchYaml ${BASE_DIR}/cluster_role_binding.yaml clusterrolebinding/${OPENSHIFT_PROJECT}-codeready-operator
+  applyYaml ${BASE_DIR}/cluster_role_binding.yaml
 fi
+createOperatorDeployment
+createCustomResource
+
+CODEREADY_ROUTE=$(${OC_BINARY} get checluster/codeready -o=jsonpath='{.status.cheURL}')
+echo; printInfo "CodeReady Workspaces successfully deployed to ${CODEREADY_ROUTE}"
+echo

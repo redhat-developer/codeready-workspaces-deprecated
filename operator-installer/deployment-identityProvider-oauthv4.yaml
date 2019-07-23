@@ -1,0 +1,48 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  labels:
+    app: codeready
+    component: keycloak
+  name: keycloak
+spec:
+  template:
+    metadata:
+      labels:
+        app: codeready
+        component: keycloak
+    spec:
+      volumes:
+        - name: sso-plugins
+          emptyDir: {}
+        - name: sso-themes
+          emptyDir: {}
+      initContainers:
+        - name: sso-plugins-init
+          image: 'quay.io/integreatly/sso_plugins_init:add-openshift-4-idp'
+          env:
+            - name: SSO_PLUGINS
+              value: 'keycloak-metrics-spi,openshift4-extension-6.0.1'
+          volumeMounts:
+            - name: sso-plugins
+              mountPath: /opt/plugins
+            - name: sso-themes
+              mountPath: /opt/themes
+          imagePullPolicy: Always
+      containers:
+        - resources:
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/sh
+                  - '-c'
+                  - cp -RT /opt/themes /opt/eap/themes
+          name: keycloak
+          image: 'registry.redhat.io/redhat-sso-7/sso73-openshift:1.0-11'
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: sso-plugins
+              mountPath: /opt/eap/providers
+            - name: sso-themes
+              mountPath: /opt/themes
