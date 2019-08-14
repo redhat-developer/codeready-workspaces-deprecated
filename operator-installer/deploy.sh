@@ -530,11 +530,11 @@ waitForDeployment()
 }
 
 printInfo "Creating Operator Deployment"
-${OC_BINARY} get deployments/${deploymentName} -n=${OPENSHIFT_PROJECT} > /dev/null 2>&1
+${OC_BINARY} get deployments/codeready-operator -n=${OPENSHIFT_PROJECT} > /dev/null 2>&1
 OUT=$?
 if [ ${OUT} == 0 ]; then
   printInfo "Existing operator deployment found. It will be deleted"
-  ${OC_BINARY} delete deployments/${deploymentName} -n=${OPENSHIFT_PROJECT} --grace-period=1 > /dev/null
+  ${OC_BINARY} delete deployments/codeready-operator -n=${OPENSHIFT_PROJECT} --grace-period=1 > /dev/null
 fi
 echo "${DEPLOYMENT}" | ${OC_BINARY} process -p IMAGE=$OPERATOR_IMAGE_NAME -n="${OPENSHIFT_PROJECT}" -f - | ${OC_BINARY} create -f - > /dev/null
 OUT=$?
