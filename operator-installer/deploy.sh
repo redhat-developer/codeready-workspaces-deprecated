@@ -85,27 +85,6 @@ do
   esac
 done
 
-export TERM=xterm
-
-export TLS_SUPPORT=${TLS_SUPPORT:-${DEFAULT_TLS_SUPPORT}}
-
-export SELF_SIGNED_CERT=${SELF_SIGNED_CERT:-${DEFAULT_SELF_SIGNED_CERT}}
-
-export OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT:-${DEFAULT_OPENSHIFT_PROJECT}}
-
-export ENABLE_OPENSHIFT_OAUTH=${ENABLE_OPENSHIFT_OAUTH:-${DEFAULT_ENABLE_OPENSHIFT_OAUTH}}
-
-export SERVER_IMAGE_NAME=${SERVER_IMAGE_NAME:-${DEFAULT_SERVER_IMAGE_NAME}}
-
-export SERVER_IMAGE_TAG=${SERVER_IMAGE_TAG:-${DEFAULT_SERVER_IMAGE_TAG}}
-
-export OPERATOR_IMAGE_NAME=${OPERATOR_IMAGE_NAME:-${DEFAULT_OPERATOR_IMAGE_NAME}}
-
-DEFAULT_NO_NEW_NAMESPACE="false"
-export NO_NEW_NAMESPACE=${NO_NEW_NAMESPACE:-${DEFAULT_NO_NEW_NAMESPACE}}
-
-export NAMESPACE_CLEANUP=${NAMESPACE_CLEANUP:-${DEFAULT_NAMESPACE_CLEANUP}}
-
 printInfo() {
   green=`tput setaf 2`
   reset=`tput sgr0`
@@ -123,6 +102,48 @@ printError() {
   reset=`tput sgr0`
   echo "${red}[ERROR]: ${1} ${reset}"
 }
+
+export TERM=xterm
+
+export TLS_SUPPORT=${TLS_SUPPORT:-${DEFAULT_TLS_SUPPORT}}
+
+export SELF_SIGNED_CERT=${SELF_SIGNED_CERT:-${DEFAULT_SELF_SIGNED_CERT}}
+
+export OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT:-${DEFAULT_OPENSHIFT_PROJECT}}
+
+export ENABLE_OPENSHIFT_OAUTH=${ENABLE_OPENSHIFT_OAUTH:-${DEFAULT_ENABLE_OPENSHIFT_OAUTH}}
+
+# CRW 352 check if user has accidentally put the server image tag in the server image name field
+if [[ $SERVER_IMAGE_NAME ]]; then
+  if [[ ! $SERVER_IMAGE_TAG ]]; then
+    SERVER_IMAGE_TAG_MAYBE=${SERVER_IMAGE_NAME#*/*:*}
+    if [[ ${SERVER_IMAGE_NAME} != ${SERVER_IMAGE_TAG_MAYBE} ]]; then
+      SERVER_IMAGE_TAG=${SERVER_IMAGE_TAG_MAYBE}
+      SERVER_IMAGE_NAME=${SERVER_IMAGE_NAME%:${SERVER_IMAGE_TAG_MAYBE}}
+      printWarning "Server image tag ${SERVER_IMAGE_TAG} found for server image name ${SERVER_IMAGE_NAME}"
+    fi
+  elif [[ $SERVER_IMAGE_TAG ]]; then
+    SERVER_IMAGE_TAG_MAYBE=${SERVER_IMAGE_NAME#*/*:*}
+    if [[ ${SERVER_IMAGE_NAME} != ${SERVER_IMAGE_TAG_MAYBE} ]]; then 
+      SERVER_IMAGE_NAME=${SERVER_IMAGE_NAME%:${SERVER_IMAGE_TAG_MAYBE}}
+      printError "Server image tag ${SERVER_IMAGE_TAG_MAYBE} found for server image name ${SERVER_IMAGE_NAME}, but also set server image tag = ${SERVER_IMAGE_TAG}."
+      printError "Script cannot proceed. Please only set server image tag once."
+      exit 1
+    fi
+  fi
+fi
+# printInfo "Server image tag ${SERVER_IMAGE_TAG} found for server image name ${SERVER_IMAGE_NAME}"
+
+export SERVER_IMAGE_NAME=${SERVER_IMAGE_NAME:-${DEFAULT_SERVER_IMAGE_NAME}}
+
+export SERVER_IMAGE_TAG=${SERVER_IMAGE_TAG:-${DEFAULT_SERVER_IMAGE_TAG}}
+
+export OPERATOR_IMAGE_NAME=${OPERATOR_IMAGE_NAME:-${DEFAULT_OPERATOR_IMAGE_NAME}}
+
+DEFAULT_NO_NEW_NAMESPACE="false"
+export NO_NEW_NAMESPACE=${NO_NEW_NAMESPACE:-${DEFAULT_NO_NEW_NAMESPACE}}
+
+export NAMESPACE_CLEANUP=${NAMESPACE_CLEANUP:-${DEFAULT_NAMESPACE_CLEANUP}}
 
 preReqs() {
   printInfo "Welcome to CodeReady Workspaces installer"
