@@ -9,7 +9,7 @@ DEFAULT_SERVER_IMAGE_NAME="registry.redhat.io/codeready-workspaces/server-rhel8"
 DEFAULT_SERVER_IMAGE_TAG="1.2"
 DEFAULT_OPERATOR_IMAGE_NAME="registry.redhat.io/codeready-workspaces/server-operator-rhel8:1.2"
 DEFAULT_NAMESPACE_CLEANUP="false"
-
+DEFAULT_SECRET_FILE="${HOME}/.docker/config.json"
 HELP="
 Usage:
  $0 [options]
@@ -28,6 +28,7 @@ Options:
       --server-image=       server image,
                               default: ${DEFAULT_SERVER_IMAGE_NAME}
  -v=, --version=            server-image tag, default: ${DEFAULT_SERVER_IMAGE_TAG}
+      --secret-file=        path to secret file, default: ${DEFAULT_SECRET_FILE}
       --verbose             stream deployment logs to console, default: false
  -h,  --help                show this help
 "
@@ -70,6 +71,10 @@ do
       SERVER_IMAGE_TAG=$(echo "${key#*=}")
       shift
       ;;
+    --secret-file=*)
+      SECRET_FILE=$(echo "${key#*=}")
+      shift
+      ;;
     -d | --deploy)
       DEPLOY=true
       ;;
@@ -105,6 +110,8 @@ DEFAULT_NO_NEW_NAMESPACE="false"
 export NO_NEW_NAMESPACE=${NO_NEW_NAMESPACE:-${DEFAULT_NO_NEW_NAMESPACE}}
 
 export NAMESPACE_CLEANUP=${NAMESPACE_CLEANUP:-${DEFAULT_NAMESPACE_CLEANUP}}
+
+export SECRET_FILE=${SECRET_FILE:-${DEFAULT_SECRET_FILE}}
 
 printInfo() {
   green=`tput setaf 2`
@@ -542,6 +549,20 @@ if [ ${OUT} -ne 0 ]; then
   printError "Failed to deploy CodeReady Workspaces operator"
   exit 1
 else
+  if [[ ${SECRET_FILE} == ${DEFAULT_SECRET_FILE} ]]; then 
+    printWarning "Creating a secret from default ${SECRET_FILE}, which may contain more that you want to expose."
+    printWarning "If this is an error, cancel the script and remove your secret from the deployment using:"
+    printWarning "   oc project ${OPENSHIFT_PROJECT} && oc delete secret/registryredhatio"
+    printWarning "Then use a different secret file with --secret-file=/path/to/config.json"
+  else
+    printInfo "Creating a secret from ${SECRET_FILE}"
+  fi
+  printInfo "$(oc create secret generic registryredhatio --type=kubernetes.io/dockerconfigjson --from-file=.dockerconfigjson=${SECRET_FILE} 2>&1)"
+  oc secrets link codeready-operator registryredhatio --for=pull
+  printInfo "Linked secret: $(oc get secret registryredhatio 2>&1 | grep registryredhatio)"
+  # force a new pod deployment with the correct secret
+  oc scale deployment/codeready-operator --replicas=0 2>&1 >/dev/null
+  oc scale deployment/codeready-operator --replicas=1 2>&1 >/dev/null
   waitForDeployment codeready-operator
 fi
 }
@@ -616,3 +637,6 @@ if [ "${DEPLOY}" = true ] ; then
   createOperatorDeployment
   createCustomResource
 fi
+
+printInfo "Note: Should you want to remove your secret from the deployment, use:"
+printInfo "   oc project ${OPENSHIFT_PROJECT} && oc delete secret/registryredhatio"

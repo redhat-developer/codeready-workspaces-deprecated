@@ -228,7 +228,8 @@ isLoggedIn() {
 # check if we already have a name=registryredhatio or type=kubernetes.io/dockerconfigjson secret
 checkAuthenticationWithRegistryRedhatIo()
 {
-  if [[ "$(oc get secret registryredhatio 2>&1)" == *"No resources found"* ]] || \
+  getsecret="$(oc get secret registryredhatio 2>&1)"
+  if [[ "${getsecret}" == *"No resources found"* ]] || [[ "${getsecret}" == *"NotFound"* ]] || \
      [[ "$(oc get secret --field-selector='type=kubernetes.io/dockerconfigjson' 2>&1)" == *"No resources found"* ]]; then
     echo "You must authenticate with registry.redhat.io in order for this script to proceed.
 
