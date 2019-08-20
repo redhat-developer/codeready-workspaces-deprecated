@@ -1,6 +1,6 @@
 #!/bin/bash
 BASE_DIR=$(cd "$(dirname "$0")"; pwd)
-
+ENTERED_COMMAND="$0 $@"
 DEFAULT_OPENSHIFT_PROJECT="workspaces"
 DEFAULT_ENABLE_OPENSHIFT_OAUTH="false"
 DEFAULT_TLS_SUPPORT="false"
@@ -9,11 +9,12 @@ DEFAULT_SERVER_IMAGE_NAME="registry.redhat.io/codeready-workspaces/server-rhel8"
 DEFAULT_SERVER_IMAGE_TAG="1.2"
 DEFAULT_OPERATOR_IMAGE_NAME="registry.redhat.io/codeready-workspaces/server-operator-rhel8:1.2"
 DEFAULT_NAMESPACE_CLEANUP="false"
-
+DEFAULT_SECRET_FILE="${HOME}/.docker/config.json"
 HELP="
 Usage:
  $0 [options]
 Options:
+ -f=, --secret-file=        Required: path to secret file, default: ${DEFAULT_SECRET_FILE}
  -d,  --deploy              deploy using settings in custom-resource.yaml
  -p=, --project=            OpenShift project for CodeReady Workspaces deployment,
                               default: ${DEFAULT_OPENSHIFT_PROJECT}
@@ -68,6 +69,10 @@ do
       ;;
     -v=*|--version=*)
       SERVER_IMAGE_TAG=$(echo "${key#*=}")
+      shift
+      ;;
+    -f=*| --secret-file=*)
+      SECRET_FILE=$(echo "${key#*=}")
       shift
       ;;
     -d | --deploy)
@@ -145,6 +150,47 @@ export NO_NEW_NAMESPACE=${NO_NEW_NAMESPACE:-${DEFAULT_NO_NEW_NAMESPACE}}
 
 export NAMESPACE_CLEANUP=${NAMESPACE_CLEANUP:-${DEFAULT_NAMESPACE_CLEANUP}}
 
+export SECRET_FILE
+
+printAuthErrorMessage()
+{
+    SECRET_FILE_SUGGEST=${SECRET_FILE:-/path/to/some/folder/config.json}
+    printError "You must authenticate with registry.redhat.io in order for this script to proceed.
+
+      Steps:
+
+      0. Log in to openshift:
+
+          ${OC_BINARY} login https://your.ip.address.here:8443 -u your_username -p your_password
+
+      1. Get a login for the registry.   Details: https://access.redhat.com/RegistryAuthentication#getting-a-red-hat-login-2
+
+      2. Log in using your new username. Details: https://access.redhat.com/RegistryAuthentication#using-authentication-3
+
+      To keep your registry.redhat.io login secret in a separate file, such as in ${SECRET_FILE_SUGGEST}:
+
+          docker --config ${SECRET_FILE_SUGGEST/*}/ login https://registry.redhat.io
+
+      Otherwise your secret will be stored in ~/.docker/config.json, and all your secrets will be imported to openshift in the next step.
+
+      3. Add your secret to your openshift:
+
+          ${OC_BINARY} project default
+          ${OC_BINARY} create secret generic registryredhatio --type=kubernetes.io/dockerconfigjson \\
+             --from-file=.dockerconfigjson=${SECRET_FILE_SUGGEST}
+          ${OC_BINARY} secrets link default registryredhatio --for=pull
+          ${OC_BINARY} secrets link builder registryredhatio
+
+      4. If successful, this query will show your new secret:
+
+          ${OC_BINARY} get secret registryredhatio
+
+      5. Rerun this script, using ${ENTERED_COMMAND} --secret-file=${SECRET_FILE_SUGGEST}
+
+      6. If it still fails, see https://access.redhat.com/RegistryAuthentication#allowing-pods-to-reference-images-from-other-secured-registries-9
+"
+}
+
 preReqs() {
   printInfo "Welcome to CodeReady Workspaces installer"
   if [ -x "$(command -v oc)" ]; then
@@ -156,6 +202,21 @@ preReqs() {
   else
     printError "The ${OC_BINARY} command-line tool (https://docs.openshift.org/latest/cli_reference/get_started_cli.html) not found. Download the oc client, and add it to your \$PATH."
     exit 1
+  fi
+
+  if [[ ${SECRET_FILE} ]]; then
+    if [[ -r ${SECRET_FILE} ]]; then
+      printInfo "Creating a secret from ${SECRET_FILE} in default project."
+      ${OC_BINARY} project default >/dev/null 2>&1
+      printInfo "$(${OC_BINARY} create secret generic registryredhatio --type=kubernetes.io/dockerconfigjson \
+         --from-file=.dockerconfigjson=${SECRET_FILE} >/dev/null 2>&1)"
+      ${OC_BINARY} secrets link default registryredhatio --for=pull >/dev/null 2>&1
+      ${OC_BINARY} secrets link builder registryredhatio >/dev/null 2>&1
+    else
+      printError "Cannot read ${SECRET_FILE} !"; exit 1
+    fi
+  else
+    printAuthErrorMessage; exit 1
   fi
 
   if [ "${ENABLE_OPENSHIFT_OAUTH}" == "true" ]; then
@@ -193,7 +254,10 @@ createNewProject() {
   ${OC_BINARY} get namespace "${OPENSHIFT_PROJECT}" > /dev/null 2>&1
   OUT=$?
       if [ ${OUT} -ne 0 ]; then
-           printWarning "Project '${OPENSHIFT_PROJECT}' not found, or the current user does not have access to it. The installer will try to create a '${OPENSHIFT_PROJECT}' project."
+          printWarning "Project '${OPENSHIFT_PROJECT}' not found, or the current user does not have access to it. The installer will try to create a '${OPENSHIFT_PROJECT}' project."
+          printWarning "Note: if you need to delete the project later, run this:"
+          printWarning "   ${OC_BINARY} delete checluster codeready -n ${OPENSHIFT_PROJECT} && ${OC_BINARY} delete project ${OPENSHIFT_PROJECT} &"
+          printWarning "   ${OC_BINARY} project default"
           printInfo "Creating project '${OPENSHIFT_PROJECT}'."
           # sometimes even if the project does not exist creating a new one is impossible as it apparently exists
           sleep 1
@@ -563,6 +627,13 @@ if [ ${OUT} -ne 0 ]; then
   printError "Failed to deploy CodeReady Workspaces operator"
   exit 1
 else
+  printInfo "Creating a secret from ${SECRET_FILE} in codeready-operator deployment of ${OPENSHIFT_PROJECT} project."
+  printInfo "$(${OC_BINARY} create secret generic registryredhatio --type=kubernetes.io/dockerconfigjson --from-file=.dockerconfigjson=${SECRET_FILE} 2>&1)"
+  ${OC_BINARY} secrets link codeready-operator registryredhatio --for=pull
+  printInfo "Linked secret: $(${OC_BINARY} get secret registryredhatio 2>&1 | grep registryredhatio)"
+  # force a new pod deployment with the correct secret
+  ${OC_BINARY} scale deployment/codeready-operator --replicas=0 >/dev/null 2>&1
+  ${OC_BINARY} scale deployment/codeready-operator --replicas=1 >/dev/null 2>&1
   waitForDeployment codeready-operator
 fi
 }
@@ -622,9 +693,21 @@ createCustomResource() {
   fi
 }
 
+# check if we already have a name=registryredhatio or type=kubernetes.io/dockerconfigjson secret
+checkAuthenticationWithRegistryRedhatIo()
+{
+  getsecret="$(${OC_BINARY} get secret registryredhatio 2>&1)"
+  if [[ ! ${SECRET_FILE} ]] || [[ "${getsecret}" == *"No resources found"* ]] || [[ "${getsecret}" == *"NotFound"* ]] || \
+     [[ "$(${OC_BINARY} get secret --field-selector='type=kubernetes.io/dockerconfigjson' 2>&1)" == *"No resources found"* ]]; then
+      printAuthErrorMessage
+      exit 1
+  fi
+}
+
 if [ "${DEPLOY}" = true ] ; then
   preReqs
   isLoggedIn
+  checkAuthenticationWithRegistryRedhatIo
   createNewProject
   createServiceAccount
   createCRD
@@ -637,3 +720,6 @@ if [ "${DEPLOY}" = true ] ; then
   createOperatorDeployment
   createCustomResource
 fi
+
+printInfo "Note: Should you want to remove your secret from the deployment, use:"
+printInfo "   ${OC_BINARY} project ${OPENSHIFT_PROJECT} && ${OC_BINARY} delete secret/registryredhatio"
