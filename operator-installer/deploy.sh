@@ -169,7 +169,7 @@ printAuthErrorMessage()
 
       To keep your registry.redhat.io login secret in a separate file, such as in ${SECRET_FILE_SUGGEST}:
 
-          docker --config ${SECRET_FILE_SUGGEST/*}/ login https://registry.redhat.io
+          docker --config ${SECRET_FILE_SUGGEST%/*}/ login https://registry.redhat.io
 
       Otherwise your secret will be stored in ~/.docker/config.json, and all your secrets will be imported to openshift in the next step.
 
