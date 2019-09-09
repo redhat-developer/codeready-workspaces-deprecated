@@ -27,7 +27,7 @@
     <name>CodeReady Workspaces :: Operator Installer</name>
     <properties>
         <!-- TODO: switch to 1.x branch, or a tag -->
-        <cheOperatorBranchOrTag>master</cheOperatorBranchOrTag>
+        <cheOperatorBranchOrTag>1.x</cheOperatorBranchOrTag>
     </properties>
     <build>
         <plugins>
