@@ -347,7 +347,7 @@ fi
     ${OC_BINARY} get clusterrole codeready-operator > /dev/null 2>&1
     OUT=$?
     if [ ${OUT} -ne 0 ]; then
-      ${OC_BINARY} create clusterrole codeready-operator --resource=oauthclients --verb=get,create,delete,update,list,watch > /dev/null
+      ${OC_BINARY} create clusterrole codeready-operator --resource=oauthclients --verb=get,create,delete,update,list,watch,patch > /dev/null
       OUT=$?
       if [ ${OUT} -ne 0 ]; then
         printError "Failed to create the cluster role."
@@ -628,7 +628,9 @@ if [ "${DEPLOY}" = true ] ; then
   createNewProject
   createServiceAccount
   createCRD
-  if [ "${ENABLE_OPENSHIFT_OAUTH}" == "true" ]; then
+  INFRASTRUCTURES=$(${OC_BINARY} api-resources --api-group=config.openshift.io --no-headers | grep 'infrastructures')
+  # Only patch the cluster role when on Openshift 4.x
+  if [ "${INFRASTRUCTURES}" != "" ] && [ "${ENABLE_OPENSHIFT_OAUTH}" == "true" ]; then  
     patchYaml ${BASE_DIR}/cluster_role.yaml clusterrole/codeready-operator
     # doesn't quite work -- need to tweak the yaml?
     #patchYaml ${BASE_DIR}/cluster_role_binding.yaml clusterrolebinding/${OPENSHIFT_PROJECT}-codeready-operator
