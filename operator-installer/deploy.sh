@@ -590,44 +590,41 @@ createCustomResource() {
   if [ ${OUT} -ne 0 ]; then
     printError "Failed to create custom resource. If it is an 'already exists' error, disregard it."
   fi
-    DEPLOYMENT_TIMEOUT_SEC=1200
-    printInfo "Waiting for CodeReady Workspaces to boot. Timeout: ${DEPLOYMENT_TIMEOUT_SEC} seconds."
-    if [ "${FOLLOW_LOGS}" == "true" ]; then
-      printInfo "You may exit this script as soon as the log reports a successful CodeReady Workspaces deployment."
-      ${OC_BINARY} logs -f deployment/codeready-operator -n="${OPENSHIFT_PROJECT}" | 
-      {
-        while read i; do
-          echo $i
-          if [[ "$i" == *"CodeReady Workspaces is now available at:"* ]]; then
-            break
-          fi
-        done
-      }
-    else
-      DESIRED_STATE="Available"
-      CURRENT_STATE=$(${OC_BINARY} get checluster/codeready -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.cheClusterRunning}')
-      POLLING_INTERVAL_SEC=5
-      end=$((SECONDS+DEPLOYMENT_TIMEOUT_SEC))
-      while [ "${CURRENT_STATE}" != "${DESIRED_STATE}" ] && [ ${SECONDS} -lt ${end} ]; do
-        CURRENT_STATE=$(${OC_BINARY} get checluster/codeready -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.cheClusterRunning}')
-        timeout_in=$((end-SECONDS))
-        sleep ${POLLING_INTERVAL_SEC}
-      done
-
-      if [ "${CURRENT_STATE}" != "${DESIRED_STATE}"  ]; then
-        printError "CodeReady Workspaces deployment failed. Aborting."
-        printError "Check deployment logs and events:"
-        printError " ${OC_BINARY} logs deployment/codeready-operator -n ${OPENSHIFT_PROJECT}"
-        exit 1
-      elif [ ${SECONDS} -ge ${end} ]; then
-        printError "Deployment timeout. Aborting."
-        printError "Check deployment logs and events:"
-        printError " ${OC_BINARY} logs deployment/codeready-operator -n ${OPENSHIFT_PROJECT}"
-        exit 1
-      fi
-      CODEREADY_ROUTE=$(${OC_BINARY} get checluster/codeready -o=jsonpath='{.status.cheURL}')
-      printInfo "CodeReady Workspaces successfully deployed and is available at ${CODEREADY_ROUTE}"
+  DEPLOYMENT_TIMEOUT_SEC=1200
+  printInfo "Waiting for CodeReady Workspaces to boot. Timeout: ${DEPLOYMENT_TIMEOUT_SEC} seconds."
+  if [ "${FOLLOW_LOGS}" == "true" ]; then
+    # printInfo "You may exit this script as soon as the log reports a successful CodeReady Workspaces deployment."
+    ${OC_BINARY} logs -f deployment/codeready-operator -n="${OPENSHIFT_PROJECT}" &
   fi
+  DESIRED_STATE="Available"
+  CURRENT_STATE=$(${OC_BINARY} get checluster/codeready -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.cheClusterRunning}')
+  POLLING_INTERVAL_SEC=5
+  end=$((SECONDS+DEPLOYMENT_TIMEOUT_SEC))
+  while [ "${CURRENT_STATE}" != "${DESIRED_STATE}" ] && [ ${SECONDS} -lt ${end} ]; do
+    CURRENT_STATE=$(${OC_BINARY} get checluster/codeready -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.cheClusterRunning}')
+    timeout_in=$((end-SECONDS))
+    sleep ${POLLING_INTERVAL_SEC}
+  done
+
+  if [ "${FOLLOW_LOGS}" == "true" ]; then
+    # kill the log listener
+    OC_LOGS_PID=$(pgrep -n -f "oc logs -f deployment/codeready-operator -n=${OPENSHIFT_PROJECT}")
+    if [[ "${OC_LOGS_PID}" ]]; then RES=$(kill -9 ${OC_LOGS_PID} 2>&1 >/dev/null); fi
+  fi
+
+  if [ "${CURRENT_STATE}" != "${DESIRED_STATE}"  ]; then
+    printError "CodeReady Workspaces deployment failed. Aborting."
+    printError "Check deployment logs and events:"
+    printError " ${OC_BINARY} logs deployment/codeready-operator -n ${OPENSHIFT_PROJECT}"
+    exit 1
+  elif [ ${SECONDS} -ge ${end} ]; then
+    printError "Deployment timeout. Aborting."
+    printError "Check deployment logs and events:"
+    printError " ${OC_BINARY} logs deployment/codeready-operator -n ${OPENSHIFT_PROJECT}"
+    exit 1
+  fi
+  CODEREADY_ROUTE=$(${OC_BINARY} get checluster/codeready -o=jsonpath='{.status.cheURL}')
+  printInfo "CodeReady Workspaces successfully deployed and is available at ${CODEREADY_ROUTE}"
 }
 
 if [ "${DEPLOY}" = true ] ; then
@@ -645,3 +642,6 @@ if [ "${DEPLOY}" = true ] ; then
   createOperatorDeployment
   createCustomResource
 fi
+
+# don't exit if we have forked processes remaining
+wait
