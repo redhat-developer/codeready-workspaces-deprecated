@@ -594,7 +594,15 @@ createCustomResource() {
     printInfo "Waiting for CodeReady Workspaces to boot. Timeout: ${DEPLOYMENT_TIMEOUT_SEC} seconds."
     if [ "${FOLLOW_LOGS}" == "true" ]; then
       printInfo "You may exit this script as soon as the log reports a successful CodeReady Workspaces deployment."
-      ${OC_BINARY} logs -f deployment/codeready-operator -n="${OPENSHIFT_PROJECT}"
+      ${OC_BINARY} logs -f deployment/codeready-operator -n="${OPENSHIFT_PROJECT}" | 
+      {
+        while read i; do
+          echo $i
+          if [[ "$i" == *"CodeReady Workspaces is now available at:"* ]]; then
+            break
+          fi
+        done
+      }
     else
       DESIRED_STATE="Available"
       CURRENT_STATE=$(${OC_BINARY} get checluster/codeready -n="${OPENSHIFT_PROJECT}" -o=jsonpath='{.status.cheClusterRunning}')
