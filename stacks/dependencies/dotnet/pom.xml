@@ -66,6 +66,7 @@
                                 <mkdir dir="${basedir}/target/dotnet-ls" />
                                 <echo message="Downloading OmniSharp from GH releases..." />
                                 <get dest="${basedir}/target/dotnet-ls" src="https://github.com/OmniSharp/omnisharp-roslyn/releases/download/v${DOTNET_LS_VERSION}/omnisharp-linux-x64.tar.gz" usetimestamp="true" verbose="false" />
+                                <get dest="${basedir}/target/dotnet-ls" src="https://github.com/OmniSharp/omnisharp-roslyn/archive/v${DOTNET_LS_VERSION}.tar.gz" usetimestamp="true" verbose="false" />
                                 <get dest="${basedir}/target/dotnet-ls" src="https://github.com/OmniSharp/omnisharp-roslyn/blob/v${DOTNET_LS_VERSION}/license.md" usetimestamp="true" verbose="false" />
                             </target>
                         </configuration>
