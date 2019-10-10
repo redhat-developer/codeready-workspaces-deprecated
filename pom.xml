@@ -27,7 +27,7 @@
 
   <modules>
       <module>operator-installer</module>
-      <!-- Not needed in 2.0, we hope <module>stacks/dependencies</module> -->
+      <module>stacks/dependencies</module>
   </modules>
 
     <properties>
