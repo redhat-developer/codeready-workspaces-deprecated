@@ -27,6 +27,8 @@
     <properties>
         <!-- find latest version: https://hub.docker.com/_/node/?tab=description -->
         <NODEJS_IMAGE_VERSION>node:10.15-alpine</NODEJS_IMAGE_VERSION>
+        <!-- find latest version: https://www.npmjs.com/package/nodemon -->
+        <NODEMON_VERSION>1.19.3</NODEMON_VERSION>
         <!-- find latest version: https://www.npmjs.com/package/typescript -->
         <TYPERSCRIPT_VERSION>3.4.5</TYPERSCRIPT_VERSION>
         <!-- find latest version: https://www.npmjs.com/package/typescript-language-server -->
@@ -84,7 +86,7 @@
                             <target>
                                 <mkdir dir="${basedir}/target" />
                                 <exec dir="${basedir}" executable="docker" failonerror="true">
-                                    <arg line="run -v ${basedir}/target:/node_modules ${NODEJS_IMAGE_VERSION} sh -c 'npm install --prefix /node_modules typescript@${TYPERSCRIPT_VERSION} typescript-language-server@${TYPESCRIPT_LS_VERSION}; chmod -R 777 /node_modules'" />
+                                    <arg line="run -v ${basedir}/target:/node_modules ${NODEJS_IMAGE_VERSION} sh -c 'npm install --prefix /node_modules nodemon@${NODEMON_VERSION} typescript@${TYPERSCRIPT_VERSION} typescript-language-server@${TYPESCRIPT_LS_VERSION}; chmod -R 777 /node_modules'" />
                                 </exec>
                                 &gt;
                             </target>
