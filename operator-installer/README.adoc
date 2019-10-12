@@ -6,7 +6,7 @@ Red Hat CodeReady Workspaces is a developer workspace server and cloud IDE.
 
 See product _Release Notes and Known Issues_ for more information about the product and the current version:
 
-https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/1.2/html/release_notes_and_known_issues/
+https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.0/html/release_notes_and_known_issues/
 
 == Installing CodeReady Workspaces
 
@@ -19,4 +19,38 @@ See the CodeReady Workspaces _Administration Guide_ for instructions on how to d
 * migrate from the previous version of the product
 * uninstall the product
 
-https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/1.2/html/administration_guide/
+https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.0/html/administration_guide/
+
+=== Installing with chectl (DRAFT) 
+
+This information is draft and subject to change.
+
+To install Workspaces 2.0 with chectl:
+
+* Download the latest chectl from https://github.com/che-incubator/chectl/releases and install it
+* using link:custom-resource.yaml[custom-resource.yaml] in this folder, deploy Workspaces as follows:
+
+```
+# log in to Minishift 
+oc login ${MINISHIFT_URL} -u ${MINISHIFT_USERNAME} -p ${MINISHIFT_PASSWORD} ...
+
+# pull images from registry.redhat.io as minishift cannot use authentication secret correctly 
+eval $(minishift docker-env)
+docker pull registry.redhat.io/rhscl/postgresql-96-rhel7:1-47
+docker pull registry.redhat.io/redhat-sso-7/sso73-openshift:1.0-13.1567588155
+
+# run deployment using custom-resource.yaml to override Che defaults with CRW defaults
+/path/to/chectl server:start -a operator -p minishift \
+  --che-operator-cr-yaml=custom-resource.yaml -n crw2mini
+```
+
+or
+
+```
+# log in to OCP 4
+oc login ${OPENSHIFT_API_URL} -u ${OPENSHIFT_USERNAME} -p ${OPENSHIFT_PASSWORD} ...
+
+# run deployment using custom-resource.yaml to override Che defaults with CRW defaults
+/path/to/chectl server:start -a operator -p openshift --domain=${OPENSHIFT_CONSOLE_URL} \
+  --che-operator-cr-yaml=custom-resource.yaml -n crw2ocp311
+```

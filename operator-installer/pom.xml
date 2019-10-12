@@ -108,7 +108,7 @@
 
                                 <echo message="Copying files ..."/>
                                 <copy todir="${basedir}/target/codeready-workspaces-operator-installer/">
-                                    <fileset dir="${basedir}" includes="**/cluster_role.yaml, **/cluster_role_binding.yaml, **/custom-resource.yaml, **/*.sh, **/README.adoc"/>
+                                    <fileset dir="${basedir}" includes="**/cluster_role.yaml, **/cluster_role_binding.yaml, **/custom-resource*.yaml, **/*.sh, **/README.adoc"/>
                                 </copy>
                                 <chmod dir="${basedir}/target/codeready-workspaces-operator-installer/" includes="**/*.sh" perm="775"/>
                             </target>
