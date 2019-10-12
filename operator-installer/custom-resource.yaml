@@ -32,19 +32,13 @@ spec:
     # a list of non-proxy hosts. Use | as delimiter, eg localhost|my.host.com|123.42.12.32
     # nonProxyHosts: ''
     # overrides for https://github.com/eclipse/che/blob/master/assembly/assembly-wsmaster-war/src/main/webapp/WEB-INF/classes/che/che.properties
-    overrideCheProperties:
-    - name: CHE_WORKSPACE_SIDECAR_IMAGE__PULL__POLICY
-      value: 'Always'
-    - name: CHE_DOCKER_ALWAYS__PULL__IMAGE
-      value: 'true'
-    - name: CHE_INFRA_KUBERNETES_PVC_JOBS_IMAGE
-      value: 'registry.access.redhat.com/ubi8-minimal:8.0-213'
-    - name: CHE_WORKSPACE_PLUGIN__BROKER_INIT_IMAGE
-      value: 'quay.io/crw/pluginbrokerinit-rhel8:2.0'
-    - name: CHE_WORKSPACE_PLUGIN__BROKER_UNIFIED_IMAGE
-      value: 'quay.io/crw/pluginbroker-rhel8:2.0'
-    - name: CHE_SERVER_SECURE__EXPOSER_JWTPROXY_IMAGE
-      value: 'quay.io/crw/jwtproxy-rhel8:2.0'
+    customCheProperties:
+      CHE_WORKSPACE_SIDECAR_IMAGE__PULL__POLICY: 'Always'
+      CHE_DOCKER_ALWAYS__PULL__IMAGE: 'true'
+      CHE_INFRA_KUBERNETES_PVC_JOBS_IMAGE: 'registry.access.redhat.com/ubi8-minimal:8.0-213'
+      CHE_WORKSPACE_PLUGIN__BROKER_INIT_IMAGE: 'quay.io/crw/pluginbrokerinit-rhel8:2.0'
+      CHE_WORKSPACE_PLUGIN__BROKER_UNIFIED_IMAGE: 'quay.io/crw/pluginbroker-rhel8:2.0'
+      CHE_SERVER_SECURE__EXPOSER_JWTPROXY_IMAGE: 'quay.io/crw/jwtproxy-rhel8:2.0'
 
     # when set to true, the operator skips deploying Postgres, and passes connection details of existing DB to Che server
     # otherwise a Postgres deployment is created
@@ -70,6 +64,4 @@ spec:
     # openShiftoAuth: false
     # image:tag used in Keycloak deployment
     identityProviderImage: 'registry.redhat.io/redhat-sso-7/sso73-openshift:1.0-13.1567588155'
-  k8s:
-    # your global ingress domain
-    # ingressDomain: '192.168.99.101.nip.io'
+    
