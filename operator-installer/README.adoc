@@ -41,6 +41,7 @@ docker pull registry.redhat.io/redhat-sso-7/sso73-openshift:1.0-13.1567588155
 
 # run deployment using custom-resource.yaml to override Che defaults with CRW defaults
 /path/to/chectl server:start -a operator -p minishift \
+  --che-operator-image=quay.io/crw/operator-rhel8:2.0 \
   --che-operator-cr-yaml=custom-resource.yaml -n crw2mini
 ```
 
@@ -52,5 +53,6 @@ oc login ${OPENSHIFT_API_URL} -u ${OPENSHIFT_USERNAME} -p ${OPENSHIFT_PASSWORD} 
 
 # run deployment using custom-resource.yaml to override Che defaults with CRW defaults
 /path/to/chectl server:start -a operator -p openshift --domain=${OPENSHIFT_CONSOLE_URL} \
-  --che-operator-cr-yaml=custom-resource.yaml -n crw2ocp311
+  --che-operator-image=quay.io/crw/operator-rhel8:2.0 \
+  --che-operator-cr-yaml=custom-resource.yaml -n crw2ocp4
 ```
