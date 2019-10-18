@@ -39,10 +39,10 @@ spec:
       CHE_WORKSPACE_PLUGIN__BROKER_INIT_IMAGE: 'quay.io/crw/pluginbrokerinit-rhel8:2.0'
       CHE_WORKSPACE_PLUGIN__BROKER_UNIFIED_IMAGE: 'quay.io/crw/pluginbroker-rhel8:2.0'
       CHE_SERVER_SECURE__EXPOSER_JWTPROXY_IMAGE: 'quay.io/crw/jwtproxy-rhel8:2.0'
-      CHE_FACTORY_DEFAULT__EDITOR: 'eclipse/che-theia/7.3.0'
-      CHE_FACTORY_DEFAULT__PLUGINS: 'eclipse/che-machine-exec-plugin/7.3.0'
-      CHE_WORKSPACE_DEVFILE_DEFAULT__EDITOR: 'eclipse/che-theia/7.3.0'
-      CHE_WORKSPACE_DEVFILE_DEFAULT__EDITOR_PLUGINS: 'eclipse/che-machine-exec-plugin/7.3.0'
+      CHE_FACTORY_DEFAULT__EDITOR: 'eclipse/che-theia/latest'
+      CHE_FACTORY_DEFAULT__PLUGINS: 'eclipse/che-machine-exec-plugin/latest'
+      CHE_WORKSPACE_DEVFILE_DEFAULT__EDITOR: 'eclipse/che-theia/latest'
+      CHE_WORKSPACE_DEVFILE_DEFAULT__EDITOR_PLUGINS: 'eclipse/che-machine-exec-plugin/latest'
 
     # when set to true, the operator skips deploying Postgres, and passes connection details of existing DB to Che server
     # otherwise a Postgres deployment is created
