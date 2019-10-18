@@ -35,7 +35,8 @@ spec:
     customCheProperties:
       CHE_WORKSPACE_SIDECAR_IMAGE__PULL__POLICY: 'Always'
       CHE_DOCKER_ALWAYS__PULL__IMAGE: 'true'
-      CHE_INFRA_KUBERNETES_PVC_JOBS_IMAGE: 'registry.access.redhat.com/ubi8-minimal:8.0-213'
+      # set by operator, probably don't need to override. Latest in https://github.com/eclipse/che-operator/blob/master/pkg/deploy/defaults.go#L47-L51
+      # CHE_INFRA_KUBERNETES_PVC_JOBS_IMAGE: 'registry.access.redhat.com/ubi8-minimal:8.0-213'
       CHE_WORKSPACE_PLUGIN__BROKER_INIT_IMAGE: 'quay.io/crw/pluginbrokerinit-rhel8:2.0'
       CHE_WORKSPACE_PLUGIN__BROKER_UNIFIED_IMAGE: 'quay.io/crw/pluginbroker-rhel8:2.0'
       CHE_SERVER_SECURE__EXPOSER_JWTPROXY_IMAGE: 'quay.io/crw/jwtproxy-rhel8:2.0'
@@ -48,7 +49,8 @@ spec:
     # otherwise a Postgres deployment is created
     # externalDb: false
     # Postgres deployment in format image:tag. Defaults to registry.redhat.io/rhscl/postgresql-96-rhel7 (see pkg/deploy/defaults.go for latest tag)
-    postgresImage: 'registry.redhat.io/rhscl/postgresql-96-rhel7:1-47'
+    # set by operator, probably don't need to override. Latest in https://github.com/eclipse/che-operator/blob/master/pkg/deploy/defaults.go#L47-L51
+    # postgresImage: 'registry.redhat.io/rhscl/postgresql-96-rhel7:1-47'
   storage:
     # persistent volume claim strategy for Che server. Can be common (all workspaces PVCs in one volume),
     # per-workspace (one PVC per workspace for all declared volumes) and unique (one PVC per declared volume). Defaults to common
@@ -58,7 +60,8 @@ spec:
     # instruct Che server to launch a special pod to precreate a subpath in a PV
     # preCreateSubPaths: true
     # image:tag for preCreateSubPaths jobs
-    pvcJobsImage: 'registry.access.redhat.com/ubi8-minimal:8.0-213'
+    # set by operator, probably don't need to override. Latest in https://github.com/eclipse/che-operator/blob/master/pkg/deploy/defaults.go#L47-L51
+    # pvcJobsImage: 'registry.access.redhat.com/ubi8-minimal:8.0-213'
   auth:
     # instructs operator on whether or not to deploy Keycloak/RH SSO instance. When set to true provision connection details
     # externalIdentityProvider: false
@@ -67,5 +70,6 @@ spec:
     # as well as create respective oAuthClient and configure Che configMap accordingly
     # openShiftoAuth: false
     # image:tag used in Keycloak deployment
-    identityProviderImage: 'registry.redhat.io/redhat-sso-7/sso73-openshift:1.0-13.1567588155'
+    # set by operator, probably don't need to override. Latest in https://github.com/eclipse/che-operator/blob/master/pkg/deploy/defaults.go#L47-L51
+    # identityProviderImage: 'registry.redhat.io/redhat-sso-7/sso73-openshift:1.0-15'
     
