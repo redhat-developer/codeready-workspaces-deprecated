@@ -51,7 +51,7 @@ spec:
     # Postgres deployment in format image:tag. Defaults to registry.redhat.io/rhscl/postgresql-96-rhel7 (see pkg/deploy/defaults.go for latest tag)
     # set by operator, probably don't need to override. Latest in https://github.com/eclipse/che-operator/blob/master/pkg/deploy/defaults.go#L47-L51
     # postgresImage: 'registry.redhat.io/rhscl/postgresql-96-rhel7:1-47'
-  storage:
+  # storage:
     # persistent volume claim strategy for Che server. Can be common (all workspaces PVCs in one volume),
     # per-workspace (one PVC per workspace for all declared volumes) and unique (one PVC per declared volume). Defaults to common
     # pvcStrategy: 'per-workspace'
@@ -62,7 +62,7 @@ spec:
     # image:tag for preCreateSubPaths jobs
     # set by operator, probably don't need to override. Latest in https://github.com/eclipse/che-operator/blob/master/pkg/deploy/defaults.go#L47-L51
     # pvcJobsImage: 'registry.access.redhat.com/ubi8-minimal:8.0-213'
-  auth:
+  # auth:
     # instructs operator on whether or not to deploy Keycloak/RH SSO instance. When set to true provision connection details
     # externalIdentityProvider: false
     # retrieved from respective route/ingress unless explicitly specified in CR (when ExternalKeycloak is true)
