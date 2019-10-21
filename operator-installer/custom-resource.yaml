@@ -7,7 +7,7 @@ spec:
     # server image used in Che deployment
     cheImage: 'quay.io/crw/server-rhel8'
     # tag of an image used in Che deployment
-    cheImageTag: '2.0-366'
+    cheImageTag: '2.0'
     # image:tag used in Devfile registry deployment
     devfileRegistryImage: 'quay.io/crw/devfileregistry-rhel8:2.0-139'
     # image:tag used in plugin registry deployment
@@ -72,4 +72,4 @@ spec:
     # image:tag used in Keycloak deployment
     # set by operator, probably don't need to override. Latest in https://github.com/eclipse/che-operator/blob/master/pkg/deploy/defaults.go#L47-L51
     # identityProviderImage: 'registry.redhat.io/redhat-sso-7/sso73-openshift:1.0-15'
-    
+      
