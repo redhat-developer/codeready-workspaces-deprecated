@@ -28,14 +28,14 @@
     <name>CodeReady Workspaces :: Stacks :: Language Servers :: Dependencies</name>
     <modules>
         <!-- deprecated: only for RHEL7 -->
-        <module>node8</module>
+        <!-- <module>node8</module> -->
         <!-- new for RHEL 8 -->
         <module>node10</module>
         <module>php</module>
         <module>python</module>
         <module>dotnet</module>
         <module>golang</module>
-        <module>bayesian</module>
+        <!-- <module>bayesian</module> -->
     </modules>
     <dependencyManagement>
         <dependencies>
