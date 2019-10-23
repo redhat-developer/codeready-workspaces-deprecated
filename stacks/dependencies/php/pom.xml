@@ -26,9 +26,10 @@
     <name>CodeReady Workspaces :: Stacks :: Language Servers :: PHP Dependencies</name>
     <properties>
         <PHP_LS_VERSION>5.4.6</PHP_LS_VERSION>
-        <PHP_VERSION>7.2.x</PHP_VERSION>
-        <WEBDEVOPS_IMAGE_VERSION>webdevops/php-apache-dev:alpine-php7</WEBDEVOPS_IMAGE_VERSION>
-        <ZENDSERVER_IMAGE_VERSION>php-zendserver:2018.0</ZENDSERVER_IMAGE_VERSION>
+        <!-- <PHP_VERSION>7.2.x</PHP_VERSION> -->
+        <WEBDEVOPS_IMAGE>webdevops/php-apache-dev:alpine-php7</WEBDEVOPS_IMAGE>
+        <XDEBUG_BUILDER_IMAGE>php-xdebug:tmp</XDEBUG_BUILDER_IMAGE>
+        <!-- <ZENDSERVER_IMAGE>php-zendserver:2018.0</ZENDSERVER_IMAGE> -->
     </properties>
     <build>
         <plugins>
@@ -37,28 +38,72 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>make-assembly</id>
+                        <id>make-assembly-xdebug</id>
                         <phase>prepare-package</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>
+                        <configuration>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <descriptors>
+                                <descriptor>${project.basedir}/src/assembly/assembly-xdebug.xml</descriptor>
+                            </descriptors>
+                            <tarLongFileMode>posix</tarLongFileMode>
+                            <finalName>${project.artifactId}-xdebug</finalName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>make-assembly-ls</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <descriptors>
+                                <descriptor>${project.basedir}/src/assembly/assembly-ls.xml</descriptor>
+                            </descriptors>
+                            <tarLongFileMode>posix</tarLongFileMode>
+                            <finalName>${project.artifactId}</finalName>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <appendAssemblyId>false</appendAssemblyId>
-                    <descriptors>
-                        <descriptor>${project.basedir}/src/assembly/assembly.xml</descriptor>
-                    </descriptors>
-                    <tarLongFileMode>posix</tarLongFileMode>
-                    <finalName>${project.artifactId}</finalName>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <version>1.8</version>
                 <executions>
-                    <!-- php: php-ls deps -->
+                    <!-- CRW 2 xdebug -->
+                    <execution>
+                        <id>download-xdebug</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <mkdir dir="${basedir}/target/php-xdebug" />
+                                <!-- collect these files
+                                /etc/php.ini
+                                /usr/share/doc/pecl/xdebug/contrib/tracefile-analyser.php
+                                /usr/share/doc/pecl/xdebug/contrib/xt.vim
+                                /usr/share/doc/pecl/xdebug/CREDITS
+                                /usr/share/doc/pecl/xdebug/LICENSE
+                                /usr/share/doc/pecl/xdebug/xdebug.ini
+                                /usr/share/doc/pecl/xdebug/README.rst
+                                /usr/lib64/php/modules/xdebug.so
+                                -->
+                                <exec dir="${basedir}" executable="docker" failonerror="true">
+                                    <arg line="build . -t ${XDEBUG_BUILDER_IMAGE} -f xdebug.Dockerfile" />
+                                </exec>
+                                <exec dir="${basedir}" executable="docker" failonerror="true">
+                                    <arg line="run -v ${basedir}/target/php-xdebug:/xd ${XDEBUG_BUILDER_IMAGE} sh -c 'mkdir -p /xd/etc /xd/usr/share/doc/pecl/xdebug /xd/usr/lib64/php/modules/; cp /etc/php.ini /xd/etc/php.ini; cp -r /usr/share/doc/pecl/xdebug/* /xd/usr/share/doc/pecl/xdebug/; cp /usr/lib64/php/modules/xdebug.so /xd/usr/lib64/php/modules/xdebug.so; chmod -R 777 /xd'" />
+                                </exec>
+                            </target>
+                        </configuration>
+                    </execution>
+                    <!-- CRW 1.2 php-ls deps -->
                     <execution>
                         <id>download-composer-php-ls</id>
                         <phase>compile</phase>
@@ -68,15 +113,31 @@
                         <configuration>
                             <target>
                                 <mkdir dir="${basedir}/target/php-ls" />
+                                <!-- collect lang server stuff - TODO are these still required? -->
                                 <exec dir="${basedir}" executable="docker" failonerror="true">
-                                    <arg line="run -v ${basedir}/target/php-ls:/php ${WEBDEVOPS_IMAGE_VERSION} sh -c 'mkdir -p /php; cd /php; chmod -R 777 /php; su -l application -c &quot;cd /php; /usr/local/bin/composer require jetbrains/phpstorm-stubs:dev-master; /usr/local/bin/composer require felixfbecker/language-server:${PHP_LS_VERSION}; /usr/local/bin/composer run-script --working-dir=vendor/felixfbecker/language-server parse-stubs; mv vendor/* .; rm -rf vendor&quot;; cp /usr/local/bin/composer /php/composer; chmod -R 777 /php'" />
+                                    <arg line="run -v ${basedir}/target/php-ls:/php ${WEBDEVOPS_IMAGE} sh -c 'mkdir -p /php; cd /php; chmod -R 777 /php; su -l application -c &quot;cd /php; /usr/local/bin/composer require jetbrains/phpstorm-stubs:dev-master; /usr/local/bin/composer require felixfbecker/language-server:${PHP_LS_VERSION}; /usr/local/bin/composer run-script --working-dir=vendor/felixfbecker/language-server parse-stubs; mv vendor/* .; rm -rf vendor&quot;; cp /usr/local/bin/composer /php/composer; chmod -R 777 /php'" />
                                 </exec>
-                                <exec dir="${basedir}" executable="docker" failonerror="true">
-                                    <arg line="run -v ${basedir}/target/php-ls:/php ${ZENDSERVER_IMAGE_VERSION} sh -c 'cp /usr/local/zend/lib/debugger/php-${PHP_VERSION}/ZendDebugger.so /php/ZendDebugger.so; chmod -R 777 /php'" />
-                                </exec>
+                                <!-- <exec dir="${basedir}" executable="docker" failonerror="true">
+                                    <arg line="run -v ${basedir}/target/php-ls:/php ${ZENDSERVER_IMAGE} sh -c 'cp /usr/local/zend/lib/debugger/php-${PHP_VERSION}/ZendDebugger.so /php/ZendDebugger.so; chmod -R 777 /php'" />
+                                </exec> -->
                             </target>
                         </configuration>
                     </execution>
+                    <!-- cleanup temp docker images when done -->
+                    <execution>
+                        <id>delete-docker-images</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <exec dir="${basedir}" executable="docker" failonerror="true">
+                                    <arg line="rmi -f registry.access.redhat.com/ubi8/php-72 ${XDEBUG_BUILDER_IMAGE} ${WEBDEVOPS_IMAGE}" />
+                                </exec>
+                            </target>
+                        </configuration>
+                    </execution>                
                 </executions>
             </plugin>
         </plugins>
