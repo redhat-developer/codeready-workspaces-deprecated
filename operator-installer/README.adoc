@@ -13,7 +13,7 @@ https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.0/h
 See the CodeReady Workspaces _Administration Guide_ for instructions on how to deploy the product using various configurations and on different flavors of the OpenShift platform. The _Administration Guide_ includes instructions on how to:
 
 * deploy with different parameters on Red Hat OpenShift Container Platform 3.11
-* deploy on Red Hat OpenShift Container Platform 4.1
+* deploy on Red Hat OpenShift Container Platform 4.x
 * deploy on Red Hat OpenShift Dedicated
 * deploy on Red Hat OpenShift Container Platform in a restricted environment
 * migrate from the previous version of the product
@@ -21,13 +21,13 @@ See the CodeReady Workspaces _Administration Guide_ for instructions on how to d
 
 https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.0/html/administration_guide/
 
-=== Installing with chectl (DRAFT) 
+=== Installing with crwctl (DRAFT) 
 
 This information is draft and subject to change.
 
-To install Workspaces 2.0 with chectl:
+To install Workspaces 2.0 with crwctl:
 
-* Download the latest chectl from https://github.com/che-incubator/chectl/releases and install it
+* Download the latest crwctl from https://github.com/redhat-developer/codeready-workspaces-chectl/releases and install it
 * using link:custom-resource.yaml[custom-resource.yaml] in this folder, deploy Workspaces as follows:
 
 ```
@@ -40,9 +40,9 @@ docker pull registry.redhat.io/rhscl/postgresql-96-rhel7:1-47
 docker pull registry.redhat.io/redhat-sso-7/sso73-openshift:1.0-13.1567588155
 
 # run deployment using custom-resource.yaml to override Che defaults with CRW defaults
-/path/to/chectl server:start -a operator -p minishift \
+/path/to/crwctl server:start -n crw2mini \
   --che-operator-image=quay.io/crw/operator-rhel8:2.0 \
-  --che-operator-cr-yaml=custom-resource.yaml -n crw2mini
+  --che-operator-cr-yaml=custom-resource.yaml 
 ```
 
 or
@@ -52,7 +52,32 @@ or
 oc login ${OPENSHIFT_API_URL} -u ${OPENSHIFT_USERNAME} -p ${OPENSHIFT_PASSWORD} ...
 
 # run deployment using custom-resource.yaml to override Che defaults with CRW defaults
-/path/to/chectl server:start -a operator -p openshift --domain=${OPENSHIFT_CONSOLE_URL} \
-  --che-operator-image=quay.io/crw/operator-rhel8:2.0 \
-  --che-operator-cr-yaml=custom-resource.yaml -n crw2ocp4
+/path/to/crwctl server:start -n crw2ocp4 \
+  --che-operator-image=quay.io/crw/operator-rhel8:latest \
+  --che-operator-cr-yaml=custom-resource.yaml 
 ```
+
+Once installed, you can override the link:https://github.com/redhat-developer/codeready-workspaces/tree/master/dependencies/che-plugin-registry/v3/plugins/eclipse[default CRW containers referenced in the plugin registry] as follows:
+
+```
+QP="quay.io/crw"
+QS="rhel8:2.0"
+for e in \
+  THEIA_IMAGE=${QP}/theia \
+  THEIA_ENDPOINT_RUNTIME_BINARY_IMAGE=${QP}/theia-endpoint \
+  MACHINE_EXEC_IMAGE=${QP}/machineexec; do
+    oc set env deployment/plugin-registry CHE_PLUGIN_REGISTRY_${e}-${QS};
+done
+
+# verify it worked
+oc get deployment plugin-registry -o=json | jq '.spec.template.spec.containers[0].env'
+```
+
+Next, to launch a workspace, you can override the link:https://github.com/redhat-developer/codeready-workspaces/tree/master/dependencies/che-devfile-registry/devfiles[default CRW containers referenced in the devfiles registry]. Here are two examples:
+
+* Java - link:https://github.com/redhat-developer/codeready-workspaces/tree/master/dependencies/che-devfile-registry/devfiles/00_java-eap-maven/devfile.yaml[original] - link:devfiles/00_java-eap-maven/devfile.yaml[modified]
+* Node - link:https://github.com/redhat-developer/codeready-workspaces/tree/master/dependencies/che-devfile-registry/devfiles/03_web-nodejs-simple/devfile.yaml[original] - link:devfiles/03_web-nodejs-simple/devfile.yaml[modified]
+
+Once you have your devfile, you can open it in CRW using your installation's factory URL.
+
+* http://codeready-crw2ocp4.apps.YOUR_OPENSHIFT_INSTANCE/f?url=https://path/to/raw/devfile.yaml
