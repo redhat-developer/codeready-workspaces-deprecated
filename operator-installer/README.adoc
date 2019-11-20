@@ -92,6 +92,7 @@ image:README.01_plugin-reg-overrides.png[oc get output]
 
 Alternatively, you an override ALL images used by plugins using these global environment variables:
 
+```
 for e in \
   URL=quay.io \
   ORGANIZATION=crw \
@@ -101,6 +102,7 @@ done
 
 # verify it worked
 oc get deployment plugin-registry -o=json | jq '.spec.template.spec.containers[0].env'
+```
 
 This override mechanism is also in support of airgapped environments, where the CRW images are provided from a different `URL` and/or `ORGANIZATION`.
 
@@ -133,6 +135,7 @@ image:README.04_workspace-launched.png[launched java workspace]
 
 Alternatively, you an override ALL images used by devfiles using these global environment variables:
 
+```
 for e in \
   URL=quay.io \
   ORGANIZATION=crw \
@@ -142,5 +145,6 @@ done
 
 # verify it worked
 oc get deployment devfile-registry -o=json | jq '.spec.template.spec.containers[0].env'
+```
 
 This override mechanism is also in support of airgapped environments, where the CRW images are provided from a different `URL` and/or `ORGANIZATION`.
