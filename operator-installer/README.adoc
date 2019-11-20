@@ -78,6 +78,4 @@ Next, to launch a workspace, you can override the link:https://github.com/redhat
 * Java - link:https://github.com/redhat-developer/codeready-workspaces/tree/master/dependencies/che-devfile-registry/devfiles/00_java-eap-maven/devfile.yaml[original] - link:devfiles/00_java-eap-maven/devfile.yaml[modified]
 * Node - link:https://github.com/redhat-developer/codeready-workspaces/tree/master/dependencies/che-devfile-registry/devfiles/03_web-nodejs-simple/devfile.yaml[original] - link:devfiles/03_web-nodejs-simple/devfile.yaml[modified]
 
-Once you have your devfile, you can open it in CRW using your installation's factory URL.
-
-* http://codeready-crw2ocp4.apps.YOUR_OPENSHIFT_INSTANCE/f?url=https://path/to/raw/devfile.yaml
+Once you have your devfile, you can open it in CRW using your installation's factory URL. Open your CodeReady Workspaces installation, and in place of the `/dashboard/` part of the URL, append `/f?url=https://raw.githubusercontent.com/redhat-developer/codeready-workspaces-deprecated/master/operator-installer/devfiles/00_java-eap-maven/devfile.yaml` to load that devfile.
