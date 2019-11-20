@@ -21,7 +21,7 @@ See the CodeReady Workspaces _Administration Guide_ for instructions on how to d
 
 https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.0/html/administration_guide/
 
-=== Installing with crwctl (DRAFT) 
+== Installing with crwctl
 
 This information is draft and subject to change.
 
@@ -31,33 +31,41 @@ To install Workspaces 2.0 with crwctl:
 * using link:custom-resource.yaml[custom-resource.yaml] in this folder, deploy Workspaces as follows:
 
 ```
-# log in to Minishift 
-oc login ${MINISHIFT_URL} -u ${MINISHIFT_USERNAME} -p ${MINISHIFT_PASSWORD} ...
+# log in to OCP 4 (or Minishift or CRC)
+oc login ${OPENSHIFT_API_URL} -u ${OPENSHIFT_USERNAME} -p ${OPENSHIFT_PASSWORD} ...
 
+# run deployment using default CRW images
+/path/to/crwctl server:start -n crw2defaults
+```
+
+Note: if using Minishift, you might have to pre-pull images if your Minishift can't properly authenticate with the registry.
+
+```
 # pull images from registry.redhat.io as minishift cannot use authentication secret correctly 
 eval $(minishift docker-env)
 docker pull registry.redhat.io/rhscl/postgresql-96-rhel7:1-47
 docker pull registry.redhat.io/redhat-sso-7/sso73-openshift:1.0-13.1567588155
-
-# run deployment using custom-resource.yaml to override Che defaults with CRW defaults
-/path/to/crwctl server:start -n crw2mini \
-  --che-operator-image=quay.io/crw/operator-rhel8:2.0 \
-  --che-operator-cr-yaml=custom-resource.yaml 
+...
 ```
 
-or
+== Overriding default images when deploying
+
+If you need to swap out a default image for a custom one, eg., for testing a change, you can do so in three ways.
+
+=== Override operator and default images
 
 ```
-# log in to OCP 4
-oc login ${OPENSHIFT_API_URL} -u ${OPENSHIFT_USERNAME} -p ${OPENSHIFT_PASSWORD} ...
-
 # run deployment using custom-resource.yaml to override Che defaults with CRW defaults
-/path/to/crwctl server:start -n crw2ocp4 \
+/path/to/crwctl server:start -n crw2custom \
   --che-operator-image=quay.io/crw/operator-rhel8:latest \
   --che-operator-cr-yaml=custom-resource.yaml 
 ```
 
-Once installed, you can override the link:https://github.com/redhat-developer/codeready-workspaces/tree/master/dependencies/che-plugin-registry/v3/plugins/eclipse[default CRW containers referenced in the plugin registry] as follows:
+image:README.00_crwctl-cli.png[crwctl cli output]
+
+=== Override CRW containers in the plugin registry
+
+Once installed via crwctl, you can override the link:https://github.com/redhat-developer/codeready-workspaces/tree/master/dependencies/che-plugin-registry/v3/plugins/eclipse[default CRW containers referenced in the plugin registry] as follows:
 
 ```
 QP="quay.io/crw"
@@ -72,10 +80,27 @@ done
 # verify it worked
 oc get deployment plugin-registry -o=json | jq '.spec.template.spec.containers[0].env'
 ```
+image:README.01_plugin-reg-overrides.png[oc get output]
 
-Next, to launch a workspace, you can override the link:https://github.com/redhat-developer/codeready-workspaces/tree/master/dependencies/che-devfile-registry/devfiles[default CRW containers referenced in the devfiles registry]. Here are two examples:
+=== Override CRW containers in a given devfile
+
+Next, to launch a workspace using custom stack or plugin sidecar images, you need to override the link:https://github.com/redhat-developer/codeready-workspaces/tree/master/dependencies/che-devfile-registry/devfiles[default CRW containers referenced in the devfiles registry]. 
+
+Here are two examples:
 
 * Java - link:https://github.com/redhat-developer/codeready-workspaces/tree/master/dependencies/che-devfile-registry/devfiles/00_java-eap-maven/devfile.yaml[original] - link:devfiles/00_java-eap-maven/devfile.yaml[modified]
 * Node - link:https://github.com/redhat-developer/codeready-workspaces/tree/master/dependencies/che-devfile-registry/devfiles/03_web-nodejs-simple/devfile.yaml[original] - link:devfiles/03_web-nodejs-simple/devfile.yaml[modified]
 
-Once you have your devfile, you can open it in CRW using your installation's factory URL. Open your CodeReady Workspaces installation, and in place of the `/dashboard/` part of the URL, append `/f?url=https://raw.githubusercontent.com/redhat-developer/codeready-workspaces-deprecated/master/operator-installer/devfiles/00_java-eap-maven/devfile.yaml` to load that devfile.
+Once you have your devfile, you can open it in CRW using your installation's factory URL. Open your CodeReady Workspaces installation, and in place of the `/dashboard/` part of the URL, append `/f?url=` then the full *raw* URL of your devfile to load it.
+
+`https://codeready-${OPENSHIFT_PROJECT}.${OPENSHIFT_INSTANCE}/f?url=https://raw.githubusercontent.com/redhat-developer/codeready-workspaces-deprecated/master/operator-installer/devfiles/00_java-eap-maven/devfile.yaml`
+
+image:README.02_factory.png[factory loading screen]
+
+Note: The factory page may not directly load your workspace. If that happens, just go back to your `/dashboard/` URL and you'll see your new workspace in the list of available ones. Click on it to start it up. 
+
+image:README.03_workspaces.png[workspaces list]
+
+Once your workspace loads, you should see something like this. You can run the sample app from the `Terminal` menu.
+
+image:README.04_workspace-launched.png[launched java workspace]
