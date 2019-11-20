@@ -2,11 +2,13 @@
 
 Red Hat CodeReady Workspaces is a developer workspace server and cloud IDE.
 
+
 == About CodeReady Workspaces
 
 See product _Release Notes and Known Issues_ for more information about the product and the current version:
 
 https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.0/html/release_notes_and_known_issues/
+
 
 == Installing CodeReady Workspaces
 
@@ -20,6 +22,7 @@ See the CodeReady Workspaces _Administration Guide_ for instructions on how to d
 * uninstall the product
 
 https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.0/html/administration_guide/
+
 
 == Installing with crwctl
 
@@ -52,6 +55,7 @@ docker pull registry.redhat.io/redhat-sso-7/sso73-openshift:1.0-13.1567588155
 
 If you need to swap out a default image for a custom one, eg., for testing a change, you can do so in three ways.
 
+
 === Override operator and default images
 
 ```
@@ -63,9 +67,10 @@ If you need to swap out a default image for a custom one, eg., for testing a cha
 
 image:README.00_crwctl-cli.png[crwctl cli output]
 
+
 === Override CRW containers in the plugin registry
 
-Once installed via crwctl, you can override the link:https://github.com/redhat-developer/codeready-workspaces/tree/master/dependencies/che-plugin-registry/v3/plugins/eclipse[default CRW containers referenced in the plugin registry] as follows:
+Once installed via crwctl, you can override the link:https://github.com/redhat-developer/codeready-workspaces/tree/master/dependencies/che-plugin-registry/v3/plugins/eclipse[default CRW containers referenced in the plugin registry] using these specific environment variables:
 
 ```
 QP="quay.io/crw"
@@ -82,7 +87,25 @@ oc get deployment plugin-registry -o=json | jq '.spec.template.spec.containers[0
 ```
 image:README.01_plugin-reg-overrides.png[oc get output]
 
-=== Override CRW containers in a given devfile
+
+=== Override ALL containers in the plugin registry
+
+Alternatively, you an override ALL images used by plugins using these global environment variables:
+
+for e in \
+  URL=quay.io \
+  ORGANIZATION=crw \
+  TAG=2.0; do
+    oc set env deployment/plugin-registry CHE_SIDECAR_CONTAINERS_REGISTRY_${e};
+done
+
+# verify it worked
+oc get deployment plugin-registry -o=json | jq '.spec.template.spec.containers[0].env'
+
+This override mechanism is also in support of airgapped environments, where the CRW images are provided from a different `URL` and/or `ORGANIZATION`.
+
+
+=== Override CRW container(s) in a customized devfile
 
 Next, to launch a workspace using custom stack or plugin sidecar images, you need to override the link:https://github.com/redhat-developer/codeready-workspaces/tree/master/dependencies/che-devfile-registry/devfiles[default CRW containers referenced in the devfiles registry]. 
 
@@ -104,3 +127,20 @@ image:README.03_workspaces.png[workspaces list]
 Once your workspace loads, you should see something like this. You can run the sample app from the `Terminal` menu.
 
 image:README.04_workspace-launched.png[launched java workspace]
+
+
+=== Override ALL containers in the devfile registry
+
+Alternatively, you an override ALL images used by devfiles using these global environment variables:
+
+for e in \
+  URL=quay.io \
+  ORGANIZATION=crw \
+  TAG=2.0; do
+    oc set env deployment/devfile-registry CHE_DEVFILE_IMAGES_REGISTRY_${e};
+done
+
+# verify it worked
+oc get deployment devfile-registry -o=json | jq '.spec.template.spec.containers[0].env'
+
+This override mechanism is also in support of airgapped environments, where the CRW images are provided from a different `URL` and/or `ORGANIZATION`.
