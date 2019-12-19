@@ -26,7 +26,6 @@
     <name>CodeReady Workspaces :: Root</name>
 
   <modules>
-      <module>operator-installer</module>
       <module>stacks/dependencies</module>
   </modules>
 
