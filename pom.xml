@@ -14,11 +14,6 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <artifactId>maven-depmgt-pom</artifactId>
-        <groupId>org.eclipse.che.depmgt</groupId>
-        <version>7.0.0-RC-2.0</version>
-    </parent>
     <groupId>com.redhat</groupId>
     <artifactId>codeready-workspaces</artifactId>
     <version>2.0.0.GA-SNAPSHOT</version>
@@ -53,25 +48,6 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-        <plugins>
-            <plugin>
-                <groupId>com.mycila</groupId>
-                <artifactId>license-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>**/*.*</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>com.google.code.sortpom</groupId>
-                <artifactId>maven-sortpom-plugin</artifactId>
-                <version>${version.sortpom.plugin}</version>
-                <configuration>
-                    <skip>false</skip>
-                </configuration>
-            </plugin>
-        </plugins>
     </build>
 
 </project>

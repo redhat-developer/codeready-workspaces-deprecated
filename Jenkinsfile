@@ -25,24 +25,6 @@ def buildMaven(){
 	env.PATH="${env.PATH}:${mvnHome}/bin"
 }
 
-timeout(120) {
-	node("${node}"){ stage "Build che-parent"
-		cleanWs()
-		checkout([$class: 'GitSCM', 
-			branches: [[name: "${branchToBuildParent}"]], 
-			doGenerateSubmoduleConfigurations: false, 
-			poll: true,
-			extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'che-parent']], 
-			submoduleCfg: [], 
-			userRemoteConfigs: [[url: 'https://github.com/eclipse/che-parent.git']]])
-		// dir ('che-parent') { sh 'ls -1art' }
-		buildMaven()
-		sh "mvn clean install ${MVN_FLAGS} -f che-parent/pom.xml"
-		stash name: 'stashParent', includes: findFiles(glob: '.repository/**').join(", ")
-	}
-}
-
-
 def CRW_path = "codeready-workspaces-deprecated"
 timeout(120) {
 	node("${node}"){ stage "Build ${CRW_path}"
@@ -55,10 +37,9 @@ timeout(120) {
 			extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: "${CRW_path}"]], 
 			submoduleCfg: [], 
 			userRemoteConfigs: [[url: "https://github.com/redhat-developer/${CRW_path}.git"]]])
-		unstash 'stashParent'
 		buildMaven()
 		sh "mvn clean install ${MVN_FLAGS} -f ${CRW_path}/pom.xml"
-		archiveArtifacts fingerprint: true, artifacts: "${CRW_path}/operator-installer/target/*.tar.*, ${CRW_path}/stacks/dependencies/*/target/*.tar.*"
+		archiveArtifacts fingerprint: true, artifacts: "${CRW_path}/stacks/dependencies/*/target/*.tar.*"
 
 		sh "perl -0777 -p -i -e 's|(\\ +<parent>.*?<\\/parent>)| ${1} =~ /<version>/?\"\":${1}|gse' ${CRW_path}/pom.xml"
 		VER_CRW = sh(returnStdout:true,script:"egrep \"<version>\" ${CRW_path}/pom.xml|head -1|sed -e \"s#.*<version>\\(.\\+\\)</version>#\\1#\"").trim()
