@@ -26,10 +26,8 @@
     <name>CodeReady Workspaces :: Stacks :: Language Servers :: PHP Dependencies</name>
     <properties>
         <PHP_LS_VERSION>5.4.6</PHP_LS_VERSION>
-        <!-- <PHP_VERSION>7.2.x</PHP_VERSION> -->
         <WEBDEVOPS_IMAGE>webdevops/php-apache-dev:alpine-php7</WEBDEVOPS_IMAGE>
         <XDEBUG_BUILDER_IMAGE>php-xdebug:tmp</XDEBUG_BUILDER_IMAGE>
-        <!-- <ZENDSERVER_IMAGE>php-zendserver:2018.0</ZENDSERVER_IMAGE> -->
     </properties>
     <build>
         <plugins>
@@ -117,9 +115,6 @@
                                 <exec dir="${basedir}" executable="docker" failonerror="true">
                                     <arg line="run -v ${basedir}/target/php-ls:/php ${WEBDEVOPS_IMAGE} sh -c 'mkdir -p /php; cd /php; chmod -R 777 /php; su -l application -c &quot;cd /php; /usr/local/bin/composer require jetbrains/phpstorm-stubs:dev-master; /usr/local/bin/composer require felixfbecker/language-server:${PHP_LS_VERSION}; /usr/local/bin/composer run-script --working-dir=vendor/felixfbecker/language-server parse-stubs; mv vendor/* .; rm -rf vendor&quot;; cp /usr/local/bin/composer /php/composer; chmod -R 777 /php'" />
                                 </exec>
-                                <!-- <exec dir="${basedir}" executable="docker" failonerror="true">
-                                    <arg line="run -v ${basedir}/target/php-ls:/php ${ZENDSERVER_IMAGE} sh -c 'cp /usr/local/zend/lib/debugger/php-${PHP_VERSION}/ZendDebugger.so /php/ZendDebugger.so; chmod -R 777 /php'" />
-                                </exec> -->
                             </target>
                         </configuration>
                     </execution>
@@ -133,7 +128,7 @@
                         <configuration>
                             <target>
                                 <exec dir="${basedir}" executable="docker" failonerror="true">
-                                    <arg line="rmi -f registry.access.redhat.com/ubi8/php-72 ${XDEBUG_BUILDER_IMAGE} ${WEBDEVOPS_IMAGE}" />
+                                    <arg line="rmi -f registry.access.redhat.com/ubi8/php-73 ${XDEBUG_BUILDER_IMAGE} ${WEBDEVOPS_IMAGE}" />
                                 </exec>
                             </target>
                         </configuration>
