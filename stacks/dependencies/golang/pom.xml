@@ -21,11 +21,12 @@
     </parent>
     <groupId>com.redhat</groupId>
     <artifactId>codeready-workspaces-stacks-language-servers-dependencies-golang</artifactId>
-    <version>1.2.0.GA-SNAPSHOT</version>
+    <version>2.1.0.GA-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Stacks :: Language Servers :: Golang Dependencies</name>
     <properties>
         <GOLANG_IMAGE_VERSION>golang:1.11</GOLANG_IMAGE_VERSION>
+        <GOLANG_LINT_VERSION>v1.22.2</GOLANG_LINT_VERSION>
         <GOLANG_LS_OLD_DEPS>console-stamp@0.2.9 strip-ansi@5.2.0 has-ansi@4.0.0 ansi-regex@4.1.0 chalk@2.4.2 escape-string-regexp@2.0.0 ansi-styles@4.1.0 supports-color@7.0.0</GOLANG_LS_OLD_DEPS>
         <GOLANG_LS_VERSION>0.1.7</GOLANG_LS_VERSION>
         <!-- find latest version: https://hub.docker.com/_/node/?tab=description -->
@@ -108,13 +109,13 @@
                                     go get -v sourcegraph.com/sqs/goreturns;
                                     go get -v golang.org/x/lint/golint;
                                     go get -v github.com/cweill/gotests/...;
-                                    go get -v github.com/alecthomas/gometalinter;
                                     go get -v honnef.co/go/tools/...;
                                     go get -v github.com/sourcegraph/go-langserver;
                                     go get -v github.com/go-delve/delve/cmd/dlv;
                                     go get -v github.com/davidrjenni/reftools/cmd/fillstruct;
                                     go get -v golang.org/x/tools/gopls;
                                     go build -o /go/bin/gocode-gomod github.com/stamblerre/gocode;
+                                    wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s ${GOLANG_LINT_VERSION}
                                     chmod -R 777 /go'" />
                                 </exec>
                             </target>
