@@ -27,15 +27,13 @@
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Stacks :: Language Servers :: Dependencies</name>
     <modules>
-        <!-- deprecated: only for RHEL7 -->
-        <!-- <module>node8</module> -->
-        <!-- new for RHEL 8 -->
+        <!-- deprecated: only for RHEL7 <module>node8</module> -->
         <module>node10</module>
         <module>php</module>
         <module>python</module>
-        <module>dotnet</module>
         <module>golang</module>
-        <!-- <module>bayesian</module> -->
+        <!-- No longer needed for dotnet 3.1 (CRW 2.1) <module>dotnet</module> -->
+        <!-- implemented as VScode extension in CRW 2.x <module>bayesian</module> -->
     </modules>
     <dependencyManagement>
         <dependencies>
