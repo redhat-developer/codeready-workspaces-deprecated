@@ -1,6 +1,10 @@
 # Code Ready Workspaces Operator Installer and Stack/Devfile/Lang Server Sidecar Dependencies Builder
 
-This repo is for CodeReady Workspaces 1.x and 2, in support of non-operator based deployment (OCP 3.11). It also contains methods for building 3rd party dependencies needed by stack/devfile/lang server sidecar images.
+This repo was for CodeReady Workspaces 1.x and 2, in support of non-operator based deployment (OCP 3.11). As of 2.0, deployment to OCP 3.11 is hanlded by crwctl:
+
+https://github.com/redhat-developer/codeready-workspaces-chectl/releases
+
+Therefore, this repo now only contains maven builds for collecting 3rd party dependencies needed by stack/devfile/lang server sidecar images.
 
 ## What's Inside
 
