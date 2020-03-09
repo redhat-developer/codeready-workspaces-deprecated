@@ -6,13 +6,27 @@ This repo is for CodeReady Workspaces 1.x and 2, in support of non-operator base
 
 This repository contains:
 
-* `operator-installer/`  :: an installer script that launches the Operator with its configuration file; Maven module that packages both into a tar.gz
-
 * `stacks/dependencies/` :: language servers and their dependencies packaged as tar.gzs, retrieved via Docker-based builds; these are then included in the stacks' container builds
 
 * `pom.xml` :: maven pom to build all of the above artifacts locally
 
 * `Jenkinsfile` :: script that builds all of the above artifacts in Jenkins
+
+## What's NOT Inside, or Where did ___ go?
+
+This repository no longer contains:
+
+* `operator-installer` :: moved to https://github.com/redhat-developer/codeready-workspaces-chectl/releases
+
+* `deploy.sh` :: moved to https://github.com/redhat-developer/codeready-workspaces-chectl/releases
+
+* `custom-resource.yaml` :: moved to https://github.com/redhat-developer/codeready-workspaces-chectl/tree/master/docs
+
+* `stacks/dependencies/dotnet` :: only required for dotnet 2.1; CRW 2.1 includes dotnet 3.1
+
+* `stacks/dependencies/bayesian` :: implemented as VScode extension in CRW 2.x
+
+* `stacks/dependencies/node8` :: only supported on RHEL 7; not included in CRW 2.x
 
 ### Why codeready-workspaces-deprecated?
 
