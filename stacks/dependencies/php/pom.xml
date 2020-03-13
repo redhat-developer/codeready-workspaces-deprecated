@@ -128,7 +128,7 @@
                         <configuration>
                             <target>
                                 <exec dir="${basedir}" executable="docker" failonerror="true">
-                                    <arg line="rmi -f registry.access.redhat.com/ubi8/php-73 ${XDEBUG_BUILDER_IMAGE} ${WEBDEVOPS_IMAGE}" />
+                                    <arg line="rmi -f ${XDEBUG_BUILDER_IMAGE} ${WEBDEVOPS_IMAGE}" />
                                 </exec>
                             </target>
                         </configuration>
