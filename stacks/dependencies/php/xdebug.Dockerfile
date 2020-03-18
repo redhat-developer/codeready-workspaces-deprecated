@@ -10,7 +10,7 @@
 #
 
 # https://access.redhat.com/containers/?tab=tags#/registry.access.redhat.com/ubi8/php-72
-FROM registry.access.redhat.com/ubi8/php-72 as builder
+FROM registry.access.redhat.com/ubi8/php-73 as builder
 USER root
 COPY xdebug.install.sh /tmp/
 RUN /tmp/xdebug.install.sh
