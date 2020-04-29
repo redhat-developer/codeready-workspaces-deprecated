@@ -40,7 +40,7 @@ timeout(120) {
 			submoduleCfg: [], 
 			userRemoteConfigs: [[url: "https://github.com/redhat-developer/${CRW_path}.git"]]])
 		buildMaven()
-		sh "mvn clean install ${MVN_FLAGS} -f ${CRW_path}/pom.xml"
+		sh "/usr/bin/time -v mvn clean install ${MVN_FLAGS} -f ${CRW_path}/pom.xml"
 		archiveArtifacts fingerprint: true, artifacts: "${CRW_path}/stacks/dependencies/*/target/*.tar.*"
 
 		sh "perl -0777 -p -i -e 's|(\\ +<parent>.*?<\\/parent>)| ${1} =~ /<version>/?\"\":${1}|gse' ${CRW_path}/pom.xml"
