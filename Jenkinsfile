@@ -30,7 +30,7 @@ timeout(120) {
 	node("${node}"){ stage "Build ${CRW_path}"
 		cleanWs()
 		sh "cat /proc/cpuinfo; cat /proc/meminfo"
-		sh "df -h; du -sch ."
+		sh "df -h; du -sch . ${WORKSPACE} /tmp"
 		// for private repo, use checkout(credentialsId: 'devstudio-release')
 		checkout([$class: 'GitSCM', 
 			branches: [[name: "${branchToBuildCRW}"]], 
@@ -47,7 +47,7 @@ timeout(120) {
 		VER_CRW = sh(returnStdout:true,script:"egrep \"<version>\" ${CRW_path}/pom.xml|head -1|sed -e \"s#.*<version>\\(.\\+\\)</version>#\\1#\"").trim()
 		SHA_CRW = sh(returnStdout:true,script:"cd ${CRW_path}/ && git rev-parse --short=4 HEAD").trim()
 		echo "Built ${CRW_path} from SHA: ${SHA_CRW} (${VER_CRW})"
-		sh "df -h; du -sch ."
+		sh "df -h; du -sch . ${WORKSPACE} /tmp"
 
 		// sh 'printenv | sort'
 		def descriptString="Build #${BUILD_NUMBER} (${BUILD_TIMESTAMP}) <br/> :: ${CRW_path} @ ${SHA_CRW} (${VER_CRW})"
