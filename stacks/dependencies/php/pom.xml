@@ -26,7 +26,7 @@
     <name>CodeReady Workspaces :: Stacks :: Language Servers :: PHP Dependencies</name>
     <properties>
         <PHP_LS_VERSION>5.4.6</PHP_LS_VERSION>
-        <WEBDEVOPS_IMAGE>webdevops/php-apache-dev:alpine-php7</WEBDEVOPS_IMAGE>
+        <PHP_LS_IMAGE>php-ls:tmp</PHP_LS_IMAGE>
         <XDEBUG_BUILDER_IMAGE>php-xdebug:tmp</XDEBUG_BUILDER_IMAGE>
     </properties>
     <build>
@@ -47,7 +47,7 @@
                                 <descriptor>${project.basedir}/src/assembly/assembly-xdebug.xml</descriptor>
                             </descriptors>
                             <tarLongFileMode>posix</tarLongFileMode>
-                            <finalName>${project.artifactId}-xdebug</finalName>
+                            <finalName>${project.artifactId}-xdebug-${os.arch}</finalName>
                         </configuration>
                     </execution>
                     <execution>
@@ -62,7 +62,7 @@
                                 <descriptor>${project.basedir}/src/assembly/assembly-ls.xml</descriptor>
                             </descriptors>
                             <tarLongFileMode>posix</tarLongFileMode>
-                            <finalName>${project.artifactId}</finalName>
+                            <finalName>${project.artifactId}-${os.arch}</finalName>
                         </configuration>
                     </execution>
                 </executions>
@@ -113,7 +113,10 @@
                                 <mkdir dir="${basedir}/target/php-ls" />
                                 <!-- collect lang server stuff - TODO are these still required? -->
                                 <exec dir="${basedir}" executable="docker" failonerror="true">
-                                    <arg line="run -v ${basedir}/target/php-ls:/php ${WEBDEVOPS_IMAGE} sh -c 'mkdir -p /php; cd /php; chmod -R 777 /php; su -l application -c &quot;cd /php; /usr/local/bin/composer require jetbrains/phpstorm-stubs:dev-master; /usr/local/bin/composer require felixfbecker/language-server:${PHP_LS_VERSION}; /usr/local/bin/composer run-script --working-dir=vendor/felixfbecker/language-server parse-stubs; mv vendor/* .; rm -rf vendor&quot;; cp /usr/local/bin/composer /php/composer; chmod -R 777 /php'" />
+                                    <arg line="build . -t ${PHP_LS_IMAGE} -f php-ls.Dockerfile" />
+                                </exec>
+                                <exec dir="${basedir}" executable="docker" failonerror="true">
+                                    <arg line="run -v ${basedir}/target/php-ls:/php ${PHP_LS_IMAGE} sh -c 'cd /php; /usr/local/bin/composer require jetbrains/phpstorm-stubs:dev-master; /usr/local/bin/composer require felixfbecker/language-server:${PHP_LS_VERSION}; /usr/local/bin/composer run-script --working-dir=vendor/felixfbecker/language-server parse-stubs; mv vendor/* .; rm -rf vendor; cp /usr/local/bin/composer /php/composer; chmod -R 777 /php/*'" />
                                 </exec>
                             </target>
                         </configuration>
@@ -128,7 +131,7 @@
                         <configuration>
                             <target>
                                 <exec dir="${basedir}" executable="docker" failonerror="true">
-                                    <arg line="rmi -f ${XDEBUG_BUILDER_IMAGE} ${WEBDEVOPS_IMAGE}" />
+                                    <arg line="rmi -f ${XDEBUG_BUILDER_IMAGE} ${PHP_LS_IMAGE}" />
                                 </exec>
                             </target>
                         </configuration>

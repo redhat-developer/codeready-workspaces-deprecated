@@ -53,7 +53,7 @@
                         <descriptor>${project.basedir}/src/assembly/assembly.xml</descriptor>
                     </descriptors>
                     <tarLongFileMode>posix</tarLongFileMode>
-                    <finalName>${project.artifactId}</finalName>
+                    <finalName>${project.artifactId}-${os.arch}</finalName>
                 </configuration>
             </plugin>
             <plugin>
