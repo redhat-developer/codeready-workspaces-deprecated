@@ -4,7 +4,7 @@
 
 This module contains maven assemblies for collecting the language server dependencies needed to build the CodeReady Workspaces stacks images in the Red Hat Container Catalogue.
 
-These are built in Jenkins job link:https://codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com/view/CRW_CI/view/Pipelines/job/crw-operator-installer-and-ls-deps_master/[crw-operator-installer-and-ls-deps_master].
+These are built in Jenkins job link:https://codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com/view/CRW_CI/view/Pipelines/job/crw-deprecated_master/[crw-deprecated_master].
 
 If you're looking for the Dockerfiles that controls the OSBS container builds, go here:
 
