@@ -10,8 +10,7 @@
 #
 
 # https://access.redhat.com/containers/?tab=tags#/registry.access.redhat.com/rhel8/go-toolset
-#FROM registry.access.redhat.com/rhel8/go-toolset as builder
-FROM registry.redhat.io/rhel8/go-toolset as builder
+FROM registry.access.redhat.com/rhel8/go-toolset as builder
 USER root
 ENV KAMEL_VERSION="1.0.0-RC2"
 
