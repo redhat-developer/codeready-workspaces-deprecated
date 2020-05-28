@@ -16,10 +16,9 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.redhat</groupId>
     <artifactId>codeready-workspaces</artifactId>
-    <version>2.0.0.GA-SNAPSHOT</version>
+    <version>2.2.0.GA</version>
     <packaging>pom</packaging>
     <name>CodeReady Workspaces :: Root</name>
-
   <modules>
       <module>stacks/dependencies</module>
   </modules>
