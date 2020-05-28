@@ -31,6 +31,7 @@
         <module>php</module>
         <module>python</module>
         <module>golang</module>
+        <module>kamel</module>
     </modules>
     <dependencyManagement>
         <dependencies>
