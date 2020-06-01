@@ -12,5 +12,6 @@
 # https://access.redhat.com/containers/?tab=tags#/registry.access.redhat.com/ubi8/php-73
 FROM registry.access.redhat.com/ubi8/php-73:1-34.1589298720 as builder
 USER root
-COPY php-ls.install.sh /tmp/
-RUN /tmp/php-ls.install.sh
+RUN mkdir -p /php && cd /php && chmod -R 777 /php && \
+    wget https://getcomposer.org/installer -O /tmp/composer-installer.php && \
+    php /tmp/composer-installer.php --filename=composer --install-dir=/usr/local/bin
