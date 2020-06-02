@@ -31,7 +31,6 @@ timeout(120) {
 			extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: "${CRW_path}"]], 
 			submoduleCfg: [], 
 			userRemoteConfigs: [[url: "https://github.com/redhat-developer/${CRW_path}.git"]]])
-		buildMaven()
 		sh "/usr/bin/time -v ${CRW_path}/build.sh"
 		archiveArtifacts fingerprint: true, artifacts: "${CRW_path}/*/target/*.tar.*"
 
