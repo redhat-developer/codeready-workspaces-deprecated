@@ -4,21 +4,24 @@ This repo was for CodeReady Workspaces 1.x and 2, in support of non-operator bas
 
 https://github.com/redhat-developer/codeready-workspaces-chectl/releases
 
-Therefore, this repo now only contains maven builds for collecting 3rd party dependencies needed by stack/devfile/lang server sidecar images.
+Therefore, this repo now only contains builds for collecting 3rd party dependencies needed by stack/devfile/lang server sidecar images.
 
 ## What's Inside
 
 This repository contains:
 
-* `stacks/dependencies/` :: language servers and their dependencies packaged as tar.gzs, retrieved via Docker-based builds; these are then included in the stacks' container builds
+* `node10`, `python`, `golang`, `php` :: language servers and their dependencies packaged as tar.gzs, retrieved via Docker-based builds; these are then included in the stacks' container builds
 
-* `pom.xml` :: maven pom to build all of the above artifacts locally
+* `kamel` :: kamel build from source
+
+* `build.sh` :: build all of the above artifacts locally
 
 * `Jenkinsfile` :: script that builds all of the above artifacts in Jenkins
 
 ## What's NOT Inside, or Where did ___ go?
 
 This repository no longer contains:
+* `stacks/dependencies` :: moved to root of this repo
 
 * `operator-installer` :: moved to https://github.com/redhat-developer/codeready-workspaces-chectl/releases
 

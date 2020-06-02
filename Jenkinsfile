@@ -17,13 +17,6 @@ def installGo(){
 	sh "go version"
 }
 
-def MVN_FLAGS="-Dmaven.repo.local=.repository/ -V -B -e"
-
-def buildMaven(){
-	def mvnHome = tool 'maven-3.5.4'
-	env.PATH="${env.PATH}:${mvnHome}/bin"
-}
-
 def CRW_path = "codeready-workspaces-deprecated"
 timeout(120) {
 	node("${node}"){ stage "Build ${CRW_path}"
@@ -39,17 +32,15 @@ timeout(120) {
 			submoduleCfg: [], 
 			userRemoteConfigs: [[url: "https://github.com/redhat-developer/${CRW_path}.git"]]])
 		buildMaven()
-		sh "/usr/bin/time -v mvn clean install ${MVN_FLAGS} -f ${CRW_path}/pom.xml"
-		archiveArtifacts fingerprint: true, artifacts: "${CRW_path}/stacks/dependencies/*/target/*.tar.*"
+		sh "/usr/bin/time -v ${CRW_path}/build.sh"
+		archiveArtifacts fingerprint: true, artifacts: "${CRW_path}/*/target/*.tar.*"
 
-		sh "perl -0777 -p -i -e 's|(\\ +<parent>.*?<\\/parent>)| ${1} =~ /<version>/?\"\":${1}|gse' ${CRW_path}/pom.xml"
-		VER_CRW = sh(returnStdout:true,script:"egrep \"<version>\" ${CRW_path}/pom.xml|head -1|sed -e \"s#.*<version>\\(.\\+\\)</version>#\\1#\"").trim()
 		SHA_CRW = sh(returnStdout:true,script:"cd ${CRW_path}/ && git rev-parse --short=4 HEAD").trim()
-		echo "Built ${CRW_path} from SHA: ${SHA_CRW} (${VER_CRW})"
+		echo "Built ${CRW_path} from SHA: ${SHA_CRW}"
 		sh "df -h; du -sch . ${WORKSPACE} /tmp 2>/dev/null || true"
 
 		// sh 'printenv | sort'
-		def descriptString="Build #${BUILD_NUMBER} (${BUILD_TIMESTAMP}) <br/> :: ${CRW_path} @ ${SHA_CRW} (${VER_CRW})"
+		def descriptString="Build #${BUILD_NUMBER} (${BUILD_TIMESTAMP}) <br/> :: ${CRW_path} @ ${SHA_CRW}"
 		echo "${descriptString}"
 		currentBuild.description="${descriptString}"
 	}
