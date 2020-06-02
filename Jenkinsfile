@@ -12,7 +12,7 @@ def installNPM(){
 }
 
 def installGo(){
-	def goHome = tool 'go-1.10'
+	def goHome = tool 'go-1.11'
 	env.PATH="${env.PATH}:${goHome}/bin"
 	sh "go version"
 }
