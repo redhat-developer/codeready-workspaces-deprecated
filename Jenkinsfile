@@ -35,13 +35,12 @@ timeout(120) {
 		sh "/usr/bin/time -v ${CRW_path}/build.sh"
 		archiveArtifacts fingerprint: true, artifacts: "${CRW_path}/*/target/*.tar.*"
 
-		VER_CRW = sh(returnStdout:true,script:"grep CRW_VERSION build.sh | sed -E  's|.* ?CRW_VERSION=\"?([^\"]*)\"?|\1|g'").trim()
 		SHA_CRW = sh(returnStdout:true,script:"cd ${CRW_path}/ && git rev-parse --short=4 HEAD").trim()
-		echo "Built ${CRW_path} from SHA: ${SHA_CRW} (${VER_CRW})"
+		echo "Built ${CRW_path} from SHA: ${SHA_CRW}"
 		sh "df -h; du -sch . ${WORKSPACE} /tmp 2>/dev/null || true"
 
 		// sh 'printenv | sort'
-		def descriptString="Build #${BUILD_NUMBER} (${BUILD_TIMESTAMP}) <br/> :: ${CRW_path} @ ${SHA_CRW} (${VER_CRW})"
+		def descriptString="Build #${BUILD_NUMBER} (${BUILD_TIMESTAMP}) <br/> :: ${CRW_path} @ ${SHA_CRW}"
 		echo "${descriptString}"
 		currentBuild.description="${descriptString}"
 	}
