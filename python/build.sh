@@ -26,7 +26,7 @@ echo ""
 mkdir -p target/python-ls
 docker run -v $SCRIPT_DIR/target/python-ls:/python -u root $PYTHON_IMAGE_VERSION sh -c "
     pip install --upgrade pip
-    pip install python-language-server[all]==${PYTHON_LS_VERSION} --target=/python
+    pip install python-language-server[all]==${PYTHON_LS_VERSION} --prefix=/python
     chmod -R 777 /python
     "
 tar -czf target/codeready-workspaces-stacks-language-servers-dependencies-python-$(uname -m).tar.gz -C target/python-ls .
