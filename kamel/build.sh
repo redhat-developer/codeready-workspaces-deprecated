@@ -13,7 +13,7 @@
 
 export SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
-export KAMEL_VERSION="1.0.0-RC2"
+export KAMEL_VERSION="1.0.0"
 export GOLANG_IMAGE_VERSION="registry.access.redhat.com/ubi8/go-toolset"
 
 cd $SCRIPT_DIR
@@ -32,4 +32,4 @@ docker run -v $SCRIPT_DIR/target/kamel:/kamel -u root $GOLANG_IMAGE_VERSION sh -
     make build-kamel
     cp  /tmp/camel-k-${KAMEL_VERSION}/kamel /kamel/kamel
     "
-tar -czf target/kamel-$(uname -m).tar.gz -C target/kamel .
+tar -czf target/kamel-${KAMEL_VERSION}-$(uname -m).tar.gz -C target/kamel .
