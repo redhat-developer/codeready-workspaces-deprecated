@@ -25,7 +25,8 @@ for (int i=0; i < axes.size(); i++) {
     def String nodeLabel = "${axes[i]}"
     tasks[axes[i]] = { ->
         timeout(120) {
-	    node(nodeLabel){ stage "Build ${CRW_path}"
+	    node(nodeLabel){ 
+              stage ("Build ${CRW_path} on ${nodeLabel}") {
 		cleanWs()
 		sh "cat /proc/cpuinfo; cat /proc/meminfo"
 		sh "df -h; du -sch . ${WORKSPACE} /tmp 2>/dev/null || true"
@@ -48,6 +49,7 @@ for (int i=0; i < axes.size(); i++) {
 		def descriptString="Build #${BUILD_NUMBER} (${BUILD_TIMESTAMP}) <br/> :: ${CRW_path} @ ${SHA_CRW}"
 		echo "${descriptString}"
 		currentBuild.description="${descriptString}"
+              }
 	    }
         }
     }
