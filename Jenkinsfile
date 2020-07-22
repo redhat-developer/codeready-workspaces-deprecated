@@ -17,9 +17,14 @@ def installGo(){
 	sh "go version"
 }
 
+def List axes = ['rhel7-releng', 's390x-rhel7-beaker']
+
+
 def CRW_path = "codeready-workspaces-deprecated"
-timeout(120) {
-	node("${node}"){ stage "Build ${CRW_path}"
+for (int i=0; i < axes.size(); i++) {
+    tasks[axes[i]] = { ->
+        timeout(120) {
+	    node("${axes[i]}"){ stage "Build ${CRW_path}"
 		cleanWs()
 		sh "cat /proc/cpuinfo; cat /proc/meminfo"
 		sh "df -h; du -sch . ${WORKSPACE} /tmp 2>/dev/null || true"
@@ -31,7 +36,7 @@ timeout(120) {
 			extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: "${CRW_path}"]], 
 			submoduleCfg: [], 
 			userRemoteConfigs: [[url: "https://github.com/redhat-developer/${CRW_path}.git"]]])
-		sh "/usr/bin/time -v ${CRW_path}/build.sh"
+		sh "${CRW_path}/build.sh"
 		archiveArtifacts fingerprint: true, artifacts: "${CRW_path}/*/target/*.tar.*"
 
 		SHA_CRW = sh(returnStdout:true,script:"cd ${CRW_path}/ && git rev-parse --short=4 HEAD").trim()
@@ -42,5 +47,11 @@ timeout(120) {
 		def descriptString="Build #${BUILD_NUMBER} (${BUILD_TIMESTAMP}) <br/> :: ${CRW_path} @ ${SHA_CRW}"
 		echo "${descriptString}"
 		currentBuild.description="${descriptString}"
-	}
+	    }
+        }
+    }
+}
+
+stage("Matrix builds") {
+    parallel(tasks)
 }
