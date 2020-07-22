@@ -18,7 +18,7 @@ def installGo(){
 }
 
 def List axes = ['rhel7-releng', 's390x-rhel7-beaker']
-
+def Map tasks = [failFast: false]
 
 def CRW_path = "codeready-workspaces-deprecated"
 for (int i=0; i < axes.size(); i++) {
