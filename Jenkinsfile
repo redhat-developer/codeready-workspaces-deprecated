@@ -22,9 +22,10 @@ def Map tasks = [failFast: false]
 
 def CRW_path = "codeready-workspaces-deprecated"
 for (int i=0; i < axes.size(); i++) {
+    def String nodeLabel = "${axes[i]}"
     tasks[axes[i]] = { ->
         timeout(120) {
-	    node("${axes[i]}"){ stage "Build ${CRW_path}"
+	    node(nodeLabel){ stage "Build ${CRW_path}"
 		cleanWs()
 		sh "cat /proc/cpuinfo; cat /proc/meminfo"
 		sh "df -h; du -sch . ${WORKSPACE} /tmp 2>/dev/null || true"
