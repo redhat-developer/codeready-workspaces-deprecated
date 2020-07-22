@@ -24,7 +24,7 @@ def CRW_path = "codeready-workspaces-deprecated"
 for (int i=0; i < axes.size(); i++) {
     def String nodeLabel = "${axes[i]}"
     tasks[axes[i]] = { ->
-        timeout(120) {
+        timeout(240) {
 	    node(nodeLabel){ 
               stage ("Build ${CRW_path} on ${nodeLabel}") {
 		cleanWs()
