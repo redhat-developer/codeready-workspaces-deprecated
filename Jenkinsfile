@@ -25,7 +25,7 @@ for (int i=0; i < arches.size(); i++) {
     tasks[arches[i]] = { ->
         timeout(240) {
 	    node(nodeLabel) { 
-                stage ("Build ${CRW_path} on ${nodeLabel}") {
+                stage ("Build on ${nodeLabel}") {
                     cleanWs()
                     sh "cat /proc/cpuinfo; cat /proc/meminfo"
                     sh "df -h; du -sch . ${WORKSPACE} /tmp 2>/dev/null || true"
@@ -54,6 +54,6 @@ for (int i=0; i < arches.size(); i++) {
     }
 }
 
-stage("Builds") {
+stage("${CRW_path} Builds") {
     parallel(tasks)
 }
