@@ -14,3 +14,5 @@ fi
 for b in ${stacks} ; do
   "${SCRIPT_DIR}/${b}/build.sh"
 done
+
+docker system prune -af
