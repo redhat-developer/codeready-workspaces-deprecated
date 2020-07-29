@@ -23,7 +23,7 @@ def CRW_path = "codeready-workspaces-deprecated"
 for (int i=0; i < arches.size(); i++) {
     def String nodeLabel = "${arches[i]}"
     tasks[arches[i]] = { ->
-        timeout(240) {
+        timeout(120) {
 	    node(nodeLabel) { 
                 stage ("Build on ${nodeLabel}") {
                     cleanWs()
@@ -37,7 +37,7 @@ for (int i=0; i < arches.size(); i++) {
                         extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: "${CRW_path}"]], 
                         submoduleCfg: [], 
                         userRemoteConfigs: [[url: "https://github.com/redhat-developer/${CRW_path}.git"]]])
-                    sh "${CRW_path}/build.sh"
+                    sh "/usr/bin/time -v ${CRW_path}/build.sh"
                     archiveArtifacts fingerprint: true, artifacts: "${CRW_path}/*/target/*.tar.*"
 
                     SHA_CRW = sh(returnStdout:true,script:"cd ${CRW_path}/ && git rev-parse --short=4 HEAD").trim()
