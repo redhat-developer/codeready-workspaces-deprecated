@@ -24,7 +24,7 @@ echo "CodeReady Workspaces :: Stacks :: Language Servers :: Python Dependencies"
 echo ""
 
 mkdir -p target/python-ls
-docker run -v $SCRIPT_DIR/target/python-ls:/python -u root $PYTHON_IMAGE_VERSION sh -c "
+docker run --rm -v $SCRIPT_DIR/target/python-ls:/python -u root $PYTHON_IMAGE_VERSION sh -c "
     pip install --upgrade pip
     pip install python-language-server[all]==${PYTHON_LS_VERSION} --prefix=/python
     chmod -R 777 /python

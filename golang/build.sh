@@ -30,12 +30,12 @@ echo ""
 mkdir -p target/go
 
 # get LS itself as npm module
-docker run -v $SCRIPT_DIR/target:/node_modules ${NODEJS_IMAGE_VERSION} sh -c "
+docker run --rm -v $SCRIPT_DIR/target:/node_modules ${NODEJS_IMAGE_VERSION} sh -c "
     npm install --prefix /node_modules ${GOLANG_LS_OLD_DEPS} go-language-server@${GOLANG_LS_VERSION}
     chmod -R 777 /node_modules
     "
 # go get LS go deps
-docker run -v $SCRIPT_DIR/target/go:/go $GOLANG_IMAGE_VERSION sh -c "
+docker run --rm -v $SCRIPT_DIR/target/go:/go $GOLANG_IMAGE_VERSION sh -c "
     go get -v github.com/stamblerre/gocode;
     go get -v github.com/uudashr/gopkgs/cmd/gopkgs;
     go get -v github.com/ramya-rao-a/go-outline;
