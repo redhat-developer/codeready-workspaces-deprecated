@@ -24,7 +24,7 @@ echo "CodeReady Workspaces :: Kamel"
 echo ""
 
 mkdir -p target/kamel
-docker run -v $SCRIPT_DIR/target/kamel:/kamel -u root $GOLANG_IMAGE_VERSION sh -c "
+docker run --rm -v $SCRIPT_DIR/target/kamel:/kamel -u root $GOLANG_IMAGE_VERSION sh -c "
     wget https://github.com/apache/camel-k/archive/${KAMEL_VERSION}.tar.gz -O /tmp/camel-k-client-${KAMEL_VERSION}-src.tar.gz
     cd /tmp
     tar xzf /tmp/camel-k-client-${KAMEL_VERSION}-src.tar.gz

@@ -26,7 +26,7 @@ echo "CodeReady Workspaces :: Stacks :: Language Servers :: Node 10 Dependencies
 echo ""
 
 mkdir -p target/nodejs-ls
-docker run -v $SCRIPT_DIR/target/nodejs-ls:/node_modules -u root $NODEJS_IMAGE_VERSION sh -c "
+docker run --rm -v $SCRIPT_DIR/target/nodejs-ls:/node_modules -u root $NODEJS_IMAGE_VERSION sh -c "
     npm install --prefix /node_modules nodemon@${NODEMON_VERSION} typescript@${TYPERSCRIPT_VERSION} typescript-language-server@${TYPESCRIPT_LS_VERSION}
     chmod -R 777 /node_modules
     "

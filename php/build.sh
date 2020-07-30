@@ -26,7 +26,7 @@ echo ""
 
 mkdir -p target/php-ls
 docker build . -t $PHP_LS_IMAGE -f php-ls.Dockerfile
-docker run -v $SCRIPT_DIR/target/php-ls:/php $PHP_LS_IMAGE sh -c "
+docker run --rm -v $SCRIPT_DIR/target/php-ls:/php $PHP_LS_IMAGE sh -c "
     cd /php
     /usr/local/bin/composer require jetbrains/phpstorm-stubs:dev-master
     /usr/local/bin/composer require felixfbecker/language-server:${PHP_LS_VERSION}

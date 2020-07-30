@@ -16,7 +16,7 @@ def installGo(){
     sh "go version"
 }
 
-def List arches = ['rhel7-releng', 's390x-rhel7-beaker']
+def List arches = ['rhel7-releng', 's390x-rhel7-beaker', 'ppc64le-rhel7-beaker']
 def Map tasks = [failFast: false]
 
 def CRW_path = "codeready-workspaces-deprecated"
