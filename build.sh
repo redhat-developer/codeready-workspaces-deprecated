@@ -12,7 +12,7 @@ if [ "$1" == "clean" ] ; then
 fi
 
 for b in ${stacks} ; do
-  "${SCRIPT_DIR}/${b}/build.sh"
+  "${SCRIPT_DIR}/${b}/build.sh" &
 done
-
+wait
 docker system prune -af
