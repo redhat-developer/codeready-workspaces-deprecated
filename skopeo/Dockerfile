@@ -9,7 +9,7 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-# https://access.redhat.com/containers/?tab=tags#/registry.access.redhat.com/ubi8/php-73
+# https://access.redhat.com/containers/?tab=tags#/registry.access.redhat.com/ubi8/ubi
 FROM registry.access.redhat.com/ubi8/ubi:8.2-347 as builder
 USER root
 RUN yum install -y git wget make gcc gpgme-devel libassuan-devel  device-mapper-devel && \
