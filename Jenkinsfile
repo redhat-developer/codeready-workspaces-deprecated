@@ -17,13 +17,14 @@ def installGo(){
     sh "go version"
 }
 
-def List arches = ['rhel7-releng', 's390x-rhel7-beaker', 'ppc64le-rhel7-beaker']
+// Nodes to run artifact build on ex. ['rhel7-releng', 's390x-rhel7-beaker', 'ppc64le-rhel7-beaker']
+def List build_nodes = ['rhel7-releng', 's390x-rhel7-beaker', 'ppc64le-rhel7-beaker']
 def Map tasks = [failFast: false]
 
 def CRW_path = "codeready-workspaces-deprecated"
-for (int i=0; i < arches.size(); i++) {
-    def String nodeLabel = "${arches[i]}"
-    tasks[arches[i]] = { ->
+for (int i=0; i < build_nodes.size(); i++) {
+    def String nodeLabel = "${build_nodes[i]}"
+    tasks[build_nodes[i]] = { ->
         timeout(120) {
 	    node(nodeLabel) { 
                 stage ("Build on ${nodeLabel}") {
