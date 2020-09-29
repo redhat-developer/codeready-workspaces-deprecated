@@ -1,7 +1,8 @@
 #!/usr/bin/env groovy
+import groovy.transform.Field
 
 // PARAMETERS for this pipeline:
-// branchToBuildCRW = */master
+@Field String MIDSTM_BRANCH = "crw-2.5-rhel-8"
 
 def installNPM(){
     def nodeHome = tool 'nodejs-10.9.0'
@@ -31,7 +32,7 @@ for (int i=0; i < arches.size(); i++) {
                     sh "df -h; du -sch . ${WORKSPACE} /tmp 2>/dev/null || true"
                     // for private repo, use checkout(credentialsId: 'devstudio-release')
                     checkout([$class: 'GitSCM', 
-                        branches: [[name: "${branchToBuildCRW}"]], 
+                        branches: [[name: "${MIDSTM_BRANCH}"]], 
                         doGenerateSubmoduleConfigurations: false, 
                         poll: true,
                         extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: "${CRW_path}"]], 
