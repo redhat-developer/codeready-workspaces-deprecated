@@ -13,7 +13,7 @@
 
 export SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
-export GOLANG_IMAGE_VERSION="golang:1.11"
+export GOLANG_IMAGE_VERSION="golang:1.12"
 export GOLANG_LINT_VERSION="v1.22.2"
 export GOLANG_LS_OLD_DEPS="console-stamp@0.2.9 strip-ansi@5.2.0 has-ansi@4.0.0 ansi-regex@4.1.0 chalk@2.4.2 escape-string-regexp@2.0.0 ansi-styles@4.1.0 supports-color@7.0.0"
 export GOLANG_LS_VERSION="0.1.7"
