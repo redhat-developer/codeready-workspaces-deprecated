@@ -24,10 +24,21 @@ echo "CodeReady Workspaces :: Kamel"
 echo ""
 
 mkdir -p target/kamel
-docker run --rm -v $SCRIPT_DIR/target/kamel:/kamel -u root $GOLANG_IMAGE_VERSION sh -c "
-    wget https://github.com/apache/camel-k/archive/${KAMEL_VERSION}.tar.gz -O /tmp/camel-k-client-${KAMEL_VERSION}-src.tar.gz
+
+PODMAN=$(command -v podman)
+if [[ ! -x $PODMAN ]]; then
+  echo "[WARNING] podman is not installed."
+ PODMAN=$(command -v docker)
+  if [[ ! -x $PODMAN ]]; then
+    echo "[ERROR] docker is not installed. Aborting."; exit 1
+  fi
+fi
+
+${PODMAN} run --rm -v $SCRIPT_DIR/target/kamel:/kamel -u root $GOLANG_IMAGE_VERSION sh -c "
+    wget https://github.com/apache/camel-k/archive/v${KAMEL_VERSION}.tar.gz -O /tmp/camel-k-client-${KAMEL_VERSION}-src.tar.gz
     cd /tmp
     tar xzf /tmp/camel-k-client-${KAMEL_VERSION}-src.tar.gz
+    ls -1 camel*
     cd camel-k-${KAMEL_VERSION}
     make build-kamel
     cp  /tmp/camel-k-${KAMEL_VERSION}/kamel /kamel/kamel
