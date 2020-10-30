@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Copyright (c) 2018-2019 Red Hat, Inc.
 # This program and the accompanying materials are made
@@ -14,7 +14,7 @@
 export SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
 export KAMEL_VERSION="1.2.0"
-export GOLANG_IMAGE_VERSION="registry.access.redhat.com/ubi8/go-toolset"
+export GOLANG_IMAGE="registry.access.redhat.com/ubi8/go-toolset"
 
 cd $SCRIPT_DIR
 [[ -e target ]] && rm -Rf target
@@ -34,7 +34,7 @@ if [[ ! -x $PODMAN ]]; then
   fi
 fi
 
-${PODMAN} run --rm -v $SCRIPT_DIR/target/kamel:/kamel -u root $GOLANG_IMAGE_VERSION sh -c "
+${PODMAN} run --rm -v $SCRIPT_DIR/target/kamel:/kamel -u root ${GOLANG_IMAGE} sh -c "
     wget https://github.com/apache/camel-k/archive/v${KAMEL_VERSION}.tar.gz -O /tmp/camel-k-client-${KAMEL_VERSION}-src.tar.gz
     cd /tmp
     tar xzf /tmp/camel-k-client-${KAMEL_VERSION}-src.tar.gz
@@ -44,3 +44,5 @@ ${PODMAN} run --rm -v $SCRIPT_DIR/target/kamel:/kamel -u root $GOLANG_IMAGE_VERS
     cp  /tmp/camel-k-${KAMEL_VERSION}/kamel /kamel/kamel
     "
 tar -czf target/kamel-${KAMEL_VERSION}-$(uname -m).tar.gz -C target/kamel .
+
+${PODMAN} rmi -f ${GOLANG_IMAGE}

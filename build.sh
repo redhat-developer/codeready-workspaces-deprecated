@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
@@ -15,4 +15,14 @@ for b in ${stacks} ; do
   "${SCRIPT_DIR}/${b}/build.sh" &
 done
 wait
-docker system prune -af
+
+PODMAN=$(command -v podman)
+if [[ ! -x $PODMAN ]]; then
+  echo "[WARNING] podman is not installed."
+ PODMAN=$(command -v docker)
+  if [[ ! -x $PODMAN ]]; then
+    echo "[ERROR] docker is not installed. Aborting."; exit 1
+  fi
+fi
+
+${PODMAN} system prune -af

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Copyright (c) 2018-2019 Red Hat, Inc.
 # This program and the accompanying materials are made
@@ -13,12 +13,12 @@
 
 export SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
-export GOLANG_IMAGE_VERSION="golang:1.12"
+export GOLANG_IMAGE="golang:1.12"
 export GOLANG_LINT_VERSION="v1.22.2"
 export GOLANG_LS_OLD_DEPS="console-stamp@0.2.9 strip-ansi@5.2.0 has-ansi@4.0.0 ansi-regex@4.1.0 chalk@2.4.2 escape-string-regexp@2.0.0 ansi-styles@4.1.0 supports-color@7.0.0"
 export GOLANG_LS_VERSION="0.1.7"
-export NODEJS_IMAGE_VERSION="node:8.16-alpine"  # find latest version: https://hub.docker.com/_/node/?tab=description
-#export NODEJS_IMAGE_VERSION="node:10.16-alpine"
+export NODEJS_IMAGE="node:8.16-alpine"  # find latest version: https://hub.docker.com/_/node/?tab=description
+#export NODEJS_IMAGE="node:10.16-alpine"
 
 cd $SCRIPT_DIR
 [[ -e target ]] && rm -Rf target
@@ -29,13 +29,22 @@ echo ""
 
 mkdir -p target/go
 
+PODMAN=$(command -v podman)
+if [[ ! -x $PODMAN ]]; then
+  echo "[WARNING] podman is not installed."
+ PODMAN=$(command -v docker)
+  if [[ ! -x $PODMAN ]]; then
+    echo "[ERROR] docker is not installed. Aborting."; exit 1
+  fi
+fi
+
 # get LS itself as npm module
-docker run --rm -v $SCRIPT_DIR/target:/node_modules ${NODEJS_IMAGE_VERSION} sh -c "
+${PODMAN} run --rm -v $SCRIPT_DIR/target:/node_modules ${NODEJS_IMAGE} sh -c "
     npm install --prefix /node_modules ${GOLANG_LS_OLD_DEPS} go-language-server@${GOLANG_LS_VERSION}
     chmod -R 777 /node_modules
     "
 # go get LS go deps
-docker run --rm -v $SCRIPT_DIR/target/go:/go $GOLANG_IMAGE_VERSION sh -c "
+${PODMAN} run --rm -v $SCRIPT_DIR/target/go:/go ${GOLANG_IMAGE} sh -c "
     go get -v github.com/stamblerre/gocode;
     go get -v github.com/uudashr/gopkgs/cmd/gopkgs;
     go get -v github.com/ramya-rao-a/go-outline;
@@ -63,3 +72,5 @@ docker run --rm -v $SCRIPT_DIR/target/go:/go $GOLANG_IMAGE_VERSION sh -c "
     chmod -R 777 /go
     "
 tar -czf target/codeready-workspaces-stacks-language-servers-dependencies-golang-$(uname -m).tar.gz -C target go node_modules
+
+${PODMAN} rmi -f ${NODEJS_IMAGE} ${GOLANG_IMAGE}
