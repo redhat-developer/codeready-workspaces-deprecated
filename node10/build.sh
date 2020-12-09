@@ -13,7 +13,7 @@
 
 export SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
-export NODEJS_IMAGE="node:10.15-alpine"  # find latest version: https://hub.docker.com/_/node/?tab=description
+export NODEJS_IMAGE="registry.access.redhat.com/ubi8/nodejs-10:1-114"
 export NODEMON_VERSION=1.19.3  # find latest version: https://www.npmjs.com/package/nodemon
 export TYPERSCRIPT_VERSION=3.4.5  # find latest version: https://www.npmjs.com/package/typescript
 export TYPESCRIPT_LS_VERSION=0.3.7  # find latest version: https://www.npmjs.com/package/typescript-language-server

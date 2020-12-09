@@ -10,7 +10,7 @@
 #
 
 # https://access.redhat.com/containers/?tab=tags#/registry.access.redhat.com/ubi8/php-73
-FROM registry.access.redhat.com/ubi8/php-73:1-34.1589298720 as builder
+FROM registry.access.redhat.com/ubi8/php-73:1-66 as builder
 USER root
 RUN mkdir -p /php && cd /php && chmod -R 777 /php && \
     wget https://getcomposer.org/installer -O /tmp/composer-installer.php && \

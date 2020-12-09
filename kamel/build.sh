@@ -14,7 +14,7 @@
 export SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
 export KAMEL_VERSION="1.2.1"
-export GOLANG_IMAGE="registry.access.redhat.com/ubi8/go-toolset"
+export GOLANG_IMAGE="registry.access.redhat.com/ubi8/go-toolset:1.14.7-15"
 
 cd $SCRIPT_DIR
 [[ -e target ]] && rm -Rf target
