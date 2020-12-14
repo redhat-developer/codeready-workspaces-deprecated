@@ -13,7 +13,7 @@
 
 export SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
-export SKOPEO_IMAGE="skopeo:tmp"
+export SKOPEO_IMAGE="registry.redhat.io/rhel8/skopeo" # 8.3-13
 
 cd $SCRIPT_DIR
 [[ -e target ]] && rm -Rf target
@@ -33,10 +33,11 @@ if [[ ! -x $PODMAN ]]; then
   fi
 fi
 
-${PODMAN} build -t ${SKOPEO_IMAGE} .
-${PODMAN} run --rm -v $SCRIPT_DIR/target:/skopeo ${SKOPEO_IMAGE} sh -c "
-    cp /usr/local/bin/skopeo /skopeo
-    "
+# to use the latest nightly, uncomment the next line and build locally
+# ${PODMAN} build -t ${SKOPEO_IMAGE} . 
+
+# pull skopeo binary from the container (either built above, or fetched from reg.rh.io)
+${PODMAN} run --rm -v $SCRIPT_DIR/target:/skopeo ${SKOPEO_IMAGE} sh -c "cp /usr/bin/skopeo /skopeo"
 tar -czf target/skopeo-$(uname -m).tar.gz -C target skopeo
 
 ${PODMAN} rmi -f ${SKOPEO_IMAGE}
