@@ -14,15 +14,23 @@
 SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
 stacks="golang kamel node10 php python skopeo"
+runmode="series" # or parallel
 
-if [ "$1" == "clean" ] ; then
-  for b in ${stacks} ; do
+cleanTargetFolders () {
+  for b in ${stacks} ; do 
     rm -Rf "${b}/target"
   done
-  exit 0
-fi
+}
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+    '--clean-only') cleanTargetFolders; exit 0; shift 0;;
+    '--clean') cleanTargetFolders; shift 0;;
+    '--parallel'   ) runmode="parallel"; shift 0;;
+  esac
+  shift 1
+done
 
-if [ "$2" == "parallel" ] ; then # run builds in parallel, which might consume a lot of memory / disk
+if [ "$runmode" == "parallel" ] ; then # run builds in parallel, which might consume a lot of memory / disk
   for b in ${stacks} ; do
     "${SCRIPT_DIR}/${b}/build.sh" &
   done
