@@ -1,6 +1,6 @@
-#!/bin/bash -e
+#!/bin/bash -x
 
-# Copyright (c) 2018-2019 Red Hat, Inc.
+# Copyright (c) 2018-2021 Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
 # which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -12,12 +12,10 @@
 #
 
 export SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
-
 export NODEJS_IMAGE="registry.access.redhat.com/ubi8/nodejs-10:1-114"
 export NODEMON_VERSION=1.19.3  # find latest version: https://www.npmjs.com/package/nodemon
 export TYPERSCRIPT_VERSION=3.4.5  # find latest version: https://www.npmjs.com/package/typescript
 export TYPESCRIPT_LS_VERSION=0.3.7  # find latest version: https://www.npmjs.com/package/typescript-language-server
-
 cd $SCRIPT_DIR
 [[ -e target ]] && rm -Rf target
 
@@ -27,10 +25,10 @@ echo ""
 
 mkdir -p target/nodejs-ls
 
-PODMAN=$(command -v podman)
+PODMAN=$(command -v podman || true)
 if [[ ! -x $PODMAN ]]; then
   echo "[WARNING] podman is not installed."
- PODMAN=$(command -v docker)
+ PODMAN=$(command -v docker || true)
   if [[ ! -x $PODMAN ]]; then
     echo "[ERROR] docker is not installed. Aborting."; exit 1
   fi

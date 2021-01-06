@@ -1,6 +1,6 @@
-#!/bin/bash -e
+#!/bin/bash -x
 
-# Copyright (c) 2018-2019 Red Hat, Inc.
+# Copyright (c) 2018-2021 Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
 # which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -12,12 +12,10 @@
 #
 
 export SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
-
 export GOLANG_IMAGE="registry.access.redhat.com/ubi8/go-toolset:1.14.7-15"
 export GOLANG_LINT_VERSION="v1.22.2"
 export GOLANG_LS_OLD_DEPS="console-stamp@0.2.9 strip-ansi@5.2.0 has-ansi@4.0.0 ansi-regex@4.1.0 chalk@2.4.2 escape-string-regexp@2.0.0 ansi-styles@4.1.0 supports-color@7.0.0"
 export GOLANG_LS_VERSION="0.1.7"
-
 cd $SCRIPT_DIR
 [[ -e target ]] && rm -Rf target
 
@@ -27,10 +25,10 @@ echo ""
 
 mkdir -p target/go
 
-PODMAN=$(command -v podman)
+PODMAN=$(command -v podman || true)
 if [[ ! -x $PODMAN ]]; then
   echo "[WARNING] podman is not installed."
- PODMAN=$(command -v docker)
+ PODMAN=$(command -v docker || true)
   if [[ ! -x $PODMAN ]]; then
     echo "[ERROR] docker is not installed. Aborting."; exit 1
   fi
