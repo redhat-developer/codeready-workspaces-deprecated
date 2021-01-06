@@ -12,8 +12,8 @@
 #
 
 export SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
-export PYTHON_LS_VERSION=0.21.5
-export PYTHON_IMAGE="registry.access.redhat.com/ubi8/python-36:1"
+export PYTHON_LS_VERSION=0.36.1
+export PYTHON_IMAGE="registry.access.redhat.com/ubi8/python-38:1"
 
 cd $SCRIPT_DIR
 [[ -e target ]] && rm -Rf target
@@ -35,7 +35,7 @@ fi
 
 ${PODMAN} run --rm -v $SCRIPT_DIR/target/python-ls:/python -u root ${PYTHON_IMAGE} sh -c "
     pip install --upgrade pip
-    pip install python-language-server[all]==${PYTHON_LS_VERSION} --prefix=/python
+    pip install python-language-server[all]==${PYTHON_LS_VERSION} ptvsd jedi pylint --prefix=/python
     chmod -R 777 /python
     "
 tar -czf target/codeready-workspaces-stacks-language-servers-dependencies-python-$(uname -m).tar.gz -C target/python-ls .
