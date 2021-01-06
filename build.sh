@@ -24,8 +24,8 @@ cleanTargetFolders () {
 while [[ "$#" -gt 0 ]]; do
   case $1 in
     '--clean-only') cleanTargetFolders; exit 0; shift 0;;
-    '--clean') cleanTargetFolders; shift 0;;
-    '--parallel'   ) runmode="parallel"; shift 0;;
+    '--clean')      cleanTargetFolders; shift 0;;
+    '--parallel')   runmode="parallel"; shift 0;;
   esac
   shift 1
 done
