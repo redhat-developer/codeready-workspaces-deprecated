@@ -34,10 +34,17 @@ if [[ ! -x $PODMAN ]]; then
 fi
 
 ${PODMAN} run --rm -v $SCRIPT_DIR/target/python-ls:/python -u root ${PYTHON_IMAGE} sh -c "
-    pip install --upgrade pip
-    pip install python-language-server[all]==${PYTHON_LS_VERSION} ptvsd jedi pylint --prefix=/python
-    chmod -R 777 /python
+    /usr/bin/python3 --version && \
+    /usr/bin/python3 -m pip install -q --upgrade pip && \
+    /usr/bin/python3 -m pip install -q python-language-server[all]==${PYTHON_LS_VERSION} ptvsd jedi wrapt --prefix=/python && \
+    /usr/bin/python3 -m pip install -q pylint --prefix=/python && \
+    chmod -R 777 /python && \
+    # fix exec line in pylint executable to use valid python interpreter - replace /opt/app-root/ with /usr/
+    for d in \$(find /python/bin -type f); do sed -i \${d} -r -e 's#/opt/app-root/#/usr/#'; done && 
+    export PATH=\${PATH}:/python/bin
+    ls -la /python/bin
+    cat /python/bin/pylint
     "
 tar -czf target/codeready-workspaces-stacks-language-servers-dependencies-python-$(uname -m).tar.gz -C target/python-ls .
 
-${PODMAN} rmi -f ${PYTHON_IMAGE}
+# ${PODMAN} rmi -f ${PYTHON_IMAGE}
