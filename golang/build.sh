@@ -35,7 +35,7 @@ if [[ ! -x $PODMAN ]]; then
 fi
 
 # go get LS go deps
-${PODMAN} run --rm -v $SCRIPT_DIR/target/go:/go -u root ${GOLANG_IMAGE} sh -c "
+${PODMAN} run --rm -v $SCRIPT_DIR/target/go:/opt/app-root/src/go -u root ${GOLANG_IMAGE} sh -c "
     go get -v github.com/stamblerre/gocode;
     go get -v github.com/uudashr/gopkgs/cmd/gopkgs;
     go get -v github.com/ramya-rao-a/go-outline;
@@ -62,6 +62,6 @@ ${PODMAN} run --rm -v $SCRIPT_DIR/target/go:/go -u root ${GOLANG_IMAGE} sh -c "
     wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s ${GOLANG_LINT_VERSION}
     chmod -R 777 /go
     "
-tar -czf target/codeready-workspaces-stacks-language-servers-dependencies-golang-$(uname -m).tar.gz -C target go node_modules
+tar -czf target/codeready-workspaces-stacks-language-servers-dependencies-golang-$(uname -m).tar.gz -C target go
 
 ${PODMAN} rmi -f ${GOLANG_IMAGE}
