@@ -16,8 +16,7 @@ RUN dnf install -y diffutils findutils php-fpm php-opcache php-devel php-pear ph
     pecl channel-update pecl.php.net && \
     pecl install xdebug
 RUN echo -e "zend_extension=$(find /usr/lib64/php/modules -name xdebug.so)\n\
-xdebug.coverage_enable=0\n\
-xdebug.remote_enable=1\n\
-xdebug.remote_connect_back=1\n\
-xdebug.remote_log=/tmp/xdebug.log\n\
-xdebug.remote_autostart=true" > /etc/php.ini
+xdebug.client_port = 9000\n\
+xdebug.mode = debug\n\
+xdebug.start_with_request = yes\n\
+xdebug.remote_log=/tmp/xdebug.log" > /etc/php.ini
