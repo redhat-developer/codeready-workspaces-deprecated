@@ -33,17 +33,17 @@ if [[ ! -x $PODMAN ]]; then
   fi
 fi
 
-${PODMAN} run --rm -v $SCRIPT_DIR/target/python-ls:/python -u root ${PYTHON_IMAGE} sh -c "
-    /usr/bin/python3 --version && \
-    /usr/bin/python3 -m pip install -q --upgrade pip && \
-    /usr/bin/python3 -m pip install -q python-language-server[all]==${PYTHON_LS_VERSION} ptvsd jedi wrapt --prefix=/python && \
-    /usr/bin/python3 -m pip install -q pylint --prefix=/python && \
-    chmod -R 777 /python && \
+${PODMAN} run --rm -v $SCRIPT_DIR/target/python-ls:/tmp/python -u root ${PYTHON_IMAGE} sh -c "
+    /usr/bin/python3 --version && /usr/bin/python3 -m pip --version && \
+    /usr/bin/python3 -m pip install -q --upgrade  --no-warn-script-location pip && \
+    /usr/bin/python3 -m pip install -q --no-warn-script-location python-language-server[all]==${PYTHON_LS_VERSION} ptvsd jedi wrapt --prefix=/tmp/python && \
+    /usr/bin/python3 -m pip install -q --no-warn-script-location pylint --prefix=/tmp/python && \
+    chmod -R 777 /tmp/python && \
     # fix exec line in pylint executable to use valid python interpreter - replace /opt/app-root/ with /usr/
-    for d in \$(find /python/bin -type f); do sed -i \${d} -r -e 's#/opt/app-root/#/usr/#'; done && 
-    export PATH=\${PATH}:/python/bin
-    ls -la /python/bin
-    cat /python/bin/pylint
+    for d in \$(find /tmp/python/bin -type f); do sed -i \${d} -r -e 's#/opt/app-root/#/usr/#'; done && 
+    export PATH=\${PATH}:/tmp/python/bin
+    ls -1 /tmp/python/bin
+    # cat /tmp/python/bin/pylint
     "
 tar -czf target/codeready-workspaces-stacks-language-servers-dependencies-python-$(uname -m).tar.gz -C target/python-ls .
 
