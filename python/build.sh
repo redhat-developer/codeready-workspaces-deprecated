@@ -45,6 +45,14 @@ ${PODMAN} run --rm -v "$SCRIPT_DIR"/target/python-ls:/tmp/python -u root ${PYTHO
     export PATH=\${PATH}:/tmp/python/bin
     ls -1 /tmp/python/bin
     # cat /tmp/python/bin/pylint
+    mkdir -p /home/jboss;
+    cd /home/jboss;
+    /usr/bin/python3 -m venv .venv;
+    source .venv/bin/activate;
+    pip install -U ipykernel jupyter;
+    python3 -m ipykernel install --name=.venv --user;
+    deactivate;
+    mv .venv /tmp/python/
     "
 tar -czf "target/codeready-workspaces-stacks-language-servers-dependencies-python-$(uname -m).tar.gz" -C target/python-ls .
 
