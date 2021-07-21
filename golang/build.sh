@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -xe
 
 # Copyright (c) 2018-2021 Red Hat, Inc.
 # This program and the accompanying materials are made
@@ -11,12 +11,13 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
+# shellcheck disable=SC2155
 export SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 export GOLANG_IMAGE="registry.access.redhat.com/ubi8/go-toolset:1.14.7-15"
 export GOLANG_LINT_VERSION="v1.22.2"
 export GOLANG_LS_OLD_DEPS="console-stamp@0.2.9 strip-ansi@5.2.0 has-ansi@4.0.0 ansi-regex@4.1.0 chalk@2.4.2 escape-string-regexp@2.0.0 ansi-styles@4.1.0 supports-color@7.0.0"
 export GOLANG_LS_VERSION="0.1.7"
-cd $SCRIPT_DIR
+cd "${SCRIPT_DIR}"
 [[ -e target ]] && rm -Rf target
 
 echo ""
@@ -35,7 +36,7 @@ if [[ ! -x $PODMAN ]]; then
 fi
 
 # go get LS go deps
-${PODMAN} run --rm -v $SCRIPT_DIR/target/go:/opt/app-root/src/go -u root ${GOLANG_IMAGE} sh -c "
+${PODMAN} run --rm -v "${SCRIPT_DIR}"/target/go:/opt/app-root/src/go -u root ${GOLANG_IMAGE} sh -c "
     go get -v github.com/stamblerre/gocode;
     go get -v github.com/uudashr/gopkgs/cmd/gopkgs;
     go get -v github.com/ramya-rao-a/go-outline;
@@ -62,6 +63,6 @@ ${PODMAN} run --rm -v $SCRIPT_DIR/target/go:/opt/app-root/src/go -u root ${GOLAN
     wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s ${GOLANG_LINT_VERSION}
     chmod -R 777 /go
     "
-tar -czf target/codeready-workspaces-stacks-language-servers-dependencies-golang-$(uname -m).tar.gz -C target go
+tar -czf "target/codeready-workspaces-stacks-language-servers-dependencies-golang-$(uname -m).tar.gz" -C target go
 
 ${PODMAN} rmi -f ${GOLANG_IMAGE}

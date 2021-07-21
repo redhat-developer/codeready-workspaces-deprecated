@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -xe
 
 # Copyright (c) 2018-2021 Red Hat, Inc.
 # This program and the accompanying materials are made
@@ -11,12 +11,13 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
+# shellcheck disable=SC2155
 export SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
 export KAMEL_VERSION="1.5.0"
 export GOLANG_IMAGE="registry.access.redhat.com/ubi8/go-toolset:1.14.7-15"
 
-cd $SCRIPT_DIR
+cd "${SCRIPT_DIR}"
 [[ -e target ]] && rm -Rf target
 
 echo ""
@@ -34,7 +35,7 @@ if [[ ! -x $PODMAN ]]; then
   fi
 fi
 
-${PODMAN} run --rm -v $SCRIPT_DIR/target/kamel:/kamel -u root ${GOLANG_IMAGE} sh -c "
+${PODMAN} run --rm -v "${SCRIPT_DIR}"/target/kamel:/kamel -u root ${GOLANG_IMAGE} sh -c "
     wget https://github.com/apache/camel-k/archive/v${KAMEL_VERSION}.tar.gz -O /tmp/camel-k-client-${KAMEL_VERSION}-src.tar.gz
     cd /tmp
     tar xzf /tmp/camel-k-client-${KAMEL_VERSION}-src.tar.gz
@@ -43,6 +44,6 @@ ${PODMAN} run --rm -v $SCRIPT_DIR/target/kamel:/kamel -u root ${GOLANG_IMAGE} sh
     make build-kamel
     cp  /tmp/camel-k-${KAMEL_VERSION}/kamel /kamel/kamel
     "
-tar -czf target/kamel-${KAMEL_VERSION}-$(uname -m).tar.gz -C target/kamel .
+tar -czf "target/kamel-${KAMEL_VERSION}-$(uname -m).tar.gz" -C target/kamel .
 
 ${PODMAN} rmi -f ${GOLANG_IMAGE}

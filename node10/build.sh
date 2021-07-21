@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -xe
 
 # Copyright (c) 2018-2021 Red Hat, Inc.
 # This program and the accompanying materials are made
@@ -11,12 +11,13 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
+# shellcheck disable=SC2155
 export SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 export NODEJS_IMAGE="registry.access.redhat.com/ubi8/nodejs-10:1-114"
 export NODEMON_VERSION=1.19.3  # find latest version: https://www.npmjs.com/package/nodemon
 export TYPERSCRIPT_VERSION=3.4.5  # find latest version: https://www.npmjs.com/package/typescript
 export TYPESCRIPT_LS_VERSION=0.3.7  # find latest version: https://www.npmjs.com/package/typescript-language-server
-cd $SCRIPT_DIR
+cd "$SCRIPT_DIR"
 [[ -e target ]] && rm -Rf target
 
 echo ""
@@ -34,10 +35,10 @@ if [[ ! -x $PODMAN ]]; then
   fi
 fi
 
-${PODMAN} run --rm -v $SCRIPT_DIR/target/nodejs-ls:/node_modules -u root ${NODEJS_IMAGE} sh -c "
+${PODMAN} run --rm -v "$SCRIPT_DIR"/target/nodejs-ls:/node_modules -u root ${NODEJS_IMAGE} sh -c "
     npm install --prefix /node_modules nodemon@${NODEMON_VERSION} typescript@${TYPERSCRIPT_VERSION} typescript-language-server@${TYPESCRIPT_LS_VERSION}
     chmod -R 777 /node_modules
     "
-tar -czf target/codeready-workspaces-stacks-language-servers-dependencies-node10-$(uname -m).tar.gz -C target/nodejs-ls .
+tar -czf "target/codeready-workspaces-stacks-language-servers-dependencies-node10-$(uname -m).tar.gz" -C target/nodejs-ls .
 
 ${PODMAN} rmi -f ${NODEJS_IMAGE}

@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -xe
 
 # Copyright (c) 2018-2021 Red Hat, Inc.
 # This program and the accompanying materials are made
@@ -11,11 +11,12 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
+# shellcheck disable=SC2155
 export SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 export PHP_LS_VERSION=5.4.6
 export PHP_LS_IMAGE="php-ls:tmp"
 export PHP_XDEBUG_IMAGE="php-xdebug:tmp"
-cd $SCRIPT_DIR
+cd "$SCRIPT_DIR"
 [[ -e target ]] && rm -Rf target
 
 echo ""
@@ -34,7 +35,7 @@ if [[ ! -x $PODMAN ]]; then
 fi
 
 ${PODMAN} build . -t ${PHP_LS_IMAGE} -f php-ls.Dockerfile
-${PODMAN} run --rm -v $SCRIPT_DIR/target/php-ls:/php ${PHP_LS_IMAGE} sh -c "
+${PODMAN} run --rm -v "$SCRIPT_DIR"/target/php-ls:/php ${PHP_LS_IMAGE} sh -c "
     cd /php
     /usr/local/bin/composer require jetbrains/phpstorm-stubs:dev-master
     /usr/local/bin/composer require felixfbecker/language-server:${PHP_LS_VERSION}
@@ -44,17 +45,17 @@ ${PODMAN} run --rm -v $SCRIPT_DIR/target/php-ls:/php ${PHP_LS_IMAGE} sh -c "
     cp /usr/local/bin/composer /php/composer
     chmod -R 777 /php/*
     "
-tar -czf target/codeready-workspaces-stacks-language-servers-dependencies-php-$(uname -m).tar.gz -C target/php-ls .
+tar -czf "target/codeready-workspaces-stacks-language-servers-dependencies-php-$(uname -m).tar.gz" -C target/php-ls .
 
 mkdir -p target/php-xdebug
 ${PODMAN} build . -t ${PHP_XDEBUG_IMAGE} -f xdebug.Dockerfile
-${PODMAN} run -v $SCRIPT_DIR/target/php-xdebug:/xd ${PHP_XDEBUG_IMAGE} sh -c "
+${PODMAN} run -v "$SCRIPT_DIR"/target/php-xdebug:/xd ${PHP_XDEBUG_IMAGE} sh -c "
     mkdir -p /xd/etc /xd/usr/share/doc/pecl/xdebug /xd/usr/lib64/php/modules/
     cp /etc/php.ini /xd/etc/php.ini
     cp -r /usr/share/doc/pecl/xdebug/* /xd/usr/share/doc/pecl/xdebug/
     cp /usr/lib64/php/modules/xdebug.so /xd/usr/lib64/php/modules/xdebug.so
     chmod -R 777 /xd
     "
-tar -czf target/codeready-workspaces-stacks-language-servers-dependencies-php-xdebug-$(uname -m).tar.gz -C target/php-xdebug .
+tar -czf "target/codeready-workspaces-stacks-language-servers-dependencies-php-xdebug-$(uname -m).tar.gz" -C target/php-xdebug .
 
 ${PODMAN} rmi -f ${PHP_LS_IMAGE} ${PHP_XDEBUG_IMAGE}

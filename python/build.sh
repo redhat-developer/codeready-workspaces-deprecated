@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -xe
 
 # Copyright (c) 2018-2021 Red Hat, Inc.
 # This program and the accompanying materials are made
@@ -11,11 +11,12 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
+# shellcheck disable=SC2155
 export SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 export PYTHON_LS_VERSION=0.36.1
 export PYTHON_IMAGE="registry.access.redhat.com/ubi8/python-38:1"
 
-cd $SCRIPT_DIR
+cd "$SCRIPT_DIR"
 [[ -e target ]] && rm -Rf target
 
 echo ""
@@ -33,7 +34,7 @@ if [[ ! -x $PODMAN ]]; then
   fi
 fi
 
-${PODMAN} run --rm -v $SCRIPT_DIR/target/python-ls:/tmp/python -u root ${PYTHON_IMAGE} sh -c "
+${PODMAN} run --rm -v "$SCRIPT_DIR"/target/python-ls:/tmp/python -u root ${PYTHON_IMAGE} sh -c "
     /usr/bin/python3 --version && /usr/bin/python3 -m pip --version && \
     /usr/bin/python3 -m pip install -q --upgrade  --no-warn-script-location pip && \
     /usr/bin/python3 -m pip install -q --no-warn-script-location python-language-server[all]==${PYTHON_LS_VERSION} ptvsd jedi wrapt --prefix=/tmp/python && \
@@ -45,6 +46,6 @@ ${PODMAN} run --rm -v $SCRIPT_DIR/target/python-ls:/tmp/python -u root ${PYTHON_
     ls -1 /tmp/python/bin
     # cat /tmp/python/bin/pylint
     "
-tar -czf target/codeready-workspaces-stacks-language-servers-dependencies-python-$(uname -m).tar.gz -C target/python-ls .
+tar -czf "target/codeready-workspaces-stacks-language-servers-dependencies-python-$(uname -m).tar.gz" -C target/python-ls .
 
 # ${PODMAN} rmi -f ${PYTHON_IMAGE}

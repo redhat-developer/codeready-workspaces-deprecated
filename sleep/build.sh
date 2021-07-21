@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -xe
 
 # Copyright (c) 2021 Red Hat, Inc.
 # This program and the accompanying materials are made
@@ -23,7 +23,7 @@ fi
 
 export KIP_IMAGE="quay.io/crw/imagepuller-rhel8:${CRW_VERSION}"
 
-cd $SCRIPT_DIR || exit 1
+cd "$SCRIPT_DIR" || exit 1
 [[ -e target ]] && rm -Rf target
 
 echo ""
@@ -41,7 +41,7 @@ if [[ ! -x $PODMAN ]]; then
   fi
 fi
 
-${PODMAN} run --rm -v $SCRIPT_DIR/target/sleep:/sleep -u root ${KIP_IMAGE} sh -c "
+${PODMAN} run --rm -v "$SCRIPT_DIR"/target/sleep:/sleep -u root ${KIP_IMAGE} sh -c "
     cp /bin/sleep /sleep
     chmod -R 777 /sleep
     "
