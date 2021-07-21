@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -xe
 
 # Copyright (c) 2018-2021 Red Hat, Inc.
 # This program and the accompanying materials are made
@@ -13,7 +13,7 @@
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
-stacks="golang kamel node10 php python sleep skopeo"
+stacks="golang kamel node10 php python sleep" # don't need skopeo anymore
 runmode="series" # or parallel
 
 cleanTargetFolders () {
