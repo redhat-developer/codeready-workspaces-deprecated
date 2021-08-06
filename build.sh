@@ -13,7 +13,7 @@
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" || exit; pwd)
 
-stacks="golang kamel node10 php python sleep" # don't need skopeo anymore
+stacks="golang kamel node10 php python" # don't need sleep and skopeo anymore
 runmode="series" # or parallel
 
 cleanTargetFolders () {
