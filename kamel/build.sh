@@ -36,9 +36,8 @@ if [[ ! -x $PODMAN ]]; then
 fi
 
 ${PODMAN} run --rm -v "${SCRIPT_DIR}"/target/kamel:/kamel -u root ${GOLANG_IMAGE} sh -c "
-    wget https://github.com/apache/camel-k/archive/v${KAMEL_VERSION}.tar.gz -O /tmp/camel-k-client-${KAMEL_VERSION}-src.tar.gz
     cd /tmp
-    tar xzf /tmp/camel-k-client-${KAMEL_VERSION}-src.tar.gz
+    curl -sSLo- https://github.com/apache/camel-k/archive/v${KAMEL_VERSION}.tar.gz | tar xz || true
     ls -1 camel*
     cd camel-k-${KAMEL_VERSION}
     make build-kamel
