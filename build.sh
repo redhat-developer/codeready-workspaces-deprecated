@@ -31,6 +31,7 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 # NOTE: SElinux needs to be permissive or disabled to volume mount a container to extract file(s)
+sudo setenforce 0 || true
 
 if [ "$runmode" == "parallel" ] ; then # run builds in parallel, which might consume a lot of memory / disk
   for b in ${stacks} ; do
