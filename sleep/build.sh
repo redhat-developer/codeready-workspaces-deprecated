@@ -47,4 +47,10 @@ ${PODMAN} run --rm -v "$SCRIPT_DIR"/target/sleep:/sleep -u root ${KIP_IMAGE} sh 
     "
 tar -czf "target/codeready-workspaces-sleep-$(uname -m).tar.gz" -C target/sleep sleep
 
+# upload the binary to GH
+if [[ ! -x ./uploadAssetsToGHRelease.sh ]]; then 
+    curl -sSLO "https://raw.githubusercontent.com/redhat-developer/codeready-workspaces/${MIDSTM_BRANCH}/product/uploadAssetsToGHRelease.sh" && chmod +x uploadAssetsToGHRelease.sh
+fi
+./uploadAssetsToGHRelease.sh -v "${CSV_VERSION}" -b "${MIDSTM_BRANCH}" --prefix deprecated "target/codeready-workspaces-sleep-$(uname -m).tar.gz"
+
 ${PODMAN} rmi -f ${KIP_IMAGE}

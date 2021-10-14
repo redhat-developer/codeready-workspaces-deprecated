@@ -41,4 +41,10 @@ fi
 ${PODMAN} run --rm -v "$SCRIPT_DIR"/target:/skopeo ${SKOPEO_IMAGE} sh -c "cp /usr/bin/skopeo /skopeo"
 tar -czf "target/skopeo-$(uname -m).tar.gz" -C target skopeo
 
+# upload the binary to GH
+if [[ ! -x ./uploadAssetsToGHRelease.sh ]]; then 
+    curl -sSLO "https://raw.githubusercontent.com/redhat-developer/codeready-workspaces/${MIDSTM_BRANCH}/product/uploadAssetsToGHRelease.sh" && chmod +x uploadAssetsToGHRelease.sh
+fi
+./uploadAssetsToGHRelease.sh -v "${CSV_VERSION}" -b "${MIDSTM_BRANCH}" --prefix deprecated "target/skopeo-$(uname -m).tar.gz"
+
 ${PODMAN} rmi -f ${SKOPEO_IMAGE}
