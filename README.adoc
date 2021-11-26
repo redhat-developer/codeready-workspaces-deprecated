@@ -1,45 +1,31 @@
-# Code Ready Workspaces Operator Installer and Stack/Devfile/Lang Server Sidecar Dependencies Builder
+# CodeReady Workspaces Lang Server Dependencies Builder
 
-This repo contains builds for collecting 3rd party dependencies needed by stack/devfile/lang server sidecar images.
+This repo used to contain builds for collecting or building 3rd party dependencies needed by stack/devfile/lang server sidecar images.
 
-## What's Inside
+The contents of this repo have moved, and this repo will be deleted one day.
 
-This repository contains:
-
-* `golang`, `node10`, `python`, `php` :: language servers and their dependencies packaged as tar.gzs, retrieved via Docker-based builds; these are then included in the sidecar's container builds
-
-* `kamel`, `skopeo` :: binaries built from source
-
-* `build.sh` :: build all of the above artifacts locally
-
-### To build locally:
-
-```
-./build.sh
-```
-
-### To build in Jenkins:
-
-* https://main-jenkins-csb-crwqe.apps.ocp4.prod.psi.redhat.com/job/CRW_CI/ (jobs)
-* https://gitlab.cee.redhat.com/codeready-workspaces/crw-jenkins/-/tree/master/jobs/CRW_CI (sources)
-* https://github.com/redhat-developer/codeready-workspaces-images#jenkins-jobs (copied sources)
-
----
-
-### Why codeready-workspaces-deprecated?
-
-The name was chosen based on some now-incorrect assumptions about future deployment process and how Che 7 would be built.
-
-Note that the process for collecting 3rd party deps may also change in future (eg., we might build more from source, or use a different process to collect them). So it's still deprecated in that sense. 
-
-Some examples of alternative ways to source 3rd party dependencies to include in CRW builds are below.
-
-* https://github.com/redhat-developer/codeready-workspaces-theia
-* https://github.com/redhat-developer/codeready-workspaces/tree/master/dependencies/
-
-### What's NOT Inside, or Where did ___ go?
+### Where did ___ go?
 
 This repository no longer contains:
+
+### Lang servers & dependencies (up to CRW 2.13)
+
+* node10 and python - https://github.com/redhat-developer/codeready-workspaces-images/tree/crw-2-rhel-8/codeready-workspaces-plugin-java8/build
+
+* golang - https://github.com/redhat-developer/codeready-workspaces-images/tree/crw-2-rhel-8/codeready-workspaces-stacks-golang/build
+
+* php - https://github.com/redhat-developer/codeready-workspaces-images/tree/crw-2-rhel-8/codeready-workspaces-stacks-php/build
+
+* kamel - https://github.com/redhat-developer/codeready-workspaces-images/tree/crw-2-rhel-8/codeready-workspaces-plugin-kubernetes/build
+
+### Binaries (up to CRW 2.10)
+
+* sleep - no longer used, as scratch images like machine-exec don't need a sleep binary to be pulled with the image-puller any more - https://github.com/che-incubator/kubernetes-image-puller/commit/ff890ed11234bc639ae05cd8c497708a579f5f5a
+
+### Ancient history (to CRW 2.6)
+
+* skopeo - no longer used, as latest UBI images contain a newer rpm version of skopeo (>=1.2.2) without bugs or missing features
+
 * `stacks/dependencies` :: moved to root of this repo
 
 * `operator-installer` :: moved to https://github.com/redhat-developer/codeready-workspaces-chectl/releases
